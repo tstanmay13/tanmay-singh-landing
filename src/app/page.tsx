@@ -41,8 +41,147 @@ export default function Home() {
               <p className="text-sushi-rice text-lg md:text-xl font-medium">
                 Full-Stack Developer
               </p>
+<<<<<<< Updated upstream
               <div className="mt-2 text-sm text-sushi-rice/70">
                 🍣 Premium Quality Development
+=======
+              <span 
+                className="inline-block px-3 py-1 rounded-[20px] text-xs mt-2.5 font-medium"
+                style={{ backgroundColor: '#FFD966', color: '#593B2B' }}
+              >
+                Open for Orders
+              </span>
+            </div>
+            <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: '#FFD966' }}></div>
+          </div>
+          
+          {/* About Section */}
+          <div 
+            className="bento-item about-section bg-white p-10 text-center transition-all duration-300 cursor-pointer relative overflow-hidden md:rounded-tr-[17px] hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(249,200,177,0.3)]"
+          >
+            <div className="relative z-10">
+              <span className="text-[40px] mb-[15px] block hover:animate-wiggle">🍱</span>
+              <h3 className="text-2xl font-semibold mb-[10px]" style={{ color: '#593B2B' }}>
+                About
+              </h3>
+              <p className="text-sm leading-normal" style={{ color: '#D99C64' }}>
+                Crafting delicious web experiences with the finest ingredients
+              </p>
+            </div>
+            <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: '#FDC6DA' }}></div>
+          </div>
+          
+          {/* Games Section */}
+          <a 
+            href="https://games.tanmay-singh.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bento-item games-section bg-white p-10 text-center transition-all duration-300 cursor-pointer relative overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(249,200,177,0.3)] block"
+          >
+            <div className="relative z-10">
+              <span className="text-[40px] mb-[15px] block hover:animate-wiggle">🎮</span>
+              <h3 className="text-2xl font-semibold mb-[10px]" style={{ color: '#593B2B' }}>
+                Games
+              </h3>
+              <p className="text-sm leading-normal" style={{ color: '#D99C64' }}>
+                Interactive digital delights
+              </p>
+              <span 
+                className="inline-block px-3 py-1 rounded-[20px] text-xs mt-2.5 font-medium"
+                style={{ backgroundColor: '#F9C8B1', color: '#593B2B' }}
+              >
+                Coming Soon
+              </span>
+            </div>
+            <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: '#A8E6CF' }}></div>
+          </a>
+          
+          {/* Portfolio Section */}
+          <a 
+            href="https://portfolio.tanmay-singh.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bento-item portfolio-section bg-white p-10 text-center transition-all duration-300 cursor-pointer relative overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(249,200,177,0.3)] block"
+          >
+            <div className="relative z-10">
+              <span className="text-[40px] mb-[15px] block hover:animate-wiggle">🍜</span>
+              <h3 className="text-2xl font-semibold mb-[10px]" style={{ color: '#593B2B' }}>
+                Portfolio
+              </h3>
+              <p className="text-sm leading-normal" style={{ color: '#D99C64' }}>
+                A collection of signature dishes
+              </p>
+              <span 
+                className="inline-block px-3 py-1 rounded-[20px] text-xs mt-2.5 font-medium"
+                style={{ backgroundColor: '#F9C8B1', color: '#593B2B' }}
+              >
+                Coming Soon
+              </span>
+            </div>
+            <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: '#FFA8A8' }}></div>
+          </a>
+          
+          {/* Blog Section */}
+          <a 
+            href="https://blog.tanmay-singh.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bento-item blog-section bg-white p-10 text-center transition-all duration-300 cursor-pointer relative overflow-hidden hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(249,200,177,0.3)] block"
+          >
+            <div className="relative z-10">
+              <span className="text-[40px] mb-[15px] block hover:animate-wiggle">📝</span>
+              <h3 className="text-2xl font-semibold mb-[10px]" style={{ color: '#593B2B' }}>
+                Blog
+              </h3>
+              <p className="text-sm leading-normal" style={{ color: '#D99C64' }}>
+                Fresh thoughts daily
+              </p>
+              <span 
+                className="inline-block px-3 py-1 rounded-[20px] text-xs mt-2.5 font-medium"
+                style={{ backgroundColor: '#F9C8B1', color: '#593B2B' }}
+              >
+                Coming Soon
+              </span>
+            </div>
+            <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: '#FFAD60' }}></div>
+          </a>
+          
+          {/* GitHub Stats Section */}
+          <div 
+            className="bento-item github-section bg-white p-10 text-center transition-all duration-300 cursor-pointer relative overflow-hidden md:rounded-bl-[17px] hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(249,200,177,0.3)]"
+          >
+            <div className="relative z-10">
+              <span className="text-[40px] mb-[15px] block hover:animate-wiggle">🐙</span>
+              <h3 className="text-2xl font-semibold mb-[10px]" style={{ color: '#593B2B' }}>
+                GitHub Activity
+              </h3>
+              <div className="text-3xl font-bold mb-1" style={{ color: '#FFD966' }}>
+                243
+              </div>
+              <p className="text-sm leading-normal" style={{ color: '#D99C64' }}>
+                Contributions this year
+              </p>
+            </div>
+            <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: '#B6E2A1' }}></div>
+          </div>
+          
+          {/* Contact Section */}
+          <div 
+            className="bento-item contact-section bg-white p-10 text-center transition-all duration-300 cursor-pointer relative overflow-hidden md:col-span-2 md:rounded-br-[17px] hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(249,200,177,0.3)]"
+          >
+            <div className="relative z-10">
+              <span className="text-[40px] mb-[15px] block hover:animate-wiggle">💌</span>
+              <h3 className="text-2xl font-semibold mb-[10px]" style={{ color: '#593B2B' }}>
+                Contact
+              </h3>
+              <p className="text-sm leading-normal" style={{ color: '#D99C64' }}>
+                Place your order • Follow the chef
+              </p>
+              <div className="mt-[15px] flex justify-center gap-3">
+                <a href="mailto:contact@tanmay-singh.com" className="text-xl hover:scale-110 transition-transform">📧</a>
+                <a href="https://github.com/tanmaysingh" target="_blank" rel="noopener noreferrer" className="text-xl hover:scale-110 transition-transform">🐙</a>
+                <a href="https://twitter.com/tanmaysingh" target="_blank" rel="noopener noreferrer" className="text-xl hover:scale-110 transition-transform">🐦</a>
+>>>>>>> Stashed changes
               </div>
             </div>
           </div>
