@@ -1,174 +1,215 @@
 "use client";
 
 import { 
-  Gamepad2, 
   Briefcase, 
-  PenTool, 
   Code, 
   Github, 
   Linkedin, 
   Mail,
   Twitter,
-  BookOpen
+  Flame,
+  FileText,
+  Utensils
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const [lidOpen, setLidOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setTimeout(() => setLidOpen(true), 100);
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 lg:p-12">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 auto-rows-[200px]">
-          {/* Hero Card - Large */}
-          <div className="glass-card rounded-2xl p-6 md:p-8 col-span-2 md:col-span-2 lg:col-span-3 row-span-1 flex flex-col justify-center cursor-pointer">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-2">
-              Tanmay Singh
-            </h1>
-            <p className="text-gray-400 text-lg md:text-xl">
-              Full-Stack Developer & Game Creator
-            </p>
-          </div>
-
-          {/* About Card - Medium */}
-          <div className="glass-card rounded-2xl p-6 col-span-2 md:col-span-2 lg:col-span-2 row-span-1 cursor-pointer">
-            <h2 className="text-2xl font-bold text-white mb-3">About</h2>
-            <p className={`text-gray-400 ${mounted ? 'typing-animation' : ''}`}>
-              Building interactive web experiences and games. Passionate about creating things that live on the internet.
-            </p>
-          </div>
-
-          {/* GitHub Stats Card - Medium */}
-          <div className="glass-card rounded-2xl p-6 col-span-2 md:col-span-2 lg:col-span-1 row-span-1 cursor-pointer">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold text-white">GitHub</h2>
-              <Github className="w-6 h-6 text-purple-400" />
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold gradient-text">243</div>
-              <p className="text-gray-400 text-sm">Contributions this year</p>
+    <div className="min-h-screen p-4 md:p-8 lg:p-12 chopsticks-cursor">
+      <div className={`max-w-7xl mx-auto ${lidOpen ? 'bento-container' : 'opacity-0'}`}>
+        <div className="mb-4 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-sushi-rice">Welcome to Tanmay&apos;s Digital Sushi Bar</h1>
+          <p className="japanese-subtitle">タンメイのデジタル寿司バー</p>
+        </div>
+        
+        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 auto-rows-[180px]">
+          {/* Hero Sashimi Card - Large */}
+          <div className="bento-card p-6 md:p-8 col-span-4 lg:col-span-4 row-span-1 flex flex-col justify-center cursor-pointer fish-scale">
+            <div>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold sushi-text mb-2">
+                Tanmay Singh
+              </h1>
+              <p className="japanese-subtitle text-lg mb-2">タンメイ・シン</p>
+              <p className="text-sushi-rice text-lg md:text-xl font-medium">
+                Full-Stack Developer
+              </p>
+              <div className="mt-2 text-sm text-sushi-rice/70">
+                🍣 Premium Quality Development
+              </div>
             </div>
           </div>
 
-          {/* Games Card - Medium */}
+          {/* About Roll Card - Medium */}
+          <div className="bento-card rice-texture p-6 col-span-2 lg:col-span-2 row-span-1 cursor-pointer">
+            <h2 className="text-xl font-bold text-sushi-rice mb-3 flex items-center gap-2">
+              <span className="text-2xl">🍱</span> About Roll
+            </h2>
+            <p className={`text-sushi-rice/80 text-sm ${mounted ? 'typing-animation' : ''}`}>
+              Crafting web experiences with the precision of a sushi master.
+            </p>
+            <p className="text-xs text-sushi-rice/60 mt-2">Fresh ingredients daily</p>
+          </div>
+
+          {/* GitHub Soy Sauce Dish - Small circular */}
+          <div className="bento-card p-4 col-span-2 row-span-1 cursor-pointer flex flex-col items-center justify-center">
+            <div className="w-24 h-24 rounded-full bg-soy-sauce flex flex-col items-center justify-center nori-border">
+              <Github className="w-8 h-8 text-sushi-rice mb-1" />
+              <div className="text-center">
+                <div className="text-xl font-bold text-sushi-rice">243</div>
+                <p className="text-sushi-rice/80 text-xs">Activity</p>
+              </div>
+            </div>
+            <p className="text-xs text-sushi-rice/60 mt-2">Sauce Level</p>
+          </div>
+
+          {/* Games Nigiri Card - Medium */}
           <a 
             href="https://games.tanmay-singh.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="glass-card rounded-2xl p-6 col-span-1 md:col-span-2 lg:col-span-2 row-span-1 cursor-pointer group"
+            className="bento-card p-6 col-span-2 row-span-1 cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold text-white">Games</h2>
-              <Gamepad2 className="w-8 h-8 text-purple-400 group-hover:scale-110 transition-transform" />
+            <div className="flex flex-col h-full">
+              <div className="text-3xl mb-2">🎮</div>
+              <h2 className="text-xl font-bold text-sushi-rice">Games Nigiri</h2>
+              <p className="text-sushi-rice/80 text-sm mt-1">
+                Fresh Games Daily
+              </p>
+              <p className="text-wasabi-green text-sm mt-auto group-hover:glow">(Coming Soon)</p>
             </div>
-            <p className="text-gray-400">
-              Explore my collection of web-based games
-            </p>
-            <p className="text-purple-400 text-sm mt-2">(Coming Soon)</p>
           </a>
 
-          {/* Portfolio Card - Medium */}
+          {/* Portfolio Maki Card - Medium */}
           <a 
             href="https://portfolio.tanmay-singh.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="glass-card rounded-2xl p-6 col-span-1 md:col-span-2 lg:col-span-2 row-span-1 cursor-pointer group"
+            className="bento-card p-6 col-span-2 row-span-1 cursor-pointer group"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold text-white">Portfolio</h2>
-              <Briefcase className="w-8 h-8 text-purple-400 group-hover:scale-110 transition-transform" />
+            <div className="flex flex-col h-full">
+              <div className="text-3xl mb-2">💼</div>
+              <h2 className="text-xl font-bold text-sushi-rice">Portfolio Maki</h2>
+              <p className="text-sushi-rice/80 text-sm mt-1">
+                Rolled to perfection
+              </p>
+              <p className="text-wasabi-green text-sm mt-auto">(Coming Soon)</p>
             </div>
-            <p className="text-gray-400">
-              View my work and projects
-            </p>
-            <p className="text-purple-400 text-sm mt-2">(Coming Soon)</p>
           </a>
 
-          {/* Blog Card - Small */}
+          {/* Blog Temaki Card - Small */}
           <a 
             href="https://blog.tanmay-singh.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="glass-card rounded-2xl p-6 col-span-1 row-span-1 cursor-pointer group"
+            className="bento-card p-4 col-span-2 row-span-1 cursor-pointer group"
           >
-            <div className="flex flex-col h-full justify-between">
-              <PenTool className="w-8 h-8 text-purple-400 group-hover:scale-110 transition-transform" />
-              <div>
-                <h2 className="text-lg font-bold text-white">Blog</h2>
-                <p className="text-gray-400 text-sm">(Coming Soon)</p>
-              </div>
+            <div className="flex flex-col h-full">
+              <div className="text-2xl mb-2">✍️</div>
+              <h2 className="text-lg font-bold text-sushi-rice">Blog Temaki</h2>
+              <p className="text-sushi-rice/80 text-xs">Today&apos;s Special Thoughts</p>
+              <p className="text-wasabi-green text-xs mt-auto">(Coming Soon)</p>
             </div>
           </a>
 
-          {/* Projects Card - Small */}
+          {/* Projects Bento Card - Medium */}
           <a 
             href="https://projects.tanmay-singh.com" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="glass-card rounded-2xl p-6 col-span-1 row-span-1 cursor-pointer group"
+            className="bento-card p-6 col-span-2 row-span-1 cursor-pointer group"
           >
-            <div className="flex flex-col h-full justify-between">
-              <Code className="w-8 h-8 text-purple-400 group-hover:scale-110 transition-transform" />
-              <div>
-                <h2 className="text-lg font-bold text-white">Projects</h2>
-                <p className="text-gray-400 text-sm">Open Source</p>
+            <div className="flex flex-col h-full">
+              <div className="text-3xl mb-2">🥢</div>
+              <h2 className="text-xl font-bold text-sushi-rice">Projects Bento</h2>
+              <p className="text-sushi-rice/80 text-sm">
+                Traditional compartments
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-1">
+                <div className="bg-sushi-rice/10 rounded p-1 text-xs text-center">React</div>
+                <div className="bg-sushi-rice/10 rounded p-1 text-xs text-center">Node</div>
+                <div className="bg-sushi-rice/10 rounded p-1 text-xs text-center">TS</div>
+                <div className="bg-sushi-rice/10 rounded p-1 text-xs text-center">+3</div>
               </div>
             </div>
           </a>
 
-          {/* Currently Card - Small */}
-          <div className="glass-card rounded-2xl p-6 col-span-1 row-span-1 cursor-pointer">
-            <div className="flex flex-col h-full justify-between">
-              <BookOpen className="w-8 h-8 text-purple-400" />
-              <div>
-                <h2 className="text-lg font-bold text-white">Currently</h2>
-                <p className="text-gray-400 text-sm">Learning Three.js</p>
-              </div>
+          {/* Currently Cooking Card - Small with steam */}
+          <div className="bento-card p-4 col-span-2 row-span-1 cursor-pointer steam-animation">
+            <div className="flex flex-col h-full">
+              <div className="text-2xl mb-2">🔥</div>
+              <h2 className="text-lg font-bold text-sushi-rice">Now Cooking</h2>
+              <p className="text-sushi-rice/80 text-sm">Three.js Ramen</p>
+              <p className="text-xs text-salmon-pink mt-1">Hot & Fresh</p>
             </div>
           </div>
 
-          {/* Contact Card - Small */}
-          <div className="glass-card rounded-2xl p-6 col-span-1 row-span-1 cursor-pointer">
-            <h2 className="text-lg font-bold text-white mb-4">Connect</h2>
-            <div className="flex gap-3">
+          {/* Contact Wasabi Card - Small, green accent */}
+          <div className="bento-card wasabi p-4 col-span-2 row-span-1 cursor-pointer bg-wasabi-green/20">
+            <h2 className="text-lg font-bold text-sushi-rice mb-3">Contact Wasabi</h2>
+            <p className="text-xs text-sushi-rice/80 mb-3">Adds flavor to connections</p>
+            <div className="grid grid-cols-2 gap-2">
               <a 
                 href="https://github.com/tanmaysingh" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg bg-white/10 hover:bg-purple-500/20 transition-colors"
+                className="p-2 rounded bg-sushi-rice/10 hover:bg-wasabi-green/20 transition-colors flex items-center justify-center"
               >
-                <Github className="w-5 h-5" />
+                <Github className="w-4 h-4" />
               </a>
               <a 
                 href="https://linkedin.com/in/tanmaysingh" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg bg-white/10 hover:bg-purple-500/20 transition-colors"
+                className="p-2 rounded bg-sushi-rice/10 hover:bg-wasabi-green/20 transition-colors flex items-center justify-center"
               >
-                <Linkedin className="w-5 h-5" />
+                <Linkedin className="w-4 h-4" />
               </a>
               <a 
                 href="https://twitter.com/tanmaysingh" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg bg-white/10 hover:bg-purple-500/20 transition-colors"
+                className="p-2 rounded bg-sushi-rice/10 hover:bg-wasabi-green/20 transition-colors flex items-center justify-center"
               >
-                <Twitter className="w-5 h-5" />
+                <Twitter className="w-4 h-4" />
               </a>
               <a 
                 href="mailto:contact@tanmay-singh.com" 
-                className="p-2 rounded-lg bg-white/10 hover:bg-purple-500/20 transition-colors"
+                className="p-2 rounded bg-sushi-rice/10 hover:bg-wasabi-green/20 transition-colors flex items-center justify-center"
               >
-                <Mail className="w-5 h-5" />
+                <Mail className="w-4 h-4" />
               </a>
             </div>
           </div>
         </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-sushi-rice/60 text-sm">
+            🍣 Serving Fresh Code Since 2024 • おいしい!
+          </p>
+          <p className="text-xs text-sushi-rice/40 mt-1">
+            Prepared with <Utensils className="inline w-3 h-3" /> by Chef Tanmay
+          </p>
+        </div>
       </div>
+
+      {/* Cherry Blossom Petals */}
+      {mounted && (
+        <>
+          <div className="cherry-blossom" style={{ left: '10%', animationDuration: '15s', animationDelay: '0s' }} />
+          <div className="cherry-blossom" style={{ left: '30%', animationDuration: '20s', animationDelay: '5s' }} />
+          <div className="cherry-blossom" style={{ left: '50%', animationDuration: '18s', animationDelay: '2s' }} />
+          <div className="cherry-blossom" style={{ left: '70%', animationDuration: '22s', animationDelay: '7s' }} />
+          <div className="cherry-blossom" style={{ left: '90%', animationDuration: '25s', animationDelay: '10s' }} />
+        </>
+      )}
     </div>
   );
 }

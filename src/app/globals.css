@@ -1,51 +1,174 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --wood-brown: #3d2817;
+  --wood-dark: #1a0f0a;
+  --sushi-rice: #f5f5f0;
+  --nori-black: #1a1a1a;
+  --wasabi-green: #8bc34a;
+  --salmon-pink: #ff6b6b;
+  --tuna-red: #d32f2f;
+  --soy-sauce: #2c1810;
+  --ginger-pink: #ffb6c1;
+  --bamboo-mat: #4a3c28;
+  --lacquer-shine: rgba(255, 255, 255, 0.1);
+  --steam-white: rgba(255, 255, 255, 0.6);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--wood-dark);
+  --color-foreground: var(--sushi-rice);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  
+  /* Custom colors */
+  --color-wood-brown: #3d2817;
+  --color-wood-dark: #1a0f0a;
+  --color-sushi-rice: #f5f5f0;
+  --color-nori-black: #1a1a1a;
+  --color-wasabi-green: #8bc34a;
+  --color-salmon-pink: #ff6b6b;
+  --color-tuna-red: #d32f2f;
+  --color-soy-sauce: #2c1810;
+  --color-ginger-pink: #ffb6c1;
 }
 
 body {
-  background: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
-  color: var(--foreground);
+  background-color: var(--wood-dark);
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(74, 60, 40, 0.1) 2px,
+      rgba(74, 60, 40, 0.1) 4px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(74, 60, 40, 0.1) 2px,
+      rgba(74, 60, 40, 0.1) 4px
+    );
+  color: var(--sushi-rice);
   font-family: Arial, Helvetica, sans-serif;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.bento-card {
+  background: var(--wood-brown);
+  background-image: 
+    radial-gradient(ellipse at top left, var(--lacquer-shine), transparent 50%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.1) 100%);
+  border: 3px solid var(--nori-black);
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.2),
+    0 4px 8px rgba(0,0,0,0.3),
+    0 8px 16px rgba(0,0,0,0.2);
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.glass-card:hover {
-  transform: scale(1.02);
-  border-color: rgba(139, 92, 246, 0.5);
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+.bento-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--bamboo-mat), var(--wood-brown));
+  z-index: -1;
+  opacity: 0.5;
 }
 
-.gradient-text {
-  background: linear-gradient(to right, #8b5cf6, #d946ef);
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.2),
+    0 8px 16px rgba(0,0,0,0.4),
+    0 16px 32px rgba(0,0,0,0.3);
+}
+
+.bento-card.wasabi:hover {
+  box-shadow: 
+    inset 0 2px 4px rgba(0,0,0,0.2),
+    0 8px 16px rgba(0,0,0,0.4),
+    0 0 20px rgba(139, 195, 74, 0.4);
+}
+
+.sushi-text {
+  background: linear-gradient(to right, var(--salmon-pink), var(--tuna-red));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-fill-color: transparent;
+  font-weight: 900;
+}
+
+.japanese-subtitle {
+  color: var(--soy-sauce);
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+
+.rice-texture {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 1px,
+      rgba(245, 245, 240, 0.1) 1px,
+      rgba(245, 245, 240, 0.1) 2px
+    );
+}
+
+.fish-scale {
+  background-image: 
+    radial-gradient(circle at 20% 50%, transparent 20%, rgba(255, 107, 107, 0.1) 21%, rgba(255, 107, 107, 0.1) 34%, transparent 35%),
+    radial-gradient(circle at 75% 50%, transparent 20%, rgba(255, 107, 107, 0.1) 21%, rgba(255, 107, 107, 0.1) 34%, transparent 35%);
+  background-size: 20px 20px;
+}
+
+.nori-border {
+  border: 2px solid var(--nori-black);
+  border-radius: 50%;
+}
+
+.steam-animation {
+  position: relative;
+}
+
+.steam-animation::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 20px;
+  height: 40px;
+  background: linear-gradient(to top, var(--steam-white), transparent);
+  border-radius: 50%;
+  animation: steam-rise 3s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes steam-rise {
+  0% {
+    transform: translateX(-50%) translateY(0) scaleX(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-30px) scaleX(2);
+    opacity: 0;
+  }
+}
+
+.chopsticks-cursor {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M8 24 L24 8" stroke="%233d2817" stroke-width="2" stroke-linecap="round"/><path d="M12 24 L28 8" stroke="%233d2817" stroke-width="2" stroke-linecap="round"/></svg>') 16 16, pointer;
 }
 
 @keyframes typing {
@@ -55,12 +178,55 @@ body {
 
 .typing-animation {
   overflow: hidden;
-  border-right: .15em solid #8b5cf6;
+  border-right: .15em solid var(--wasabi-green);
   white-space: nowrap;
   animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
 }
 
 @keyframes blink-caret {
   from, to { border-color: transparent }
-  50% { border-color: #8b5cf6; }
+  50% { border-color: var(--wasabi-green); }
+}
+
+@keyframes lid-open {
+  0% {
+    transform: rotateX(0deg) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateX(-90deg) translateZ(50px);
+    opacity: 0;
+  }
+}
+
+.bento-container {
+  animation: fade-in 0.5s ease-out 0.5s both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cherry-blossom {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: var(--ginger-pink);
+  border-radius: 50% 0;
+  opacity: 0.7;
+  animation: fall linear infinite;
+  pointer-events: none;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+  }
 }
