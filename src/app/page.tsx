@@ -15,13 +15,14 @@ export default function Home() {
     // Fetch GitHub contributions
     const fetchContributions = async () => {
       try {
-        const response = await fetch('https://api.github.com/users/tstanmay13');
-        const userData = await response.json();
+        const response = await fetch('/api/github-contributions');
         
-        // GitHub API doesn't provide total contributions directly
-        // We'll use the public repositories count + followers as a proxy for total activity
-        const totalContributions = (userData.public_repos || 0) + (userData.followers || 0) * 10;
-        setContributions(totalContributions || 243); // Fallback to original value
+        if (!response.ok) {
+          throw new Error('Failed to fetch contributions');
+        }
+        
+        const data = await response.json();
+        setContributions(data.totalContributions);
       } catch (error) {
         console.error('Failed to fetch GitHub contributions:', error);
         setContributions(243); // Fallback value
@@ -159,7 +160,7 @@ export default function Home() {
                 {contributions !== null ? contributions : '...'}
               </div>
               <p className="text-sm leading-normal text-[#D99C64]">
-                Contributions this year
+                Total contributions
               </p>
             </div>
             <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300 bg-[#B6E2A1]"></div>
@@ -186,10 +187,6 @@ export default function Home() {
             <div className="absolute inset-0 opacity-0 hover:opacity-10 transition-opacity duration-300 bg-[#FBA1B7]"></div>
           </div>
         </main>
-        
-        <footer className="text-center mt-[60px] text-sm text-[#D99C64]">
-          <p>🍣 Serving fresh code since 2024 • Made with 💝 by Chef Tanmay</p>
-        </footer>
       </div>
 
       <style jsx>{`
