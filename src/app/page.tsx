@@ -104,16 +104,11 @@ export default function Home() {
           
           {/* Games Section */}
           <BentoLinkCard
-            href="https://games.tanmay-singh.com"
+            href="/games"
             icon="🎮"
             title="Games"
             description="Interactive digital delights"
             hoverColor="bg-[#A8E6CF]"
-            badge={{
-              text: "Coming Soon",
-              bgColor: "bg-[#F9C8B1]",
-              textColor: "text-[#593B2B]"
-            }}
             className="games-section"
           />
           
