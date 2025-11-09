@@ -91,11 +91,11 @@ export default function SlevensGamePage() {
     let resultMessage = '';
 
     if (d1 === 1 && d2 === 1) {
-      resultMessage = '🐍 Snake Eyes! Everyone drinks!';
+      resultMessage = '🐍 Snake Eyes! You drink!';
     } else if (total === 7 || total === 11) {
-      resultMessage = `🍺 You rolled ${total}! You drink!`;
+      resultMessage = `🍺 You rolled ${total}! Give out drinks!`;
     } else if (d1 === d2) {
-      resultMessage = `🎯 Doubles (${d1}-${d2})! Give out ${d1} drinks!`;
+      resultMessage = `🎯 Doubles (${d1}-${d2})! Give out drinks!`;
     } else {
       resultMessage = `🎲 You rolled ${total}. Pass the phone!`;
     }
@@ -251,9 +251,9 @@ export default function SlevensGamePage() {
               🎮 Game Rules
             </h3>
             <ul className="text-[#D99C64] space-y-2 text-sm">
-              <li>• <strong>7 or 11:</strong> You drink</li>
-              <li>• <strong>Doubles:</strong> Give out drinks (matching the dice value)</li>
-              <li>• <strong>Snake Eyes (1-1):</strong> Everyone drinks!</li>
+              <li>• <strong>7 or 11:</strong> Give out drinks</li>
+              <li>• <strong>Doubles:</strong> Give out drinks</li>
+              <li>• <strong>Snake Eyes (1-1):</strong> You drink!</li>
               <li>• <strong>Other rolls:</strong> Pass to next player</li>
             </ul>
           </div>
