@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tanmay Singh - Full-Stack Developer & Game Creator",
+  title: "Tanmay Singh - Full-Stack Developer",
   description: "Building interactive web experiences and games. Passionate about creating things that live on the internet.",
   keywords: ["Tanmay Singh", "Full-Stack Developer", "Game Developer", "Web Developer", "Portfolio"],
   authors: [{ name: "Tanmay Singh" }],
   creator: "Tanmay Singh",
   openGraph: {
-    title: "Tanmay Singh - Full-Stack Developer & Game Creator",
+    title: "Tanmay Singh - Full-Stack Developer",
     description: "Building interactive web experiences and games. Passionate about creating things that live on the internet.",
     url: "https://tanmay-singh.com",
     siteName: "Tanmay Singh",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tanmay Singh - Full-Stack Developer & Game Creator",
+    title: "Tanmay Singh - Full-Stack Developer",
     description: "Building interactive web experiences and games. Passionate about creating things that live on the internet.",
     creator: "@tanmaysingh",
   },
