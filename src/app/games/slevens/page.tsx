@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type GameState = 'ready' | 'rolling' | 'result';
 
@@ -15,11 +15,17 @@ export default function SlevensGamePage() {
   const [shakeEnabled, setShakeEnabled] = useState(false);
 
   const lastShakeTime = useRef(0);
+  const gameStateRef = useRef<GameState>('ready');
   const shakeThreshold = 15;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Keep gameStateRef in sync with gameState
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   // Enable shake detection (must be called from user gesture)
   const enableShake = async () => {
@@ -44,11 +50,11 @@ export default function SlevensGamePage() {
   };
 
   const setupShakeDetection = () => {
-    window.addEventListener('devicemotion', handleShake);
+    window.addEventListener('devicemotion', handleShake.current);
   };
 
-  const handleShake = useCallback((event: DeviceMotionEvent) => {
-    if (gameState === 'rolling' || gameState === 'result') return;
+  const handleShake = useRef((event: DeviceMotionEvent) => {
+    if (gameStateRef.current === 'rolling' || gameStateRef.current === 'result') return;
 
     const current = Date.now();
     if (current - lastShakeTime.current < 1000) return;
@@ -65,7 +71,7 @@ export default function SlevensGamePage() {
       rollDice();
       setTimeout(() => setShakeDetected(false), 500);
     }
-  }, [gameState]);
+  });
 
   const rollDice = () => {
     setGameState('rolling');
@@ -116,10 +122,11 @@ export default function SlevensGamePage() {
   };
 
   useEffect(() => {
+    const handler = handleShake.current;
     return () => {
-      window.removeEventListener('devicemotion', handleShake);
+      window.removeEventListener('devicemotion', handler);
     };
-  }, [handleShake]);
+  }, []);
 
   const DiceFace = ({ value }: { value: number }) => {
     const patterns: { [key: number]: number[] } = {
