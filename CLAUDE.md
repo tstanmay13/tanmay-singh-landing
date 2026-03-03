@@ -1,60 +1,110 @@
-# Project Guidelines
+# Tanmay Singh Landing Page
 
-This project follows the Claude Code orchestration pattern for all development tasks.
+Personal portfolio and game lounge built with Next.js and Tailwind CSS.
 
-## Workflow Orchestration
+## Theme: Modern Dark Sushi Bar 🍣
 
-### Plan Mode Default
-- Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions)
-- If something goes sideways, STOP and re-plan immediately — don't keep pushing
-- Write detailed specs upfront to reduce ambiguity
+This project uses a cohesive dark sushi bar aesthetic across all pages.
 
-### Context Management
-- Before compacting or when context is getting long, write current state to `tasks/context-state.md`
-- After compacting, immediately read `tasks/context-state.md` to restore awareness
-- Proactively compact when context feels heavy — don't wait until forced to
+### Color Palette
 
-### Subagent Strategy
-- Use subagents liberally to keep main context window clean
-- For complex problems, throw more compute at it via subagents
-- One task per subagent for focused execution
+| Role | Color | Hex |
+|------|-------|-----|
+| Background (Deep) | Charcoal Black | `#0D0D0D` |
+| Background (Surface) | Warm Black | `#1A1A1A` |
+| Primary Accent | Amber Gold | `#FFB347` |
+| Secondary Accent | Salmon Pink | `#FA8072` |
+| Text Primary | Warm White | `#F5F5F0` |
+| Text Secondary | Muted Gold | `#B8A082` |
+| Border/Divider | Dark Gold | `#2A2520` |
 
-### Self-Improvement Loop
-- After ANY correction: update `tasks/lessons.md` with the pattern
-- Write rules that prevent the same mistake
+### Typography
 
-### Verification Before Done
-- Never mark a task complete without proving it works
-- Ask: "Would a staff engineer approve this?"
-- Run tests, check logs, demonstrate correctness
+- Headings: Bold, clean sans-serif
+- Body: System sans-serif
+- Use amber (`#FFB347`) for emphasis and highlights
 
-## Task Workflow
+### Components
 
-1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
-2. **Verify Plan**: Check in before starting implementation
-3. **Track Progress**: Mark items complete as you go
-4. **Document Results**: Add review section to `tasks/todo.md`
+#### Cards
+```tsx
+<div className="bg-[#1A1A1A] border border-[#2A2520] rounded-xl p-6 
+  hover:-translate-y-1 hover:border-[#FFB347]/50 
+  hover:shadow-[0_0_30px_rgba(255,179,71,0.15)] transition-all duration-300">
+```
 
-## Testing Pattern (Builder-Validator)
+#### Text Glow (for hero)
+```tsx
+text-glow {
+  text-shadow: 0 0 40px rgba(255, 179, 71, 0.4),
+               0 0 80px rgba(255, 179, 71, 0.2);
+}
+```
 
-- **Builder**: Builds the feature AND runs tests. If tests fail, it fixes them.
-- **Validator**: Independently verifies — runs test suite separately.
-- If both agree it passes → it passes
+#### Floating Decorations
+```tsx
+// Sushi emoji decorations with float animation
+<div className="fixed text-4xl opacity-10 animate-float">
+  🍣
+</div>
 
-### What You Get Back
-- From builder: "Changed 3 files, added 2 tests, 47/47 pass"
-- From validator: "Verified independently. 47/47 pass."
+// Animation
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+.animate-float { animation: float 18s infinite ease-in-out; }
+```
 
-## Git Conventions
+### Page Templates
 
-- Write clear, descriptive commit messages explaining WHY not WHAT
-- One logical change per commit
-- Always run tests before pushing
-- Create PRs with summary, test plan
-- Never force push to main/master
+#### Standard Page Layout
+```tsx
+<div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F0]">
+  <div className="max-w-4xl mx-auto px-6 py-16">
+    {/* Header */}
+    <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5F0] mb-3">
+      Title
+    </h1>
+    {/* Content */}
+  </div>
+</div>
+```
 
-## Code Review Standards
+#### Card Grid
+```tsx
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <a href="..." className="bg-[#1A1A1A] border border-[#2A2520] rounded-xl p-6 
+    hover:-translate-y-1 hover:border-[#FFB347]/50 
+    hover:shadow-[0_0_30px_rgba(255,179,71,0.15)] transition-all duration-300">
+    {/* Card content */}
+  </a>
+</div>
+```
 
-- Review your own diff before presenting it
-- Check for: unused imports, debug logs, hardcoded values, missing error handling
-- Ensure backwards compatibility unless explicitly breaking
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── page.tsx          # Main landing page
+│   ├── games/
+│   │   ├── page.tsx      # Games lobby
+│   │   ├── slevens/      # Dice game
+│   │   └── snakes/       # Snake game
+│   └── api/
+│       └── github-contributions/
+└── components/           # Reusable components (if any)
+```
+
+## Running Locally
+
+```bash
+npm run dev    # Development server
+npm run build  # Production build
+npm run lint   # Lint code
+```
+
+## Deployment
+
+Automatically deployed to Vercel on push to main/master.
