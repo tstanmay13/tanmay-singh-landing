@@ -20,7 +20,6 @@ export default function SnakesGamePage() {
   const [score, setScore] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
 
-  // Generate random food position
   const generateFood = useCallback((): Position => {
     return {
       x: Math.floor(Math.random() * GRID_SIZE),
@@ -28,7 +27,6 @@ export default function SnakesGamePage() {
     };
   }, []);
 
-  // Reset game
   const resetGame = () => {
     setSnake(INITIAL_SNAKE);
     setDirection(INITIAL_DIRECTION);
@@ -38,7 +36,6 @@ export default function SnakesGamePage() {
     setGameStarted(false);
   };
 
-  // Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!gameStarted && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
@@ -65,7 +62,6 @@ export default function SnakesGamePage() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [gameStarted]);
 
-  // Game loop
   useEffect(() => {
     if (!gameStarted || gameOver) return;
 
@@ -74,7 +70,6 @@ export default function SnakesGamePage() {
         const head = prevSnake[0];
         let newHead: Position;
 
-        // Calculate new head position
         switch (direction) {
           case 'UP':
             newHead = { x: head.x, y: head.y - 1 };
@@ -90,7 +85,6 @@ export default function SnakesGamePage() {
             break;
         }
 
-        // Check wall collision
         if (
           newHead.x < 0 ||
           newHead.x >= GRID_SIZE ||
@@ -101,7 +95,6 @@ export default function SnakesGamePage() {
           return prevSnake;
         }
 
-        // Check self collision
         if (prevSnake.some((segment) => segment.x === newHead.x && segment.y === newHead.y)) {
           setGameOver(true);
           return prevSnake;
@@ -109,14 +102,12 @@ export default function SnakesGamePage() {
 
         const newSnake = [newHead, ...prevSnake];
 
-        // Check food collision
         if (newHead.x === food.x && newHead.y === food.y) {
           setScore((prev) => prev + 10);
           setFood(generateFood());
-          return newSnake; // Don't remove tail (snake grows)
+          return newSnake;
         }
 
-        // Remove tail (normal movement)
         newSnake.pop();
         return newSnake;
       });
@@ -126,60 +117,56 @@ export default function SnakesGamePage() {
   }, [direction, food, gameOver, gameStarted, generateFood]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] to-[#FFE8D6] p-5 md:p-10">
+    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F0] p-5 md:p-10">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <Link
           href="/games"
-          className="inline-block mb-6 text-[#593B2B] hover:text-[#D99C64] transition-colors"
+          className="inline-block mb-6 text-[#B8A082] hover:text-[#FFB347] transition-colors"
         >
           ← Back to Games
         </Link>
 
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-[#593B2B] mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5F0] mb-2">
             🐍 Snake Game
           </h1>
-          <p className="text-xl text-[#D99C64] mb-4">
+          <p className="text-xl text-[#B8A082] mb-4">
             Use arrow keys to control the snake
           </p>
-          <div className="text-3xl font-bold text-[#593B2B]">
+          <div className="text-3xl font-bold text-[#FFB347]">
             Score: {score}
           </div>
         </div>
 
-        {/* Game Board */}
         <div className="flex flex-col items-center gap-4">
           <div
-            className="bg-white rounded-2xl p-4 shadow-lg"
+            className="bg-[#1A1A1A] border border-[#2A2520] rounded-2xl p-4"
             style={{
               width: GRID_SIZE * CELL_SIZE + 32,
               height: GRID_SIZE * CELL_SIZE + 32,
             }}
           >
             <div
-              className="relative bg-[#FFF8F0] border-4 border-[#593B2B] rounded-xl"
+              className="relative bg-[#0D0D0D] border-4 border-[#FFB347] rounded-xl"
               style={{
                 width: GRID_SIZE * CELL_SIZE,
                 height: GRID_SIZE * CELL_SIZE,
               }}
             >
-              {/* Snake */}
               {snake.map((segment, index) => (
                 <div
                   key={index}
-                  className="absolute bg-[#593B2B] rounded-sm transition-all"
+                  className="absolute rounded-sm transition-all"
                   style={{
                     left: segment.x * CELL_SIZE,
                     top: segment.y * CELL_SIZE,
                     width: CELL_SIZE - 2,
                     height: CELL_SIZE - 2,
-                    backgroundColor: index === 0 ? '#593B2B' : '#D99C64',
+                    backgroundColor: index === 0 ? '#FFB347' : '#FA8072',
                   }}
                 />
               ))}
 
-              {/* Food */}
               <div
                 className="absolute text-center leading-none"
                 style={{
@@ -193,32 +180,30 @@ export default function SnakesGamePage() {
                 🍎
               </div>
 
-              {/* Game Over Overlay */}
               {gameOver && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
-                  <div className="bg-white p-8 rounded-xl text-center">
-                    <h2 className="text-3xl font-bold text-[#593B2B] mb-2">
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-xl">
+                  <div className="bg-[#1A1A1A] border border-[#FFB347] p-8 rounded-xl text-center">
+                    <h2 className="text-3xl font-bold text-[#FFB347] mb-4">
                       Game Over!
                     </h2>
-                    <p className="text-xl text-[#D99C64] mb-4">
+                    <p className="text-xl text-[#F5F5F0] mb-6">
                       Final Score: {score}
                     </p>
                     <button
                       onClick={resetGame}
-                      className="px-6 py-3 bg-[#593B2B] text-white rounded-full font-semibold hover:bg-[#D99C64] transition-colors"
+                      className="px-8 py-3 bg-[#FFB347] text-[#0D0D0D] rounded-full font-semibold hover:bg-[#FFB347]/80 transition-colors text-lg"
                     >
-                      Play Again
+                      Play Again →
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Start Message */}
               {!gameStarted && !gameOver && (
-                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center rounded-xl">
-                  <div className="bg-white p-6 rounded-xl text-center">
-                    <p className="text-xl text-[#593B2B] font-semibold">
-                      Press any arrow key to start!
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                  <div className="text-center">
+                    <p className="text-xl text-[#F5F5F0] mb-4">
+                      Press any arrow key to start
                     </p>
                   </div>
                 </div>
@@ -226,18 +211,12 @@ export default function SnakesGamePage() {
             </div>
           </div>
 
-          {/* Instructions */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg max-w-md">
-            <h3 className="text-xl font-semibold text-[#593B2B] mb-3">
-              How to Play
-            </h3>
-            <ul className="text-[#D99C64] space-y-2 text-sm">
-              <li>• Use arrow keys to control the snake</li>
-              <li>• Eat the apples to grow and increase your score</li>
-              <li>• Don&apos;t hit the walls or yourself!</li>
-              <li>• Each apple is worth 10 points</li>
-            </ul>
-          </div>
+          <button
+            onClick={resetGame}
+            className="px-6 py-3 bg-[#1A1A1A] border border-[#FFB347]/50 text-[#FFB347] rounded-full font-semibold hover:border-[#FFB347] transition-colors"
+          >
+            Reset Game
+          </button>
         </div>
       </div>
     </div>
