@@ -62,7 +62,7 @@ export default function Home() {
               Tanmay Singh
             </h1>
             <p className="text-xl text-[#B8A082] mb-4">
-              Full-Stack Developer & Digital Chef
+              Full-Stack Developer
             </p>
             <span className="inline-block px-4 py-1.5 rounded-full text-sm font-medium bg-[#FFB347]/20 text-[#FFB347] border border-[#FFB347]/30">
               ✨ Open for Orders
@@ -152,7 +152,7 @@ export default function Home() {
             <div className="bg-[#1A1A1A] border border-[#2A2520] rounded-xl p-8 text-center hover:border-[#FFB347]/50 transition-all duration-300">
               <span className="text-4xl mb-4 block">💌</span>
               <h2 className="text-2xl font-semibold mb-4">Get in Touch</h2>
-              <p className="text-[#B8A082] mb-6">Place your order • Follow the chef</p>
+              <p className="text-[#B8A082] mb-6">Place your order • Follow along</p>
               <div className="flex justify-center gap-6">
                 <a
                   href="mailto:contact@tanmay-singh.com"

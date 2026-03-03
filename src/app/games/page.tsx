@@ -28,76 +28,72 @@ const games: Game[] = [
     path: '/games/snakes',
     status: 'playable'
   },
-  // Add more games here as you build them
 ];
 
 export default function GamesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] to-[#FFE8D6] p-5 md:p-10">
-      {/* Header */}
-      <div className="max-w-6xl mx-auto mb-10">
-        <Link
-          href="/"
-          className="inline-block mb-6 text-[#593B2B] hover:text-[#D99C64] transition-colors"
-        >
-          ← Back to Home
-        </Link>
-        <h1 className="text-5xl md:text-6xl font-bold text-[#593B2B] mb-4">
-          🎮 Games
-        </h1>
-        <p className="text-xl text-[#D99C64]">
-          Check out my collection of games and interactive projects
-        </p>
-      </div>
-
-      {/* Games Grid */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {games.map((game) => (
+    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F0]">
+      <div className="max-w-4xl mx-auto px-6 py-16">
+        {/* Header */}
+        <div className="mb-12">
           <Link
-            key={game.id}
-            href={game.path}
-            className={`bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(249,200,177,0.4)] block ${
-              game.status === 'coming-soon' ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
-            onClick={(e) => {
-              if (game.status === 'coming-soon') {
-                e.preventDefault();
-              }
-            }}
+            href="/"
+            className="inline-block mb-6 text-[#B8A082] hover:text-[#FFB347] transition-colors"
           >
-            <div className="text-6xl mb-4 hover:animate-wiggle inline-block">
-              {game.icon}
-            </div>
-            <h2 className="text-2xl font-semibold mb-3 text-[#593B2B]">
-              {game.title}
-            </h2>
-            <p className="text-sm text-[#D99C64] mb-4">
-              {game.description}
-            </p>
-            {game.status === 'coming-soon' ? (
-              <span className="inline-block px-4 py-2 rounded-full text-xs font-medium bg-[#FFE8D6] text-[#593B2B]">
-                Coming Soon
-              </span>
-            ) : (
-              <span className="inline-block px-4 py-2 rounded-full text-xs font-medium bg-[#D99C64] text-white">
-                Play Now →
-              </span>
-            )}
+            ← Back to Menu
           </Link>
-        ))}
-      </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5F0] mb-3">
+            🎮 Game Lounge
+          </h1>
+          <p className="text-lg text-[#B8A082]">
+            Take a break • Refill your drink
+          </p>
+        </div>
 
-      {/* Add wiggle animation */}
-      <style jsx>{`
-        @keyframes wiggle {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-10deg); }
-          75% { transform: rotate(10deg); }
-        }
-        .hover\:animate-wiggle:hover {
-          animation: wiggle 0.5s ease-in-out;
-        }
-      `}</style>
+        {/* Games Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {games.map((game) => (
+            <Link
+              key={game.id}
+              href={game.path}
+              className={`bg-[#1A1A1A] border border-[#2A2520] rounded-xl p-6 hover:-translate-y-1 hover:border-[#FFB347]/50 hover:shadow-[0_0_30px_rgba(255,179,71,0.15)] transition-all duration-300 block ${
+                game.status === 'coming-soon' ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+              onClick={(e) => {
+                if (game.status === 'coming-soon') {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <span className="text-4xl">{game.icon}</span>
+                <div>
+                  <h2 className="text-xl font-semibold text-[#F5F5F0] group-hover:text-[#FFB347] transition-colors">
+                    {game.title}
+                  </h2>
+                  <p className="text-sm text-[#B8A082]">
+                    {game.description}
+                  </p>
+                </div>
+              </div>
+              {game.status === 'coming-soon' ? (
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#2A2520] text-[#B8A082]">
+                  Coming Soon
+                </span>
+              ) : (
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-[#FFB347]/20 text-[#FFB347] border border-[#FFB347]/30">
+                  Play →
+                </span>
+              )}
+            </Link>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <footer className="text-center mt-16 text-[#B8A082]/50 text-sm">
+          <p>More games coming soon 🍣</p>
+        </footer>
+      </div>
     </div>
   );
 }
