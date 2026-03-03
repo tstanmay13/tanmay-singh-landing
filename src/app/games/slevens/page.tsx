@@ -22,12 +22,10 @@ export default function SlevensGamePage() {
     setMounted(true);
   }, []);
 
-  // Keep gameStateRef in sync with gameState
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // Enable shake detection (must be called from user gesture)
   const enableShake = async () => {
     try {
       if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
@@ -39,7 +37,6 @@ export default function SlevensGamePage() {
           alert('Permission denied. Please enable motion sensors in Settings.');
         }
       } else {
-        // Not iOS 13+ or permission not needed
         setupShakeDetection();
         setShakeEnabled(true);
       }
@@ -139,13 +136,13 @@ export default function SlevensGamePage() {
     };
 
     return (
-      <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center border-4 border-[#593B2B]">
+      <div className="w-24 h-24 bg-[#1A1A1A] rounded-2xl shadow-lg flex items-center justify-center border-4 border-[#FFB347]">
         <div className="grid grid-cols-3 gap-2 p-3">
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
               className={`w-3 h-3 rounded-full ${
-                patterns[value].includes(i) ? 'bg-[#593B2B]' : 'bg-transparent'
+                patterns[value].includes(i) ? 'bg-[#FFB347]' : 'bg-transparent'
               }`}
             />
           ))}
@@ -159,20 +156,20 @@ export default function SlevensGamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] to-[#FFE8D6] p-5 md:p-10">
+    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F0] p-5 md:p-10">
       <div className="max-w-4xl mx-auto">
         <Link
           href="/games"
-          className="inline-block mb-6 text-[#593B2B] hover:text-[#D99C64] transition-colors"
+          className="inline-block mb-6 text-[#B8A082] hover:text-[#FFB347] transition-colors"
         >
           ← Back to Games
         </Link>
 
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-[#593B2B] mb-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5F0] mb-2">
             🎲 Slevens
           </h1>
-          <p className="text-xl text-[#D99C64]">
+          <p className="text-xl text-[#B8A082]">
             Shake your phone to roll the dice!
           </p>
         </div>
@@ -180,17 +177,17 @@ export default function SlevensGamePage() {
         <div className="flex flex-col items-center gap-6">
           {/* Enable Shake Button */}
           {!shakeEnabled && (
-            <div className="bg-white rounded-2xl p-8 shadow-lg text-center max-w-md">
+            <div className="bg-[#1A1A1A] border border-[#2A2520] rounded-2xl p-8 text-center max-w-md">
               <div className="text-6xl mb-4">📱</div>
-              <h2 className="text-2xl font-bold text-[#593B2B] mb-4">
+              <h2 className="text-2xl font-bold text-[#F5F5F0] mb-4">
                 Enable Shake to Roll
               </h2>
-              <p className="text-[#D99C64] mb-6">
-                Tap the button below to enable shake detection. You&apos;ll need to allow motion sensors access.
+              <p className="text-[#B8A082] mb-6">
+                Tap the button below to enable shake detection.
               </p>
               <button
                 onClick={enableShake}
-                className="px-8 py-4 bg-[#593B2B] text-white rounded-full font-semibold hover:bg-[#D99C64] transition-colors text-lg"
+                className="px-8 py-4 bg-[#FFB347] text-[#0D0D0D] rounded-full font-semibold hover:bg-[#FFB347]/80 transition-colors text-lg"
               >
                 Enable Shake Detection
               </button>
@@ -198,7 +195,7 @@ export default function SlevensGamePage() {
           )}
 
           {/* Dice Display */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <div className="bg-[#1A1A1A] border border-[#2A2520] rounded-2xl p-8">
             <div className="flex gap-6 justify-center mb-6">
               <div className={gameState === 'rolling' ? 'animate-bounce' : ''}>
                 <DiceFace value={dice1} />
@@ -211,59 +208,46 @@ export default function SlevensGamePage() {
             <div className="text-center min-h-[60px]">
               {gameState === 'ready' && (
                 <div>
-                  <p className="text-2xl font-bold text-[#593B2B] mb-2">
+                  <p className="text-2xl font-bold text-[#F5F5F0] mb-2">
                     {shakeDetected ? '📳 Shake Detected!' : shakeEnabled ? '🤳 Shake to Roll' : '👆 Enable shake first'}
                   </p>
-                  <p className="text-sm text-[#D99C64]">
+                  <p className="text-sm text-[#B8A082]">
                     {shakeEnabled ? 'Give your phone a good shake!' : 'Or use manual roll below'}
                   </p>
                 </div>
               )}
 
               {gameState === 'rolling' && (
-                <p className="text-2xl font-bold text-[#593B2B] animate-pulse">
+                <p className="text-2xl font-bold text-[#FFB347] animate-pulse">
                   🎲 Rolling...
                 </p>
               )}
 
               {gameState === 'result' && (
                 <div>
-                  <p className="text-2xl font-bold text-[#593B2B] mb-4">
+                  <p className="text-2xl font-bold text-[#FFB347] mb-4">
                     {message}
                   </p>
                   <button
                     onClick={nextTurn}
-                    className="px-6 py-3 bg-[#593B2B] text-white rounded-full font-semibold hover:bg-[#D99C64] transition-colors"
+                    className="px-6 py-3 bg-[#FFB347] text-[#0D0D0D] rounded-full font-semibold hover:bg-[#FFB347]/80 transition-colors"
                   >
-                    Next Turn
+                    Next Turn →
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Manual Roll Button */}
-          {gameState === 'ready' && (
+          {/* Manual Roll (for desktop) */}
+          {shakeEnabled && gameState === 'ready' && (
             <button
               onClick={manualRoll}
-              className="px-6 py-3 bg-[#FFE8D6] text-[#593B2B] rounded-full font-semibold hover:bg-[#D99C64] hover:text-white transition-colors"
+              className="px-6 py-3 bg-[#1A1A1A] border border-[#FFB347]/50 text-[#FFB347] rounded-full font-semibold hover:border-[#FFB347] transition-colors"
             >
-              Manual Roll
+              Or click to roll 🎲
             </button>
           )}
-
-          {/* Game Rules */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg max-w-md">
-            <h3 className="text-xl font-semibold text-[#593B2B] mb-3">
-              🎮 Game Rules
-            </h3>
-            <ul className="text-[#D99C64] space-y-2 text-sm">
-              <li>• <strong>7 or 11:</strong> Give out drinks</li>
-              <li>• <strong>Doubles:</strong> Give out drinks</li>
-              <li>• <strong>Snake Eyes (1-1):</strong> You drink!</li>
-              <li>• <strong>Other rolls:</strong> Pass to next player</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>
