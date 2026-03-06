@@ -1,26 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import ClientLayout from "@/components/ClientLayout";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Tanmay Singh - Full-Stack Developer",
-  description: "Building interactive web experiences and games. Passionate about creating things that live on the internet.",
-  keywords: ["Tanmay Singh", "Full-Stack Developer", "Game Developer", "Web Developer", "Portfolio"],
+  description:
+    "Welcome to my pixel-powered corner of the internet. Full-stack developer building interactive web experiences, retro games, and creative projects.",
+  keywords: [
+    "Tanmay Singh",
+    "Full-Stack Developer",
+    "Game Developer",
+    "Web Developer",
+    "Portfolio",
+    "Pixel Art",
+    "Retro",
+  ],
   authors: [{ name: "Tanmay Singh" }],
   creator: "Tanmay Singh",
   openGraph: {
     title: "Tanmay Singh - Full-Stack Developer",
-    description: "Building interactive web experiences and games. Passionate about creating things that live on the internet.",
+    description:
+      "Welcome to my pixel-powered corner of the internet. Full-stack developer building interactive web experiences, retro games, and creative projects.",
     url: "https://tanmay-singh.com",
     siteName: "Tanmay Singh",
     type: "website",
@@ -29,14 +29,14 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Tanmay Singh - Full-Stack Developer",
-    description: "Building interactive web experiences and games. Passionate about creating things that live on the internet.",
+    description:
+      "Welcome to my pixel-powered corner of the internet. Full-stack developer building interactive web experiences, retro games, and creative projects.",
     creator: "@tanmaysingh",
   },
   robots: {
     index: true,
     follow: true,
   },
-  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
@@ -45,11 +45,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="scanlines crt-vignette antialiased">
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
