@@ -543,7 +543,7 @@ export default function PerfectShapePage() {
     if (!ctx) return;
     ctx.scale(dpr, dpr);
     redrawCanvas(ctx, size);
-  }, [shapeIndex, phase, redrawCanvas]);
+  }, [redrawCanvas]);
 
   useEffect(() => {
     if (!mounted) return;
