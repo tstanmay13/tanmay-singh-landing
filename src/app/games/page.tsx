@@ -213,6 +213,15 @@ const games: Game[] = [
     category: "puzzle",
     isNew: true,
   },
+  {
+    id: "idle-bakery",
+    title: "Idle Bakery",
+    description: "Bake bread, earn coins, upgrade",
+    icon: "\uD83C\uDF5E",
+    path: "/games/idle-bakery",
+    category: "simulation",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
