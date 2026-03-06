@@ -159,6 +159,15 @@ const games: Game[] = [
     category: "arcade",
     isNew: true,
   },
+  {
+    id: "orbit",
+    title: "Orbit",
+    description: "N-body gravity simulator toy",
+    icon: "\uD83E\uDE90",
+    path: "/games/orbit",
+    category: "simulation",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
