@@ -2,6 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+
+/* ============================================
+   TYPES
+   ============================================ */
 
 interface Post {
   id: string;
@@ -17,6 +24,49 @@ interface Post {
   updated_at: string;
 }
 
+interface PostFormData {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  tags: string;
+  cover_image_url: string;
+  is_published: boolean;
+}
+
+const EMPTY_FORM: PostFormData = {
+  title: "",
+  slug: "",
+  content: "",
+  excerpt: "",
+  tags: "",
+  cover_image_url: "",
+  is_published: false,
+};
+
+/* ============================================
+   HELPERS
+   ============================================ */
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/* ============================================
+   MAIN ADMIN PAGE
+   ============================================ */
+
 export default function BlogAdminPage() {
   const [mounted, setMounted] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -30,19 +80,15 @@ export default function BlogAdminPage() {
   // Admin panel state
   const [posts, setPosts] = useState<Post[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
-
-  // New post form state
-  const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
-  const [content, setContent] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [tags, setTags] = useState("");
-  const [coverImageUrl, setCoverImageUrl] = useState("");
-  const [isPublished, setIsPublished] = useState(false);
+  const [view, setView] = useState<"list" | "editor">("list");
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [form, setForm] = useState<PostFormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [saveSuccess, setSaveSuccess] = useState("");
+  const [message, setMessage] = useState<{
+    text: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -75,7 +121,7 @@ export default function BlogAdminPage() {
       const data = await res.json();
       setPosts(data.posts || []);
     } catch {
-      console.error("Failed to fetch posts");
+      showMsg("Failed to load posts", "error");
     } finally {
       setLoadingPosts(false);
     }
@@ -87,11 +133,17 @@ export default function BlogAdminPage() {
     }
   }, [authenticated, fetchPosts]);
 
+  const showMsg = (text: string, type: "success" | "error") => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  /* ---------- Auth ---------- */
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
     setLoginLoading(true);
-
     try {
       const res = await fetch("/api/blog/admin/login", {
         method: "POST",
@@ -99,7 +151,6 @@ export default function BlogAdminPage() {
         body: JSON.stringify({ password }),
         credentials: "include",
       });
-
       if (res.ok) {
         setPassword("");
         setAuthenticated(true);
@@ -124,59 +175,119 @@ export default function BlogAdminPage() {
       // ignore
     }
     setAuthenticated(false);
-    window.location.href = "/blog";
   };
 
-  const handleCreatePost = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaveError("");
-    setSaveSuccess("");
+  /* ---------- CRUD ---------- */
+
+  const handleNewPost = () => {
+    setEditingPost(null);
+    setForm(EMPTY_FORM);
+    setView("editor");
+  };
+
+  const handleEditPost = (post: Post) => {
+    setEditingPost(post);
+    setForm({
+      title: post.title,
+      slug: post.slug,
+      content: post.content,
+      excerpt: post.excerpt || "",
+      tags: (post.tags || []).join(", "),
+      cover_image_url: post.cover_image_url || "",
+      is_published: post.is_published,
+    });
+    setView("editor");
+  };
+
+  const handleSave = async () => {
+    if (!form.title || !form.slug || !form.content) {
+      showMsg("Title, slug, and content are required", "error");
+      return;
+    }
     setSaving(true);
-
     try {
-      const res = await fetch("/api/blog/admin/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          slug,
-          content,
-          excerpt: excerpt || null,
-          tags: tags ? tags.split(",").map((t) => t.trim()) : null,
-          cover_image_url: coverImageUrl || null,
-          is_published: isPublished,
-        }),
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        setSaveSuccess("Post created successfully!");
-        setTitle("");
-        setSlug("");
-        setContent("");
-        setExcerpt("");
-        setTags("");
-        setCoverImageUrl("");
-        setIsPublished(false);
-        setShowForm(false);
-        fetchPosts();
+      const payload = {
+        title: form.title,
+        slug: form.slug,
+        content: form.content,
+        excerpt: form.excerpt || null,
+        tags: form.tags
+          ? form.tags
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : null,
+        cover_image_url: form.cover_image_url || null,
+        is_published: form.is_published,
+      };
+      if (editingPost) {
+        const res = await fetch(`/api/blog/admin/posts/${editingPost.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to update");
+        showMsg("Post updated", "success");
       } else {
-        const data = await res.json();
-        setSaveError(data.error || "Failed to create post");
+        const res = await fetch("/api/blog/admin/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to create");
+        showMsg("Post created", "success");
       }
+      setView("list");
+      fetchPosts();
     } catch {
-      setSaveError("Network error. Please try again.");
+      showMsg("Failed to save post", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  const generateSlug = (text: string) => {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
+  const handleTogglePublish = async (post: Post) => {
+    try {
+      const res = await fetch(`/api/blog/admin/posts/${post.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_published: !post.is_published }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      showMsg(post.is_published ? "Post unpublished" : "Post published", "success");
+      fetchPosts();
+    } catch {
+      showMsg("Failed to update post", "error");
+    }
   };
+
+  const handleDelete = async (postId: string) => {
+    try {
+      const res = await fetch(`/api/blog/admin/posts/${postId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      showMsg("Post deleted", "success");
+      setDeleteConfirm(null);
+      fetchPosts();
+    } catch {
+      showMsg("Failed to delete post", "error");
+    }
+  };
+
+  const updateField = (field: keyof PostFormData, value: string | boolean) => {
+    const updated = { ...form, [field]: value };
+    if (field === "title" && !editingPost) {
+      updated.slug = slugify(value as string);
+    }
+    setForm(updated);
+  };
+
+  /* ---------- Rendering ---------- */
 
   if (!mounted || checking) {
     return (
@@ -194,7 +305,7 @@ export default function BlogAdminPage() {
     );
   }
 
-  // --- LOGIN FORM ---
+  // --- LOGIN ---
   if (!authenticated) {
     return (
       <div
@@ -247,9 +358,7 @@ export default function BlogAdminPage() {
               type="submit"
               className="pixel-btn w-full"
               disabled={loginLoading || !password}
-              style={{
-                opacity: loginLoading || !password ? 0.5 : 1,
-              }}
+              style={{ opacity: loginLoading || !password ? 0.5 : 1 }}
             >
               {loginLoading ? "LOGGING IN..." : "LOGIN"}
             </button>
@@ -272,10 +381,10 @@ export default function BlogAdminPage() {
   // --- ADMIN PANEL ---
   return (
     <div
-      className="min-h-screen px-4 py-8"
+      className="min-h-screen px-4 pt-24 pb-12"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1
@@ -285,308 +394,487 @@ export default function BlogAdminPage() {
             BLOG ADMIN
           </h1>
           <div className="flex gap-3">
+            {view === "list" && (
+              <button onClick={handleNewPost} className="pixel-btn">
+                + NEW POST
+              </button>
+            )}
             <Link href="/blog" className="pixel-btn text-xs">
               VIEW BLOG
             </Link>
             <button
               onClick={handleLogout}
               className="pixel-btn text-xs"
-              style={{
-                borderColor: "var(--color-red)",
-                color: "var(--color-red)",
-              }}
+              style={{ borderColor: "var(--color-red)", color: "var(--color-red)" }}
             >
               LOGOUT
             </button>
           </div>
         </div>
 
-        {/* Success message */}
-        {saveSuccess && (
+        {/* Messages */}
+        {message && (
           <div
-            className="pixel-border p-3 mb-4"
+            className="pixel-border p-3 mb-6"
             style={{
-              borderColor: "var(--color-accent)",
+              borderColor:
+                message.type === "success"
+                  ? "var(--color-accent)"
+                  : "var(--color-red)",
               backgroundColor: "var(--color-bg-card)",
             }}
           >
             <p
               className="pixel-text text-xs"
-              style={{ color: "var(--color-accent)" }}
+              style={{
+                color:
+                  message.type === "success"
+                    ? "var(--color-accent)"
+                    : "var(--color-red)",
+              }}
             >
-              {saveSuccess}
+              {message.text}
             </p>
           </div>
         )}
 
-        {/* New Post Button / Form */}
-        {!showForm ? (
-          <button
-            onClick={() => setShowForm(true)}
-            className="pixel-btn mb-8"
-          >
-            + NEW POST
-          </button>
+        {/* EDITOR VIEW */}
+        {view === "editor" ? (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2
+                className="pixel-text text-sm"
+                style={{ color: "var(--color-text)" }}
+              >
+                {editingPost ? "EDIT POST" : "CREATE NEW POST"}
+              </h2>
+              <button
+                onClick={() => setView("list")}
+                className="pixel-text text-xs"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                CANCEL
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left: Form */}
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label
+                    className="pixel-text text-xs block mb-1"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    TITLE
+                  </label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => updateField("title", e.target.value)}
+                    className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
+                    style={{
+                      backgroundColor: "var(--color-bg-secondary)",
+                      color: "var(--color-text)",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="pixel-text text-xs block mb-1"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    SLUG
+                  </label>
+                  <input
+                    type="text"
+                    value={form.slug}
+                    onChange={(e) => updateField("slug", e.target.value)}
+                    className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
+                    style={{
+                      backgroundColor: "var(--color-bg-secondary)",
+                      color: "var(--color-text)",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="pixel-text text-xs block mb-1"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    EXCERPT
+                  </label>
+                  <textarea
+                    value={form.excerpt}
+                    onChange={(e) => updateField("excerpt", e.target.value)}
+                    rows={2}
+                    className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none resize-y"
+                    style={{
+                      backgroundColor: "var(--color-bg-secondary)",
+                      color: "var(--color-text)",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="pixel-text text-xs block mb-1"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    TAGS (COMMA SEPARATED)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.tags}
+                    onChange={(e) => updateField("tags", e.target.value)}
+                    placeholder="react, nextjs, typescript"
+                    className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
+                    style={{
+                      backgroundColor: "var(--color-bg-secondary)",
+                      color: "var(--color-text)",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="pixel-text text-xs block mb-1"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    COVER IMAGE URL
+                  </label>
+                  <input
+                    type="text"
+                    value={form.cover_image_url}
+                    onChange={(e) => updateField("cover_image_url", e.target.value)}
+                    className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
+                    style={{
+                      backgroundColor: "var(--color-bg-secondary)",
+                      color: "var(--color-text)",
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => updateField("is_published", !form.is_published)}
+                    className="px-3 py-1.5 pixel-text text-xs transition-all duration-200"
+                    style={{
+                      color: form.is_published
+                        ? "var(--color-bg)"
+                        : "var(--color-text-muted)",
+                      background: form.is_published
+                        ? "var(--color-accent)"
+                        : "transparent",
+                      border: `2px solid ${
+                        form.is_published
+                          ? "var(--color-accent)"
+                          : "var(--color-border)"
+                      }`,
+                    }}
+                  >
+                    {form.is_published ? "PUBLISHED" : "DRAFT"}
+                  </button>
+                </div>
+
+                <div>
+                  <label
+                    className="pixel-text text-xs block mb-1"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    CONTENT (MARKDOWN)
+                  </label>
+                  <textarea
+                    value={form.content}
+                    onChange={(e) => updateField("content", e.target.value)}
+                    rows={20}
+                    className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none resize-y"
+                    style={{
+                      backgroundColor: "var(--color-bg-secondary)",
+                      color: "var(--color-text)",
+                      minHeight: "400px",
+                    }}
+                  />
+                </div>
+
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="pixel-btn"
+                  style={{ opacity: saving ? 0.5 : 1 }}
+                >
+                  {saving
+                    ? "SAVING..."
+                    : editingPost
+                      ? "UPDATE POST"
+                      : "CREATE POST"}
+                </button>
+              </div>
+
+              {/* Right: Preview */}
+              <div>
+                <div
+                  className="pixel-text text-xs mb-2"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  PREVIEW
+                </div>
+                <div
+                  className="pixel-border p-4 overflow-y-auto"
+                  style={{
+                    backgroundColor: "var(--color-bg-card)",
+                    maxHeight: "80vh",
+                  }}
+                >
+                  {form.title && (
+                    <h1
+                      className="pixel-text text-lg mb-3"
+                      style={{ color: "var(--color-text)" }}
+                    >
+                      {form.title}
+                    </h1>
+                  )}
+                  {form.content ? (
+                    <div
+                      className="text-sm leading-relaxed"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeHighlight]}
+                      >
+                        {form.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p
+                      className="mono-text text-sm italic"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      Start writing to see preview...
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
-          <div
-            className="pixel-border p-6 mb-8"
-            style={{ backgroundColor: "var(--color-bg-card)" }}
-          >
+          /* LIST VIEW */
+          <div>
             <h2
               className="pixel-text text-sm mb-4"
               style={{ color: "var(--color-text)" }}
             >
-              CREATE NEW POST
+              POSTS ({posts.length})
             </h2>
-            <form onSubmit={handleCreatePost} className="flex flex-col gap-4">
-              <div>
-                <label
-                  className="pixel-text text-xs block mb-1"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  TITLE
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    if (!slug || slug === generateSlug(title)) {
-                      setSlug(generateSlug(e.target.value));
-                    }
-                  }}
-                  className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
-                  style={{
-                    backgroundColor: "var(--color-bg-secondary)",
-                    color: "var(--color-text)",
-                  }}
-                  required
-                />
-              </div>
 
-              <div>
-                <label
-                  className="pixel-text text-xs block mb-1"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  SLUG
-                </label>
-                <input
-                  type="text"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
-                  style={{
-                    backgroundColor: "var(--color-bg-secondary)",
-                    color: "var(--color-text)",
-                  }}
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  className="pixel-text text-xs block mb-1"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  EXCERPT
-                </label>
-                <input
-                  type="text"
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
-                  style={{
-                    backgroundColor: "var(--color-bg-secondary)",
-                    color: "var(--color-text)",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label
-                  className="pixel-text text-xs block mb-1"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  CONTENT (MARKDOWN)
-                </label>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={12}
-                  className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none resize-y"
-                  style={{
-                    backgroundColor: "var(--color-bg-secondary)",
-                    color: "var(--color-text)",
-                  }}
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  className="pixel-text text-xs block mb-1"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  TAGS (COMMA SEPARATED)
-                </label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
-                  style={{
-                    backgroundColor: "var(--color-bg-secondary)",
-                    color: "var(--color-text)",
-                  }}
-                  placeholder="react, nextjs, typescript"
-                />
-              </div>
-
-              <div>
-                <label
-                  className="pixel-text text-xs block mb-1"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  COVER IMAGE URL
-                </label>
-                <input
-                  type="text"
-                  value={coverImageUrl}
-                  onChange={(e) => setCoverImageUrl(e.target.value)}
-                  className="pixel-border w-full px-3 py-2 text-sm mono-text outline-none"
-                  style={{
-                    backgroundColor: "var(--color-bg-secondary)",
-                    color: "var(--color-text)",
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="is_published"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <label
-                  htmlFor="is_published"
-                  className="pixel-text text-xs"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  PUBLISH IMMEDIATELY
-                </label>
-              </div>
-
-              {saveError && (
-                <p
-                  className="pixel-text text-xs"
-                  style={{ color: "var(--color-red)" }}
-                >
-                  {saveError}
-                </p>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  className="pixel-btn"
-                  disabled={saving}
-                  style={{ opacity: saving ? 0.5 : 1 }}
-                >
-                  {saving ? "SAVING..." : "CREATE POST"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="pixel-btn"
-                  style={{
-                    borderColor: "var(--color-text-muted)",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  CANCEL
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Posts List */}
-        <div>
-          <h2
-            className="pixel-text text-sm mb-4"
-            style={{ color: "var(--color-text)" }}
-          >
-            POSTS ({posts.length})
-          </h2>
-
-          {loadingPosts ? (
-            <p
-              className="pixel-text text-xs animate-flicker"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              LOADING POSTS...
-            </p>
-          ) : posts.length === 0 ? (
-            <div
-              className="pixel-border p-6 text-center"
-              style={{ backgroundColor: "var(--color-bg-card)" }}
-            >
+            {loadingPosts ? (
               <p
-                className="pixel-text text-xs"
+                className="pixel-text text-xs animate-flicker"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                NO POSTS YET. CREATE YOUR FIRST ONE!
+                LOADING POSTS...
               </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="pixel-border p-4 flex items-center justify-between"
-                  style={{ backgroundColor: "var(--color-bg-card)" }}
+            ) : posts.length === 0 ? (
+              <div
+                className="pixel-border p-6 text-center"
+                style={{ backgroundColor: "var(--color-bg-card)" }}
+              >
+                <p
+                  className="pixel-text text-xs mb-4"
+                  style={{ color: "var(--color-text-muted)" }}
                 >
-                  <div>
-                    <h3
-                      className="text-sm font-semibold mb-1"
-                      style={{ color: "var(--color-text)" }}
-                    >
-                      {post.title}
-                    </h3>
-                    <div className="flex gap-3 items-center">
+                  NO POSTS YET. CREATE YOUR FIRST ONE!
+                </p>
+                <button onClick={handleNewPost} className="pixel-btn">
+                  + NEW POST
+                </button>
+              </div>
+            ) : (
+              <div
+                className="pixel-border overflow-hidden"
+                style={{ backgroundColor: "var(--color-bg-card)" }}
+              >
+                {/* Table header */}
+                <div
+                  className="grid grid-cols-12 gap-2 px-4 py-3 border-b-2"
+                  style={{
+                    backgroundColor: "var(--color-bg-secondary)",
+                    borderColor: "var(--color-border)",
+                  }}
+                >
+                  <div
+                    className="col-span-4 pixel-text"
+                    style={{
+                      fontSize: "0.45rem",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    TITLE
+                  </div>
+                  <div
+                    className="col-span-2 pixel-text"
+                    style={{
+                      fontSize: "0.45rem",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    STATUS
+                  </div>
+                  <div
+                    className="col-span-2 pixel-text hidden sm:block"
+                    style={{
+                      fontSize: "0.45rem",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    DATE
+                  </div>
+                  <div
+                    className="col-span-4 sm:col-span-4 pixel-text text-right"
+                    style={{
+                      fontSize: "0.45rem",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    ACTIONS
+                  </div>
+                </div>
+
+                {/* Table rows */}
+                {posts.map((post) => (
+                  <div
+                    key={post.id}
+                    className="grid grid-cols-12 gap-2 px-4 py-3 items-center border-b"
+                    style={{ borderColor: "var(--color-border)" }}
+                  >
+                    <div className="col-span-4">
+                      <p
+                        className="text-sm truncate"
+                        style={{ color: "var(--color-text)" }}
+                      >
+                        {post.title}
+                      </p>
+                      <p
+                        className="mono-text text-xs truncate"
+                        style={{ color: "var(--color-text-muted)" }}
+                      >
+                        /{post.slug}
+                      </p>
+                    </div>
+
+                    <div className="col-span-2">
+                      <span
+                        className="pixel-text px-2 py-0.5 inline-block"
+                        style={{
+                          fontSize: "0.4rem",
+                          color: post.is_published
+                            ? "var(--color-bg)"
+                            : "var(--color-text-muted)",
+                          background: post.is_published
+                            ? "var(--color-accent)"
+                            : "transparent",
+                          border: post.is_published
+                            ? "none"
+                            : "1px solid var(--color-border)",
+                        }}
+                      >
+                        {post.is_published ? "LIVE" : "DRAFT"}
+                      </span>
+                    </div>
+
+                    <div className="col-span-2 hidden sm:block">
                       <span
                         className="mono-text text-xs"
                         style={{ color: "var(--color-text-muted)" }}
                       >
-                        /{post.slug}
-                      </span>
-                      <span
-                        className="pixel-text text-xs"
-                        style={{
-                          color: post.is_published
-                            ? "var(--color-accent)"
-                            : "var(--color-orange)",
-                        }}
-                      >
-                        {post.is_published ? "PUBLISHED" : "DRAFT"}
+                        {post.published_at
+                          ? formatDate(post.published_at)
+                          : formatDate(post.created_at)}
                       </span>
                     </div>
+
+                    <div className="col-span-4 flex items-center justify-end gap-2 flex-wrap">
+                      <button
+                        onClick={() => handleEditPost(post)}
+                        className="pixel-text px-2 py-1 transition-colors duration-200"
+                        style={{
+                          fontSize: "0.4rem",
+                          color: "var(--color-accent)",
+                          border: "1px solid var(--color-border)",
+                        }}
+                      >
+                        EDIT
+                      </button>
+                      <button
+                        onClick={() => handleTogglePublish(post)}
+                        className="pixel-text px-2 py-1 transition-colors duration-200"
+                        style={{
+                          fontSize: "0.4rem",
+                          color: "var(--color-orange)",
+                          border: "1px solid var(--color-border)",
+                        }}
+                      >
+                        {post.is_published ? "HIDE" : "PUBLISH"}
+                      </button>
+                      <Link
+                        href={`/blog/${post.slug}`}
+                        className="pixel-text px-2 py-1"
+                        style={{
+                          fontSize: "0.4rem",
+                          color: "var(--color-cyan)",
+                          border: "1px solid var(--color-border)",
+                        }}
+                      >
+                        VIEW
+                      </Link>
+                      {deleteConfirm === post.id ? (
+                        <span className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleDelete(post.id)}
+                            className="pixel-text px-2 py-1"
+                            style={{
+                              fontSize: "0.4rem",
+                              color: "var(--color-bg)",
+                              backgroundColor: "var(--color-red)",
+                            }}
+                          >
+                            CONFIRM
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm(null)}
+                            className="pixel-text px-2 py-1"
+                            style={{
+                              fontSize: "0.4rem",
+                              color: "var(--color-text-muted)",
+                              border: "1px solid var(--color-border)",
+                            }}
+                          >
+                            CANCEL
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirm(post.id)}
+                          className="pixel-text px-2 py-1 transition-colors duration-200"
+                          style={{
+                            fontSize: "0.4rem",
+                            color: "var(--color-red)",
+                            border: "1px solid var(--color-border)",
+                          }}
+                        >
+                          DELETE
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    className="pixel-text text-xs"
-                    style={{ color: "var(--color-accent)" }}
-                  >
-                    VIEW
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
