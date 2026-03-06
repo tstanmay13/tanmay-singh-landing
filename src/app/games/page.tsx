@@ -186,6 +186,15 @@ const games: Game[] = [
     category: "arcade",
     isNew: true,
   },
+  {
+    id: "minesweeper",
+    title: "Minesweeper",
+    description: "Classic minesweeper with pixel art",
+    icon: "\uD83D\uDCA3",
+    path: "/games/minesweeper",
+    category: "puzzle",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
