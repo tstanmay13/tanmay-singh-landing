@@ -15,11 +15,6 @@ interface LevelConfig {
   flashDuration: number;
 }
 
-interface CellState {
-  isTarget: boolean;
-  isSelected: boolean;
-}
-
 interface RoundResult {
   correct: number;
   wrong: number;
@@ -248,7 +243,6 @@ export default function MemoryMatrixPage() {
 
   // Get cell display style based on phase
   const getCellStyle = (index: number): string => {
-    const totalCells = currentConfig.gridSize * currentConfig.gridSize;
     const baseSize = `aspect-square rounded-sm transition-all duration-200 cursor-pointer border-2 `;
 
     if (phase === 'preview') {

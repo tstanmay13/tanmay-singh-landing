@@ -119,10 +119,8 @@ function floodFill(
   newGrid[startRow][startCol].revealed = true;
   newGrid[startRow][startCol].revealDelay = 0;
 
-  let step = 0;
   while (queue.length > 0) {
     const [r, c, depth] = queue.shift()!;
-    step++;
 
     if (newGrid[r][c].neighborCount === 0) {
       for (let dr = -1; dr <= 1; dr++) {

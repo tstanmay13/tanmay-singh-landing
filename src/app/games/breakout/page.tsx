@@ -392,7 +392,7 @@ function BreakoutGame() {
       }
 
       // --- Draw ---
-      draw(ctx, timestamp);
+      draw(ctx);
 
       animFrame.current = requestAnimationFrame(loop);
     };
@@ -606,7 +606,7 @@ function BreakoutGame() {
   // Drawing
   // -------------------------------------------------------------------
 
-  const draw = (ctx: CanvasRenderingContext2D, _timestamp: number) => {
+  const draw = (ctx: CanvasRenderingContext2D) => {
     // Background
     ctx.fillStyle = COLORS.bg;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);

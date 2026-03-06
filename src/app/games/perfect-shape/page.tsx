@@ -104,15 +104,6 @@ function angleBetween(a: Point, vertex: Point, b: Point): number {
 // Guide-shape generators (return points on the ideal shape)
 // ---------------------------------------------------------------------------
 
-function idealCirclePoints(cx: number, cy: number, r: number, n: number): Point[] {
-  const pts: Point[] = [];
-  for (let i = 0; i < n; i++) {
-    const angle = (2 * Math.PI * i) / n - Math.PI / 2;
-    pts.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
-  }
-  return pts;
-}
-
 function idealSquarePoints(cx: number, cy: number, size: number): Point[] {
   const h = size / 2;
   return [
@@ -499,27 +490,6 @@ export default function PerfectShapePage() {
     if (stored) setBestTotal(parseInt(stored, 10));
   }, []);
 
-  // Canvas setup and resize
-  const setupCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    const rect = container.getBoundingClientRect();
-    const size = Math.min(rect.width, 500);
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvasSizeRef.current = size;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.scale(dpr, dpr);
-    redrawCanvas(ctx, size);
-  }, [shapeIndex, phase]);
-
   const redrawCanvas = useCallback(
     (ctx: CanvasRenderingContext2D, size: number) => {
       ctx.clearRect(0, 0, size, size);
@@ -553,6 +523,27 @@ export default function PerfectShapePage() {
     },
     [shapeIndex]
   );
+
+  // Canvas setup and resize
+  const setupCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const rect = container.getBoundingClientRect();
+    const size = Math.min(rect.width, 500);
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvasSizeRef.current = size;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    redrawCanvas(ctx, size);
+  }, [shapeIndex, phase, redrawCanvas]);
 
   useEffect(() => {
     if (!mounted) return;

@@ -150,8 +150,6 @@ export default function ColorGuesserPage() {
     };
   }, []);
 
-  const optionCount = game.mode === 'hex-to-color' ? 6 : 4;
-
   const startGame = useCallback((mode: GameMode) => {
     const correctColor = randomHexColor();
     const options = generateOptions(correctColor, 1, mode === 'hex-to-color' ? 6 : 4);
