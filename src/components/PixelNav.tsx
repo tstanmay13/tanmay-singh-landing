@@ -8,6 +8,7 @@ import { useTheme } from "./ThemeProvider";
 const navLinks = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/games", label: "Games", icon: "🎮" },
+  { href: "/blog", label: "Blog", icon: "📝" },
   { href: "/portfolio", label: "Portfolio", icon: "💼" },
   { href: "/contact", label: "Contact", icon: "💌" },
 ];
