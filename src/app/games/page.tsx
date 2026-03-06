@@ -141,6 +141,24 @@ const games: Game[] = [
     category: "arcade",
     isNew: true,
   },
+  {
+    id: "dev-wordle",
+    title: "Dev Wordle",
+    description: "Daily 5-letter dev word puzzle",
+    icon: "\uD83D\uDCDD",
+    path: "/games/dev-wordle",
+    category: "puzzle",
+    isNew: true,
+  },
+  {
+    id: "gravity-pong",
+    title: "Gravity Pong",
+    description: "Pong with a gravity well twist",
+    icon: "\uD83C\uDF0C",
+    path: "/games/gravity-pong",
+    category: "arcade",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
