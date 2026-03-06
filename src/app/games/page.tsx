@@ -1,6 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import ScrollReveal from "@/components/ScrollReveal";
+
+type Category =
+  | "all"
+  | "arcade"
+  | "puzzle"
+  | "reflex"
+  | "creative"
+  | "simulation"
+  | "trivia";
 
 interface Game {
   id: string;
@@ -8,168 +19,387 @@ interface Game {
   description: string;
   icon: string;
   path: string;
-  status: 'playable' | 'coming-soon';
+  category: Category;
+  isNew: boolean;
 }
 
 const games: Game[] = [
   {
-    id: 'slevens',
-    title: 'Slevens',
-    description: 'Shake your phone to roll the dice!',
-    icon: '🎲',
-    path: '/games/slevens',
-    status: 'playable'
+    id: "slevens",
+    title: "Slevens",
+    description: "Shake to roll dice drinking game",
+    icon: "🎲",
+    path: "/games/slevens",
+    category: "arcade",
+    isNew: false,
   },
   {
-    id: 'snakes',
-    title: 'Snake Game',
-    description: 'Classic snake game with a modern twist',
-    icon: '🐍',
-    path: '/games/snakes',
-    status: 'playable'
+    id: "snakes",
+    title: "Snake Game",
+    description: "Classic snake with pixel art",
+    icon: "🐍",
+    path: "/games/snakes",
+    category: "arcade",
+    isNew: false,
   },
   {
-    id: 'reflex-duel',
-    title: 'Reflex Duel',
-    description: 'Cowboy duel reaction time test. How fast can you draw?',
-    icon: '🤠',
-    path: '/games/reflex-duel',
-    status: 'playable'
+    id: "salary",
+    title: "The Salary Game",
+    description: "Can you spend a dev salary?",
+    icon: "💰",
+    path: "/games/salary",
+    category: "simulation",
+    isNew: true,
   },
   {
-    id: 'salary',
-    title: 'Spend My Salary',
-    description: 'Can you blow through a junior dev salary of $75k?',
-    icon: '💸',
-    path: '/games/salary',
-    status: 'playable'
+    id: "reflex-duel",
+    title: "Reflex Duel",
+    description: "Cowboy reaction time test",
+    icon: "🤠",
+    path: "/games/reflex-duel",
+    category: "reflex",
+    isNew: true,
   },
   {
-    id: 'color-guesser',
-    title: 'Color Guesser',
-    description: 'Test your color perception — match hex codes to swatches',
-    icon: '🎨',
-    path: '/games/color-guesser',
-    status: 'playable'
+    id: "color-guesser",
+    title: "Color Guesser",
+    description: "Match hex codes to colors",
+    icon: "🎨",
+    path: "/games/color-guesser",
+    category: "trivia",
+    isNew: true,
   },
   {
-    id: 'memory-matrix',
-    title: 'Memory Matrix',
-    description: 'Remember the pattern and tap the cells from memory',
-    icon: '🧠',
-    path: '/games/memory-matrix',
-    status: 'playable'
+    id: "memory-matrix",
+    title: "Memory Matrix",
+    description: "Remember the pattern",
+    icon: "🧠",
+    path: "/games/memory-matrix",
+    category: "puzzle",
+    isNew: true,
   },
   {
-    id: 'type-racer',
-    title: 'Type Racer',
-    description: 'Race a pixel car by typing code snippets and quotes!',
-    icon: '🏎️',
-    path: '/games/type-racer',
-    status: 'playable'
+    id: "type-racer",
+    title: "Type Racer",
+    description: "Speed typing with pixel car",
+    icon: "⌨️",
+    path: "/games/type-racer",
+    category: "reflex",
+    isNew: true,
   },
   {
-    id: 'pixel-painter',
-    title: 'Pixel Painter',
-    description: 'Create pixel art with a retro palette and export as PNG',
-    icon: '🖌️',
-    path: '/games/pixel-painter',
-    status: 'playable'
+    id: "pixel-painter",
+    title: "Pixel Art Painter",
+    description: "Create pixel art masterpieces",
+    icon: "🖌️",
+    path: "/games/pixel-painter",
+    category: "creative",
+    isNew: true,
   },
   {
-    id: 'password-game',
-    title: 'The Password Game',
-    description: 'Create a password that satisfies increasingly absurd rules',
-    icon: '🔐',
-    path: '/games/password-game',
-    status: 'playable'
+    id: "password-game",
+    title: "Password Game",
+    description: "Satisfy absurd password rules",
+    icon: "🔐",
+    path: "/games/password-game",
+    category: "puzzle",
+    isNew: true,
   },
   {
-    id: 'pixel-perfector',
-    title: 'Pixel Perfector',
-    description: 'Memorize pixel art patterns and recreate them from memory!',
-    icon: '🧩',
-    path: '/games/pixel-perfector',
-    status: 'playable'
+    id: "perfect-shape",
+    title: "Draw Perfect Shape",
+    description: "How steady is your hand?",
+    icon: "✏️",
+    path: "/games/perfect-shape",
+    category: "creative",
+    isNew: true,
   },
   {
-    id: 'perfect-shape',
-    title: 'Perfect Shape',
-    description: 'Draw shapes as perfectly as you can. Scored 0-100%.',
-    icon: '✏️',
-    path: '/games/perfect-shape',
-    status: 'playable'
+    id: "pixel-perfector",
+    title: "Pixel Perfector",
+    description: "Memorize and recreate pixel art",
+    icon: "👾",
+    path: "/games/pixel-perfector",
+    category: "puzzle",
+    isNew: true,
   },
-  // Add more games here as you build them
+  {
+    id: "element-mixer",
+    title: "Element Mixer",
+    description: "Combine elements, discover new ones",
+    icon: "\u2697\uFE0F",
+    path: "/games/element-mixer",
+    category: "creative",
+    isNew: true,
+  },
+  {
+    id: "stack-tower",
+    title: "Stack Tower",
+    description: "Tap to drop, stack blocks high",
+    icon: "\uD83C\uDFD7\uFE0F",
+    path: "/games/stack-tower",
+    category: "arcade",
+    isNew: true,
+  },
 ];
 
+const categories: { key: Category; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "arcade", label: "Arcade" },
+  { key: "puzzle", label: "Puzzle" },
+  { key: "reflex", label: "Reflex" },
+  { key: "creative", label: "Creative" },
+  { key: "simulation", label: "Simulation" },
+  { key: "trivia", label: "Trivia" },
+];
+
+const categoryColors: Record<Category, string> = {
+  all: "var(--color-accent)",
+  arcade: "var(--color-red)",
+  puzzle: "var(--color-purple)",
+  reflex: "var(--color-orange)",
+  creative: "var(--color-pink)",
+  simulation: "var(--color-blue)",
+  trivia: "var(--color-cyan)",
+};
+
+function getNewCount(cat: Category): number {
+  if (cat === "all") return games.filter((g) => g.isNew).length;
+  return games.filter((g) => g.category === cat && g.isNew).length;
+}
+
 export default function GamesPage() {
+  const [activeFilter, setActiveFilter] = useState<Category>("all");
+
+  const filteredGames = useMemo(() => {
+    if (activeFilter === "all") return games;
+    return games.filter((g) => g.category === activeFilter);
+  }, [activeFilter]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] to-[#FFE8D6] p-5 md:p-10">
-      {/* Header */}
-      <div className="max-w-6xl mx-auto mb-10">
-        <Link
-          href="/"
-          className="inline-block mb-6 text-[#593B2B] hover:text-[#D99C64] transition-colors"
-        >
-          ← Back to Home
-        </Link>
-        <h1 className="text-5xl md:text-6xl font-bold text-[#593B2B] mb-4">
-          🎮 Games
-        </h1>
-        <p className="text-xl text-[#D99C64]">
-          Check out my collection of games and interactive projects
-        </p>
-      </div>
+    <div
+      className="min-h-screen relative"
+      style={{ background: "var(--color-bg)" }}
+    >
+      {/* Grid background */}
+      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
 
-      {/* Games Grid */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {games.map((game) => (
+      <div className="relative z-10">
+        {/* Header Section */}
+        <header className="pt-12 pb-8 px-4 text-center">
           <Link
-            key={game.id}
-            href={game.path}
-            className={`bg-white rounded-2xl p-8 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(249,200,177,0.4)] block ${
-              game.status === 'coming-soon' ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
-            onClick={(e) => {
-              if (game.status === 'coming-soon') {
-                e.preventDefault();
-              }
-            }}
+            href="/"
+            className="pixel-text text-xs inline-block mb-8 transition-colors duration-200"
+            style={{ color: "var(--color-text-secondary)" }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--color-accent)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--color-text-secondary)")
+            }
           >
-            <div className="text-6xl mb-4 hover:animate-wiggle inline-block">
-              {game.icon}
-            </div>
-            <h2 className="text-2xl font-semibold mb-3 text-[#593B2B]">
-              {game.title}
-            </h2>
-            <p className="text-sm text-[#D99C64] mb-4">
-              {game.description}
-            </p>
-            {game.status === 'coming-soon' ? (
-              <span className="inline-block px-4 py-2 rounded-full text-xs font-medium bg-[#FFE8D6] text-[#593B2B]">
-                Coming Soon
-              </span>
-            ) : (
-              <span className="inline-block px-4 py-2 rounded-full text-xs font-medium bg-[#D99C64] text-white">
-                Play Now →
-              </span>
-            )}
+            &lt; BACK TO HOME
           </Link>
-        ))}
-      </div>
 
-      {/* Add wiggle animation */}
-      <style jsx>{`
-        @keyframes wiggle {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-10deg); }
-          75% { transform: rotate(10deg); }
-        }
-        .hover\:animate-wiggle:hover {
-          animation: wiggle 0.5s ease-in-out;
-        }
-      `}</style>
+          <ScrollReveal>
+            <h1
+              className="pixel-text text-4xl sm:text-5xl md:text-7xl mb-4 leading-tight"
+              style={{
+                color: "var(--color-accent)",
+                textShadow: `
+                  0 0 10px var(--color-accent-glow),
+                  0 0 30px var(--color-accent-glow),
+                  0 0 60px var(--color-accent-glow)
+                `,
+              }}
+            >
+              ARCADE
+            </h1>
+          </ScrollReveal>
+
+          <ScrollReveal delay={100}>
+            <p
+              className="pixel-text text-xs sm:text-sm animate-flicker mb-6"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              INSERT COIN TO PLAY
+            </p>
+          </ScrollReveal>
+
+          <ScrollReveal delay={200}>
+            <p
+              className="pixel-text text-xs"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {games.length} GAMES AVAILABLE
+            </p>
+          </ScrollReveal>
+        </header>
+
+        {/* Filter Bar */}
+        <ScrollReveal delay={300}>
+          <nav className="max-w-5xl mx-auto px-4 mb-10">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+              {categories.map((cat) => {
+                const isActive = activeFilter === cat.key;
+                const newCount = getNewCount(cat.key);
+                return (
+                  <button
+                    key={cat.key}
+                    onClick={() => setActiveFilter(cat.key)}
+                    className="pixel-text text-[10px] sm:text-xs px-3 sm:px-4 py-2 sm:py-2.5 border-2 transition-all duration-200 relative cursor-pointer"
+                    style={{
+                      borderColor: isActive
+                        ? categoryColors[cat.key]
+                        : "var(--color-border)",
+                      background: isActive
+                        ? categoryColors[cat.key]
+                        : "var(--color-bg-card)",
+                      color: isActive
+                        ? "var(--color-bg)"
+                        : "var(--color-text-secondary)",
+                      boxShadow: isActive
+                        ? `0 0 15px ${categoryColors[cat.key]}40, 3px 3px 0 ${categoryColors[cat.key]}80`
+                        : "none",
+                    }}
+                  >
+                    {cat.label.toUpperCase()}
+                    {newCount > 0 && (
+                      <span
+                        className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[8px] pixel-text leading-none border"
+                        style={{
+                          background: "var(--color-red)",
+                          color: "#fff",
+                          borderColor: "var(--color-red)",
+                        }}
+                      >
+                        {newCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+        </ScrollReveal>
+
+        {/* Game Cards Grid */}
+        <main className="max-w-5xl mx-auto px-4 pb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredGames.map((game, index) => (
+              <ScrollReveal key={game.id} delay={index * 60} variant="scale">
+                <Link href={game.path} className="block group">
+                  <div
+                    className="pixel-card p-6 text-center transition-all duration-250 relative"
+                    style={{ minHeight: "240px" }}
+                  >
+                    {/* NEW badge */}
+                    {game.isNew && (
+                      <span
+                        className="absolute top-3 right-3 pixel-text text-[8px] px-2 py-1 animate-glow-pulse"
+                        style={{
+                          background: "var(--color-accent)",
+                          color: "var(--color-bg)",
+                        }}
+                      >
+                        NEW
+                      </span>
+                    )}
+
+                    {/* Cabinet screen area */}
+                    <div
+                      className="mx-auto mb-4 w-20 h-20 flex items-center justify-center border-2 transition-all duration-250 group-hover:scale-110"
+                      style={{
+                        borderColor: "var(--color-border)",
+                        background: "var(--color-bg)",
+                      }}
+                    >
+                      <span className="text-4xl">{game.icon}</span>
+                    </div>
+
+                    {/* Title */}
+                    <h2
+                      className="pixel-text text-xs sm:text-sm mb-2 transition-colors duration-200"
+                      style={{ color: "var(--color-text)" }}
+                    >
+                      {game.title.toUpperCase()}
+                    </h2>
+
+                    {/* Description */}
+                    <p
+                      className="text-xs mb-4 leading-relaxed"
+                      style={{
+                        color: "var(--color-text-muted)",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      {game.description}
+                    </p>
+
+                    {/* Category badge */}
+                    <span
+                      className="pixel-text text-[8px] px-2 py-1 border inline-block mb-3"
+                      style={{
+                        borderColor: categoryColors[game.category],
+                        color: categoryColors[game.category],
+                      }}
+                    >
+                      {game.category.toUpperCase()}
+                    </span>
+
+                    {/* Play button */}
+                    <div className="mt-auto">
+                      <span className="pixel-btn inline-block text-[10px] px-4 py-2 transition-all duration-200">
+                        PLAY
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+
+          {/* Empty state */}
+          {filteredGames.length === 0 && (
+            <div className="text-center py-20">
+              <p
+                className="pixel-text text-sm"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                NO GAMES FOUND IN THIS CATEGORY
+              </p>
+            </div>
+          )}
+        </main>
+
+        {/* Stats Footer */}
+        <footer
+          className="border-t-2 mt-8 py-10 px-4 text-center"
+          style={{ borderColor: "var(--color-border)" }}
+        >
+          <ScrollReveal>
+            <div className="max-w-3xl mx-auto space-y-3">
+              <p
+                className="pixel-text text-[10px] sm:text-xs"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                TOTAL PLAY TIME: INFINITE
+              </p>
+              <p
+                className="pixel-text text-[10px] sm:text-xs"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                HIGH SCORES: PRICELESS
+              </p>
+              <div className="pt-4">
+                <Link href="/" className="pixel-btn inline-block text-[10px]">
+                  RETURN TO LOBBY
+                </Link>
+              </div>
+            </div>
+          </ScrollReveal>
+        </footer>
+      </div>
     </div>
   );
 }
