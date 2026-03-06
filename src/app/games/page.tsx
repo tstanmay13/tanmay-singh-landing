@@ -124,6 +124,15 @@ const games: Game[] = [
     isNew: true,
   },
   {
+    id: "2048",
+    title: "2048 Bento Remix",
+    description: "Merge foods to reach the crown",
+    icon: "\uD83C\uDF71",
+    path: "/games/2048",
+    category: "puzzle",
+    isNew: true,
+  },
+  {
     id: "element-mixer",
     title: "Element Mixer",
     description: "Combine elements, discover new ones",
@@ -166,6 +175,15 @@ const games: Game[] = [
     icon: "\uD83E\uDE90",
     path: "/games/orbit",
     category: "simulation",
+    isNew: true,
+  },
+  {
+    id: "flappy",
+    title: "Flappy Pixel",
+    description: "Pixel-art flappy bird clone",
+    icon: "\uD83D\uDC26",
+    path: "/games/flappy",
+    category: "arcade",
     isNew: true,
   },
 ];
