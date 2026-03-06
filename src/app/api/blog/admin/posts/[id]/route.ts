@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase";
-
-function verifyAuth(request: NextRequest): boolean {
-  const token = request.headers.get("Authorization")?.replace("Bearer ", "");
-  const adminToken = process.env.BLOG_ADMIN_TOKEN;
-  if (!adminToken || !token) return false;
-  return token === adminToken;
-}
+import { verifyAdminSession } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAuth(request)) {
+  if (!verifyAdminSession(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -59,7 +53,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAuth(request)) {
+  if (!verifyAdminSession(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
