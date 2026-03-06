@@ -28,6 +28,78 @@ const games: Game[] = [
     path: '/games/snakes',
     status: 'playable'
   },
+  {
+    id: 'reflex-duel',
+    title: 'Reflex Duel',
+    description: 'Cowboy duel reaction time test. How fast can you draw?',
+    icon: '🤠',
+    path: '/games/reflex-duel',
+    status: 'playable'
+  },
+  {
+    id: 'salary',
+    title: 'Spend My Salary',
+    description: 'Can you blow through a junior dev salary of $75k?',
+    icon: '💸',
+    path: '/games/salary',
+    status: 'playable'
+  },
+  {
+    id: 'color-guesser',
+    title: 'Color Guesser',
+    description: 'Test your color perception — match hex codes to swatches',
+    icon: '🎨',
+    path: '/games/color-guesser',
+    status: 'playable'
+  },
+  {
+    id: 'memory-matrix',
+    title: 'Memory Matrix',
+    description: 'Remember the pattern and tap the cells from memory',
+    icon: '🧠',
+    path: '/games/memory-matrix',
+    status: 'playable'
+  },
+  {
+    id: 'type-racer',
+    title: 'Type Racer',
+    description: 'Race a pixel car by typing code snippets and quotes!',
+    icon: '🏎️',
+    path: '/games/type-racer',
+    status: 'playable'
+  },
+  {
+    id: 'pixel-painter',
+    title: 'Pixel Painter',
+    description: 'Create pixel art with a retro palette and export as PNG',
+    icon: '🖌️',
+    path: '/games/pixel-painter',
+    status: 'playable'
+  },
+  {
+    id: 'password-game',
+    title: 'The Password Game',
+    description: 'Create a password that satisfies increasingly absurd rules',
+    icon: '🔐',
+    path: '/games/password-game',
+    status: 'playable'
+  },
+  {
+    id: 'pixel-perfector',
+    title: 'Pixel Perfector',
+    description: 'Memorize pixel art patterns and recreate them from memory!',
+    icon: '🧩',
+    path: '/games/pixel-perfector',
+    status: 'playable'
+  },
+  {
+    id: 'perfect-shape',
+    title: 'Perfect Shape',
+    description: 'Draw shapes as perfectly as you can. Scored 0-100%.',
+    icon: '✏️',
+    path: '/games/perfect-shape',
+    status: 'playable'
+  },
   // Add more games here as you build them
 ];
 
