@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 type GameState = 'ready' | 'rolling' | 'result';
 
@@ -17,6 +18,7 @@ export default function SlevensGamePage() {
   const lastShakeTime = useRef(0);
   const gameStateRef = useRef<GameState>('ready');
   const shakeThreshold = 15;
+  const { recordPlay } = useGamePlay('slevens');
 
   useEffect(() => {
     setMounted(true);
@@ -71,6 +73,7 @@ export default function SlevensGamePage() {
   });
 
   const rollDice = () => {
+    recordPlay();
     setGameState('rolling');
 
     let rollCount = 0;

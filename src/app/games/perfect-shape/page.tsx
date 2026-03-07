@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import GamePlayCounter from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -789,6 +790,7 @@ export default function PerfectShapePage() {
         >
           Draw a Perfect {currentShape.label}
         </h1>
+        <div className="text-center mb-4"><GamePlayCounter slug="perfect-shape" onPlay /></div>
 
         {/* Progress dots */}
         <div className="flex justify-center gap-3 mb-6">

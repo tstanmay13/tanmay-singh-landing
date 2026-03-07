@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useGamePlay } from "@/components/GamePlayCounter";
 import Link from "next/link";
 
 // --- Constants ---
@@ -69,6 +70,7 @@ export default function FlappyPixelPage() {
   const [gameState, setGameState] = useState<GameState>("idle");
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
+  const { recordPlay } = useGamePlay('flappy');
 
   // --- CSS variable resolver ---
   const colorsRef = useRef<Record<string, string>>({});
@@ -236,6 +238,7 @@ export default function FlappyPixelPage() {
     const state = stateRef.current;
     if (state === "idle") {
       resetGame();
+      recordPlay();
       stateRef.current = "playing";
       setGameState("playing");
       birdVelRef.current = FLAP_IMPULSE;
@@ -251,7 +254,7 @@ export default function FlappyPixelPage() {
       setGameState("idle");
       resetGame();
     }
-  }, [resetGame, spawnPipe]);
+  }, [resetGame, spawnPipe, recordPlay]);
 
   // --- Input handlers ---
   useEffect(() => {

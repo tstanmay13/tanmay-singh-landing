@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 // --- Types ---
 
@@ -264,6 +265,7 @@ export default function PixelPerfectorPage() {
   const [levelOrder, setLevelOrder] = useState<number[]>([]);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { recordPlay } = useGamePlay('pixel-perfector');
 
   useEffect(() => {
     setMounted(true);
@@ -274,12 +276,13 @@ export default function PixelPerfectorPage() {
   }, []);
 
   const startGame = useCallback(() => {
+    recordPlay();
     const order = shuffleArray(Array.from({ length: PATTERNS.length }, (_, i) => i)).slice(0, TOTAL_LEVELS);
     setLevelOrder(order);
     setLevel(1);
     setResults([]);
     startLevel(1, order);
-  }, []);
+  }, [recordPlay]);
 
   const startLevel = (lvl: number, order: number[]) => {
     const pattern = PATTERNS[order[lvl - 1]];

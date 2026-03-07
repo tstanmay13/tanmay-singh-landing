@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 type Position = { x: number; y: number };
@@ -19,6 +20,7 @@ export default function SnakesGamePage() {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
+  const { recordPlay } = useGamePlay('snakes');
 
   const generateFood = useCallback((): Position => {
     return {
@@ -40,6 +42,7 @@ export default function SnakesGamePage() {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (!gameStarted && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         setGameStarted(true);
+        recordPlay();
       }
 
       switch (e.key) {
@@ -60,7 +63,7 @@ export default function SnakesGamePage() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [gameStarted]);
+  }, [gameStarted, recordPlay]);
 
   useEffect(() => {
     if (!gameStarted || gameOver) return;

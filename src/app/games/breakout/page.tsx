@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -255,6 +256,7 @@ export default function BreakoutPage() {
 function BreakoutGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { recordPlay } = useGamePlay('breakout');
 
   // Game state refs (avoid re-renders during rAF loop)
   const paddleX = useRef(CANVAS_W / 2 - PADDLE_W / 2);
@@ -298,12 +300,13 @@ function BreakoutGame() {
   }, []);
 
   const startGame = useCallback(() => {
+    recordPlay();
     score.current = 0;
     lives.current = 3;
     setUiScore(0);
     setUiLives(3);
     initLevel(0);
-  }, [initLevel]);
+  }, [initLevel, recordPlay]);
 
   const restartGame = useCallback(() => {
     startGame();

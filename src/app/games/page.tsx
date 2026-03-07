@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -72,15 +72,6 @@ const games: Game[] = [
     isNew: true,
   },
   {
-    id: "memory-matrix",
-    title: "Memory Matrix",
-    description: "Remember the pattern",
-    icon: "🧠",
-    path: "/games/memory-matrix",
-    category: "puzzle",
-    isNew: true,
-  },
-  {
     id: "type-racer",
     title: "Type Racer",
     description: "Speed typing with pixel car",
@@ -96,15 +87,6 @@ const games: Game[] = [
     icon: "🖌️",
     path: "/games/pixel-painter",
     category: "creative",
-    isNew: true,
-  },
-  {
-    id: "password-game",
-    title: "Password Game",
-    description: "Satisfy absurd password rules",
-    icon: "🔐",
-    path: "/games/password-game",
-    category: "puzzle",
     isNew: true,
   },
   {
@@ -125,15 +107,6 @@ const games: Game[] = [
     category: "puzzle",
     isNew: true,
   },
-  {
-    id: "element-mixer",
-    title: "Element Mixer",
-    description: "Combine elements, discover new ones",
-    icon: "⚗️",
-    path: "/games/element-mixer",
-    category: "creative",
-    isNew: true,
-  },
   // Phase 2 games
   {
     id: "stack-tower",
@@ -141,24 +114,6 @@ const games: Game[] = [
     description: "Stack blocks, don't miss!",
     icon: "🏗️",
     path: "/games/stack-tower",
-    category: "arcade",
-    isNew: true,
-  },
-  {
-    id: "dev-wordle",
-    title: "Dev Wordle",
-    description: "Daily programming word puzzle",
-    icon: "📝",
-    path: "/games/dev-wordle",
-    category: "puzzle",
-    isNew: true,
-  },
-  {
-    id: "gravity-pong",
-    title: "Gravity Pong",
-    description: "Pong with a gravity twist",
-    icon: "🏓",
-    path: "/games/gravity-pong",
     category: "arcade",
     isNew: true,
   },
@@ -190,15 +145,6 @@ const games: Game[] = [
     isNew: true,
   },
   {
-    id: "2048",
-    title: "2048 Bento",
-    description: "Food emoji sliding puzzle",
-    icon: "🍱",
-    path: "/games/2048",
-    category: "puzzle",
-    isNew: true,
-  },
-  {
     id: "minesweeper",
     title: "Minesweeper",
     description: "Classic mine-sweeping puzzle",
@@ -217,11 +163,11 @@ const games: Game[] = [
     isNew: true,
   },
   {
-    id: "guess-framework",
-    title: "Guess the Framework",
-    description: "Name that JS framework",
-    icon: "🔍",
-    path: "/games/guess-framework",
+    id: "code-quiz",
+    title: "Code Quiz",
+    description: "150+ questions across 8 tech categories",
+    icon: "{ }",
+    path: "/games/code-quiz",
     category: "trivia",
     isNew: true,
   },
@@ -263,6 +209,14 @@ function getNewCount(cat: Category): number {
 
 export default function GamesPage() {
   const [activeFilter, setActiveFilter] = useState<Category>("all");
+  const [playCounts, setPlayCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    fetch("/api/games/plays")
+      .then((res) => res.json())
+      .then((data: Record<string, number>) => setPlayCounts(data))
+      .catch(() => {});
+  }, []);
 
   const filteredGames = useMemo(() => {
     if (activeFilter === "all") return games;
@@ -429,16 +383,29 @@ export default function GamesPage() {
                       {game.description}
                     </p>
 
-                    {/* Category badge */}
-                    <span
-                      className="pixel-text text-[8px] px-2 py-1 border inline-block mb-3"
-                      style={{
-                        borderColor: categoryColors[game.category],
-                        color: categoryColors[game.category],
-                      }}
-                    >
-                      {game.category.toUpperCase()}
-                    </span>
+                    {/* Category badge + play count */}
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <span
+                        className="pixel-text text-[8px] px-2 py-1 border inline-block"
+                        style={{
+                          borderColor: categoryColors[game.category],
+                          color: categoryColors[game.category],
+                        }}
+                      >
+                        {game.category.toUpperCase()}
+                      </span>
+                      {(playCounts[game.id] ?? 0) > 0 && (
+                        <span
+                          className="pixel-text text-[8px] px-2 py-1 inline-block"
+                          style={{
+                            color: "var(--color-text-muted)",
+                            border: "1px solid var(--color-border)",
+                          }}
+                        >
+                          {playCounts[game.id].toLocaleString()} PLAYS
+                        </span>
+                      )}
+                    </div>
 
                     {/* Play button */}
                     <div className="mt-auto">

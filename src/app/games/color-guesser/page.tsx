@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ============================================
 // Types
@@ -142,6 +143,7 @@ export default function ColorGuesserPage() {
   });
 
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { recordPlay } = useGamePlay('color-guesser');
 
   useEffect(() => {
     setMounted(true);
@@ -151,6 +153,7 @@ export default function ColorGuesserPage() {
   }, []);
 
   const startGame = useCallback((mode: GameMode) => {
+    recordPlay();
     const correctColor = randomHexColor();
     const options = generateOptions(correctColor, 1, mode === 'hex-to-color' ? 6 : 4);
     const correctIndex = options.indexOf(correctColor);
@@ -169,7 +172,7 @@ export default function ColorGuesserPage() {
       roundStartTime: Date.now(),
       results: [],
     });
-  }, []);
+  }, [recordPlay]);
 
   const advanceRound = useCallback(() => {
     setGame((prev) => {

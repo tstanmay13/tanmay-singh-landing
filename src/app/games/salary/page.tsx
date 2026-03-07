@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
+import GamePlayCounter from '@/components/GamePlayCounter';
 
 interface Item {
   id: string;
@@ -197,6 +198,7 @@ export default function SalaryGamePage() {
             >
               &larr; Back to Games
             </Link>
+            <GamePlayCounter slug="salary" onPlay />
             {purchasedItems.length > 0 && (
               <button
                 onClick={() => setShowReceipt(true)}
