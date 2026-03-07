@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import GamePlayCounter from '@/components/GamePlayCounter';
+import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /* ================================================================
    TYPES
@@ -13,6 +15,15 @@ interface Player {
   name: string;
   score: number;
   avatar: string;
+}
+
+/** Online player (each person on their own device) */
+interface OnlinePlayer {
+  id: string;          // UUID
+  name: string;
+  avatar: string;
+  score: number;
+  isHost: boolean;
 }
 
 type PromptCategory = 'dev' | 'general' | 'wyr' | 'blank' | 'mega';
@@ -28,6 +39,13 @@ interface Answer {
   votes: number;
 }
 
+/** Online answer keyed by player UUID */
+interface OnlineAnswer {
+  playerId: string;
+  text: string;
+  votes: number;
+}
+
 type GamePhase =
   | 'setup'
   | 'writing'
@@ -38,7 +56,25 @@ type GamePhase =
   | 'mega-intro'
   | 'final-results';
 
-type GameMode = 'pass' | 'room';
+type GameMode = 'pass' | 'room' | 'online';
+
+type OnlineLobbyPhase = 'choice' | 'create' | 'join' | 'waiting';
+
+/* ================================================================
+   ONLINE BROADCAST EVENT TYPES
+   ================================================================ */
+
+type BroadcastEvent =
+  | { type: 'player_joined'; player: OnlinePlayer }
+  | { type: 'player_left'; playerId: string }
+  | { type: 'phase_change'; phase: GamePhase; prompt: Prompt | null; round: number; promptIndex: number; roundPrompts: Prompt[] }
+  | { type: 'answer_submitted'; playerId: string }
+  | { type: 'reveal_next'; count: number }
+  | { type: 'vote_cast'; playerId: string }
+  | { type: 'scores_update'; players: OnlinePlayer[]; answers: OnlineAnswer[]; winner: OnlinePlayer | null }
+  | { type: 'all_answers'; answers: OnlineAnswer[] }
+  | { type: 'game_started'; prompt: Prompt; round: number; roundPrompts: Prompt[] }
+  | { type: 'mega_start'; prompt: Prompt };
 
 /* ================================================================
    PROMPT DATABASE  (150+)
@@ -239,10 +275,33 @@ const WRITING_TIME = 60;
 const REVEAL_DELAY = 1500;
 const MEGA_MULTIPLIER = 2;
 const MAX_ANSWER_LENGTH = 100;
+const ONLINE_MIN_PLAYERS = 3;
+const ONLINE_MAX_PLAYERS = 10;
 
 /* ================================================================
    HELPERS
    ================================================================ */
+
+function getSessionToken(): string {
+  if (typeof window === 'undefined') return '';
+  let token = localStorage.getItem('pr_session_token');
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem('pr_session_token', token);
+  }
+  return token;
+}
+
+function getStoredName(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('pr_display_name') || '';
+}
+
+function storeName(name: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('pr_display_name', name);
+  }
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -300,16 +359,161 @@ export default function PromptRoulettePage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [megaIntroVisible, setMegaIntroVisible] = useState(false);
 
+  // ── Online multiplayer state ──
+  const [onlineLobbyPhase, setOnlineLobbyPhase] = useState<OnlineLobbyPhase>('choice');
+  const [onlineDisplayName, setOnlineDisplayName] = useState('');
+  const [onlineJoinCode, setOnlineJoinCode] = useState('');
+  const [onlineRoomCode, setOnlineRoomCode] = useState('');
+  const [onlineMyId, setOnlineMyId] = useState('');
+  const [onlinePlayers, setOnlinePlayers] = useState<OnlinePlayer[]>([]);
+  const [onlineAnswers, setOnlineAnswers] = useState<OnlineAnswer[]>([]);
+  const [onlineMyAnswerSubmitted, setOnlineMyAnswerSubmitted] = useState(false);
+  const [onlineSubmittedIds, setOnlineSubmittedIds] = useState<Set<string>>(new Set());
+  const [onlineVotedIds, setOnlineVotedIds] = useState<Set<string>>(new Set());
+  const [onlineMyVoteCast, setOnlineMyVoteCast] = useState(false);
+  const [onlineRoundWinner, setOnlineRoundWinner] = useState<OnlinePlayer | null>(null);
+  const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [onlineIsCreating, setOnlineIsCreating] = useState(false);
+
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const isOnline = gameMode === 'online';
+  const amHost = isOnline && onlinePlayers.find(p => p.id === onlineMyId)?.isHost === true;
+
   useEffect(() => {
     setMounted(true);
+    setOnlineDisplayName(getStoredName());
   }, []);
+
+  /* ── Online: broadcast helper ── */
+  const broadcast = useCallback((event: BroadcastEvent) => {
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'game_event',
+      payload: event,
+    });
+  }, []);
+
+  /* ── Online: subscribe to room channel ── */
+  useEffect(() => {
+    if (!isOnline || !onlineRoomCode) return;
+
+    const channel = supabase.channel(`room:${onlineRoomCode}`, {
+      config: { broadcast: { self: true } },
+    });
+
+    channel
+      .on('broadcast', { event: 'game_event' }, ({ payload }) => {
+        const evt = payload as BroadcastEvent;
+
+        switch (evt.type) {
+          case 'player_joined':
+            setOnlinePlayers(prev => {
+              if (prev.find(p => p.id === evt.player.id)) return prev;
+              return [...prev, evt.player];
+            });
+            break;
+
+          case 'player_left':
+            setOnlinePlayers(prev => prev.filter(p => p.id !== evt.playerId));
+            break;
+
+          case 'game_started':
+            setCurrentPrompt(evt.prompt);
+            setRoundPrompts(evt.roundPrompts);
+            setCurrentRound(evt.round);
+            setCurrentPromptIndex(0);
+            setOnlineAnswers([]);
+            setOnlineMyAnswerSubmitted(false);
+            setOnlineSubmittedIds(new Set());
+            setOnlineVotedIds(new Set());
+            setOnlineMyVoteCast(false);
+            setAnswerInput('');
+            setTimeLeft(WRITING_TIME);
+            setPhase('writing');
+            setOnlineLobbyPhase('waiting');
+            break;
+
+          case 'phase_change':
+            setPhase(evt.phase);
+            if (evt.prompt) setCurrentPrompt(evt.prompt);
+            setCurrentRound(evt.round);
+            setCurrentPromptIndex(evt.promptIndex);
+            setRoundPrompts(evt.roundPrompts);
+            if (evt.phase === 'writing') {
+              setOnlineAnswers([]);
+              setOnlineMyAnswerSubmitted(false);
+              setOnlineSubmittedIds(new Set());
+              setOnlineVotedIds(new Set());
+              setOnlineMyVoteCast(false);
+              setAnswerInput('');
+              setTimeLeft(WRITING_TIME);
+              setRevealedCount(0);
+              setOnlineRoundWinner(null);
+            }
+            if (evt.phase === 'mega-intro') {
+              setMegaIntroVisible(true);
+            }
+            break;
+
+          case 'answer_submitted':
+            setOnlineSubmittedIds(prev => new Set(prev).add(evt.playerId));
+            break;
+
+          case 'all_answers':
+            setOnlineAnswers(evt.answers);
+            setRevealedCount(0);
+            setPhase('revealing');
+            break;
+
+          case 'reveal_next':
+            setRevealedCount(evt.count);
+            break;
+
+          case 'vote_cast':
+            setOnlineVotedIds(prev => new Set(prev).add(evt.playerId));
+            break;
+
+          case 'scores_update':
+            setOnlinePlayers(evt.players);
+            setOnlineAnswers(evt.answers);
+            setOnlineRoundWinner(evt.winner);
+            setPhase('results');
+            break;
+
+          case 'mega_start':
+            setCurrentPrompt(evt.prompt);
+            setRoundPrompts([evt.prompt]);
+            setCurrentPromptIndex(0);
+            setMegaIntroVisible(false);
+            setOnlineAnswers([]);
+            setOnlineMyAnswerSubmitted(false);
+            setOnlineSubmittedIds(new Set());
+            setOnlineVotedIds(new Set());
+            setOnlineMyVoteCast(false);
+            setAnswerInput('');
+            setTimeLeft(WRITING_TIME);
+            setRevealedCount(0);
+            setOnlineRoundWinner(null);
+            setPhase('writing');
+            break;
+        }
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+      channelRef.current = null;
+    };
+  }, [isOnline, onlineRoomCode]);
 
   /* ── Timer ── */
   useEffect(() => {
-    if (phase === 'writing' && gameMode === 'room') {
+    if (phase === 'writing' && (gameMode === 'room' || gameMode === 'online')) {
       timerRef.current = setInterval(() => {
         setTimeLeft((t) => {
           if (t <= 1) {
@@ -325,11 +529,13 @@ export default function PromptRoulettePage() {
     }
   }, [phase, gameMode, currentPrompt]);
 
-  // Auto-submit when timer runs out (room mode)
+  // Auto-submit when timer runs out (room / online mode)
   useEffect(() => {
     if (timeLeft === 0 && phase === 'writing' && gameMode === 'room') {
-      // In room mode, auto-advance after timer
       handleFinishWriting();
+    }
+    if (timeLeft === 0 && phase === 'writing' && gameMode === 'online') {
+      handleOnlineAutoSubmit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft]);
@@ -343,6 +549,24 @@ export default function PromptRoulettePage() {
 
   /* ── Reveal animation ── */
   useEffect(() => {
+    if (isOnline) {
+      // Online: host drives reveals via broadcast
+      const totalAnswers = onlineAnswers.length;
+      if (phase === 'revealing' && amHost && revealedCount < totalAnswers) {
+        const timer = setTimeout(() => {
+          const next = revealedCount + 1;
+          broadcast({ type: 'reveal_next', count: next });
+        }, REVEAL_DELAY);
+        return () => clearTimeout(timer);
+      }
+      if (phase === 'revealing' && amHost && revealedCount >= totalAnswers && totalAnswers > 0) {
+        setTimeout(() => {
+          broadcast({ type: 'phase_change', phase: 'voting', prompt: currentPrompt, round: currentRound, promptIndex: currentPromptIndex, roundPrompts });
+        }, 800);
+      }
+      return;
+    }
+    // Offline modes
     if (phase === 'revealing' && revealedCount < answers.length) {
       const timer = setTimeout(() => {
         setRevealedCount((c) => c + 1);
@@ -350,14 +574,14 @@ export default function PromptRoulettePage() {
       return () => clearTimeout(timer);
     }
     if (phase === 'revealing' && revealedCount >= answers.length && answers.length > 0) {
-      // All revealed, move to voting
       setTimeout(() => {
         setCurrentVotingPlayer(0);
         setHasVoted(new Set());
         setPhase('voting');
       }, 800);
     }
-  }, [phase, revealedCount, answers.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, revealedCount, answers.length, onlineAnswers.length, isOnline, amHost]);
 
   /* ================================================================
      GAME LOGIC
@@ -538,8 +762,394 @@ export default function PromptRoulettePage() {
     setUsedPrompts(new Set());
     setAnswers([]);
     setShowConfetti(false);
+    if (isOnline && channelRef.current) {
+      channelRef.current.unsubscribe();
+      channelRef.current = null;
+    }
+    setOnlineLobbyPhase('choice');
+    setOnlineRoomCode('');
+    setOnlineMyId('');
+    setOnlinePlayers([]);
+    setOnlineAnswers([]);
+    setOnlineError(null);
     setGameMode(null);
   };
+
+  /* ================================================================
+     ONLINE GAME LOGIC
+     ================================================================ */
+
+  const handleOnlineCreateRoom = useCallback(async () => {
+    const name = onlineDisplayName.trim().replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 16).trim();
+    if (!name) { setOnlineError('Please enter a name'); return; }
+    storeName(name);
+    setOnlineIsCreating(true);
+    setOnlineError(null);
+    try {
+      const res = await fetch('/api/games/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_id: 'prompt-roulette',
+          display_name: name,
+          mode: 'online',
+          max_players: ONLINE_MAX_PLAYERS,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || 'Failed to create room');
+      }
+      const data = await res.json();
+      const myId = data.player.id as string;
+      const code = data.room.code as string;
+      setOnlineRoomCode(code);
+      setOnlineMyId(myId);
+      const me: OnlinePlayer = {
+        id: myId,
+        name,
+        avatar: AVATARS[0],
+        score: 0,
+        isHost: true,
+      };
+      setOnlinePlayers([me]);
+      setOnlineLobbyPhase('waiting');
+      // Broadcast will happen after channel connects (useEffect handles subscription)
+    } catch (err) {
+      setOnlineError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setOnlineIsCreating(false);
+    }
+  }, [onlineDisplayName]);
+
+  const handleOnlineJoinRoom = useCallback(async () => {
+    const name = onlineDisplayName.trim().replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 16).trim();
+    const code = onlineJoinCode.trim().toUpperCase();
+    if (!name) { setOnlineError('Please enter a name'); return; }
+    if (code.length !== 6) { setOnlineError('Room code must be 6 characters'); return; }
+    storeName(name);
+    setOnlineIsCreating(true);
+    setOnlineError(null);
+    try {
+      const res = await fetch(`/api/games/rooms/${code}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ display_name: name }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || 'Failed to join room');
+      }
+      const data = await res.json();
+      const myId = data.player.id as string;
+      setOnlineRoomCode(code);
+      setOnlineMyId(myId);
+      // Build OnlinePlayer list from API response
+      const playersList: OnlinePlayer[] = (data.players || []).map((p: { id: string; display_name: string; avatar_seed: string; is_host: boolean; score: number }, idx: number) => ({
+        id: p.id,
+        name: p.display_name,
+        avatar: AVATARS[idx % AVATARS.length],
+        score: p.score || 0,
+        isHost: p.is_host,
+      }));
+      setOnlinePlayers(playersList);
+      setOnlineLobbyPhase('waiting');
+
+      // After channel connects, broadcast that we joined
+      setTimeout(() => {
+        const me = playersList.find((p: OnlinePlayer) => p.id === myId);
+        if (me) {
+          // We'll use broadcast once channel is ready - the useEffect handles subscription
+          // Use a small delay to ensure channel is subscribed
+          const tryBroadcast = () => {
+            if (channelRef.current) {
+              channelRef.current.send({
+                type: 'broadcast',
+                event: 'game_event',
+                payload: { type: 'player_joined', player: me } as BroadcastEvent,
+              });
+            } else {
+              setTimeout(tryBroadcast, 200);
+            }
+          };
+          tryBroadcast();
+        }
+      }, 100);
+    } catch (err) {
+      setOnlineError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setOnlineIsCreating(false);
+    }
+  }, [onlineDisplayName, onlineJoinCode]);
+
+  /** Host starts the online game */
+  const handleOnlineStartGame = useCallback(() => {
+    if (!amHost || onlinePlayers.length < ONLINE_MIN_PLAYERS) return;
+    const prompts = pickPrompts(PROMPTS_PER_ROUND, undefined, usedPrompts);
+    const newUsed = new Set(usedPrompts);
+    prompts.forEach(p => newUsed.add(p.text));
+    setUsedPrompts(newUsed);
+
+    broadcast({
+      type: 'game_started',
+      prompt: prompts[0],
+      round: 1,
+      roundPrompts: prompts,
+    });
+  }, [amHost, onlinePlayers, usedPrompts, broadcast]);
+
+  /** Submit answer in online mode */
+  const handleOnlineSubmitAnswer = useCallback(() => {
+    const text = answerInput.trim();
+    if (!text || onlineMyAnswerSubmitted) return;
+    setOnlineMyAnswerSubmitted(true);
+    setAnswerInput('');
+
+    // Send answer to host via API state (we use broadcast for simplicity)
+    const sessionToken = getSessionToken();
+    // Broadcast that this player submitted (everyone sees progress)
+    broadcast({ type: 'answer_submitted', playerId: onlineMyId });
+
+    // Store answer in API game state so host can collect
+    fetch(`/api/games/rooms/${onlineRoomCode}/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        state_data: { [`answer_${onlineMyId}`]: text, session: sessionToken },
+        expected_version: 0,
+      }),
+    }).catch(() => {
+      // Fallback: broadcast the answer directly (less secure but works)
+    });
+
+    // Also broadcast the answer encrypted-ish (only host collects)
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'answer_data',
+      payload: { playerId: onlineMyId, text },
+    });
+  }, [answerInput, onlineMyAnswerSubmitted, onlineMyId, onlineRoomCode, broadcast]);
+
+  /** Auto-submit blank when timer expires (online) */
+  const handleOnlineAutoSubmit = useCallback(() => {
+    if (onlineMyAnswerSubmitted) return;
+    setOnlineMyAnswerSubmitted(true);
+    broadcast({ type: 'answer_submitted', playerId: onlineMyId });
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'answer_data',
+      payload: { playerId: onlineMyId, text: '...' },
+    });
+  }, [onlineMyAnswerSubmitted, onlineMyId, broadcast]);
+
+  /** Host: collect answers from broadcast and trigger reveal */
+  const onlineCollectedAnswersRef = useRef<Map<string, string>>(new Map());
+
+  // Listen for individual answers (host collects them)
+  useEffect(() => {
+    if (!isOnline || !onlineRoomCode) return;
+
+    const channel = supabase.channel(`room:${onlineRoomCode}:answers`, {
+      config: { broadcast: { self: true } },
+    });
+
+    channel
+      .on('broadcast', { event: 'answer_data' }, ({ payload }) => {
+        const { playerId, text } = payload as { playerId: string; text: string };
+        onlineCollectedAnswersRef.current.set(playerId, text);
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [isOnline, onlineRoomCode]);
+
+  /** Host triggers reveal when enough answers are in or they click reveal */
+  const handleOnlineReveal = useCallback(() => {
+    if (!amHost) return;
+    const collected = onlineCollectedAnswersRef.current;
+    const allAnswers: OnlineAnswer[] = onlinePlayers.map(p => ({
+      playerId: p.id,
+      text: collected.get(p.id) || '...',
+      votes: 0,
+    }));
+    // Shuffle to anonymize order
+    const shuffled = [...allAnswers].sort(() => Math.random() - 0.5);
+    onlineCollectedAnswersRef.current = new Map();
+    broadcast({ type: 'all_answers', answers: shuffled });
+  }, [amHost, onlinePlayers, broadcast]);
+
+  /** Online vote */
+  const handleOnlineVote = useCallback((answerIndex: number) => {
+    if (onlineMyVoteCast) return;
+    const answer = onlineAnswers[answerIndex];
+    if (!answer || answer.playerId === onlineMyId) return;
+    setOnlineMyVoteCast(true);
+
+    // Broadcast vote
+    broadcast({ type: 'vote_cast', playerId: onlineMyId });
+
+    // Send vote data to host
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'vote_data',
+      payload: { voterId: onlineMyId, answerIndex },
+    });
+  }, [onlineMyVoteCast, onlineAnswers, onlineMyId, broadcast]);
+
+  // Host collects votes
+  const onlineCollectedVotesRef = useRef<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    if (!isOnline || !onlineRoomCode) return;
+
+    const channel = supabase.channel(`room:${onlineRoomCode}:votes`, {
+      config: { broadcast: { self: true } },
+    });
+
+    channel
+      .on('broadcast', { event: 'vote_data' }, ({ payload }) => {
+        const { voterId, answerIndex } = payload as { voterId: string; answerIndex: number };
+        onlineCollectedVotesRef.current.set(voterId, answerIndex);
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [isOnline, onlineRoomCode]);
+
+  /** Host tallies votes and broadcasts scores */
+  const handleOnlineTallyVotes = useCallback(() => {
+    if (!amHost) return;
+    const votes = onlineCollectedVotesRef.current;
+    const isMega = currentPrompt?.category === 'mega';
+    const multiplier = isMega ? MEGA_MULTIPLIER : 1;
+
+    // Tally votes per answer
+    const voteCounts = new Array(onlineAnswers.length).fill(0);
+    votes.forEach((answerIdx) => {
+      if (answerIdx >= 0 && answerIdx < onlineAnswers.length) {
+        voteCounts[answerIdx]++;
+      }
+    });
+
+    const updatedAnswers = onlineAnswers.map((a, i) => ({
+      ...a,
+      votes: voteCounts[i],
+    }));
+
+    // Award points
+    const maxVotes = Math.max(...voteCounts, 0);
+    const updatedPlayers = onlinePlayers.map(p => {
+      const myAnswer = updatedAnswers.find(a => a.playerId === p.id);
+      const points = myAnswer ? myAnswer.votes * multiplier : 0;
+      return { ...p, score: p.score + points };
+    });
+
+    const winnerAnswer = updatedAnswers.find(a => a.votes === maxVotes && maxVotes > 0);
+    const winner = winnerAnswer ? updatedPlayers.find(p => p.id === winnerAnswer.playerId) || null : null;
+
+    onlineCollectedVotesRef.current = new Map();
+
+    broadcast({
+      type: 'scores_update',
+      players: updatedPlayers,
+      answers: updatedAnswers,
+      winner,
+    });
+  }, [amHost, onlineAnswers, onlinePlayers, currentPrompt, broadcast]);
+
+  // Auto-tally when all online votes are in
+  useEffect(() => {
+    if (!isOnline || !amHost || phase !== 'voting') return;
+    if (onlineVotedIds.size >= onlinePlayers.length) {
+      setTimeout(() => handleOnlineTallyVotes(), 300);
+    }
+  }, [isOnline, amHost, phase, onlineVotedIds.size, onlinePlayers.length, handleOnlineTallyVotes]);
+
+  // Auto-reveal when all answers submitted (host)
+  useEffect(() => {
+    if (!isOnline || !amHost || phase !== 'writing') return;
+    if (onlineSubmittedIds.size >= onlinePlayers.length) {
+      setTimeout(() => handleOnlineReveal(), 500);
+    }
+  }, [isOnline, amHost, phase, onlineSubmittedIds.size, onlinePlayers.length, handleOnlineReveal]);
+
+  /** Host advances to next prompt/round (online) */
+  const handleOnlineAdvanceToNext = useCallback(() => {
+    if (!amHost) return;
+
+    if (currentPrompt?.category === 'mega') {
+      setShowConfetti(true);
+      broadcast({ type: 'phase_change', phase: 'final-results', prompt: currentPrompt, round: currentRound, promptIndex: currentPromptIndex, roundPrompts });
+      return;
+    }
+
+    const nextPromptIdx = currentPromptIndex + 1;
+
+    if (nextPromptIdx < roundPrompts.length) {
+      broadcast({
+        type: 'phase_change',
+        phase: 'writing',
+        prompt: roundPrompts[nextPromptIdx],
+        round: currentRound,
+        promptIndex: nextPromptIdx,
+        roundPrompts,
+      });
+    } else if (currentRound < TOTAL_ROUNDS) {
+      const nextRound = currentRound + 1;
+      const prompts = pickPrompts(PROMPTS_PER_ROUND, undefined, usedPrompts);
+      const newUsed = new Set(usedPrompts);
+      prompts.forEach(p => newUsed.add(p.text));
+      setUsedPrompts(newUsed);
+
+      broadcast({
+        type: 'phase_change',
+        phase: 'round-summary',
+        prompt: prompts[0],
+        round: nextRound,
+        promptIndex: 0,
+        roundPrompts: prompts,
+      });
+    } else {
+      // Mega round intro
+      const megaPrompt = pickPrompts(1, 'mega', usedPrompts)[0];
+      if (megaPrompt) {
+        const newUsed = new Set(usedPrompts);
+        newUsed.add(megaPrompt.text);
+        setUsedPrompts(newUsed);
+        broadcast({
+          type: 'phase_change',
+          phase: 'mega-intro',
+          prompt: megaPrompt,
+          round: currentRound,
+          promptIndex: 0,
+          roundPrompts: [megaPrompt],
+        });
+      }
+    }
+  }, [amHost, currentPrompt, currentPromptIndex, currentRound, roundPrompts, usedPrompts, broadcast]);
+
+  /** Host starts mega round writing (online) */
+  const handleOnlineStartMega = useCallback(() => {
+    if (!amHost || !currentPrompt) return;
+    broadcast({ type: 'mega_start', prompt: currentPrompt });
+  }, [amHost, currentPrompt, broadcast]);
+
+  /** Host starts next round writing after round-summary (online) */
+  const handleOnlineStartNextRound = useCallback(() => {
+    if (!amHost) return;
+    broadcast({
+      type: 'phase_change',
+      phase: 'writing',
+      prompt: currentPrompt,
+      round: currentRound,
+      promptIndex: currentPromptIndex,
+      roundPrompts,
+    });
+  }, [amHost, currentPrompt, currentRound, currentPromptIndex, roundPrompts, broadcast]);
 
   /* ================================================================
      RENDER HELPERS
@@ -726,6 +1336,23 @@ export default function PromptRoulettePage() {
                 HOW ARE YOU PLAYING?
               </p>
               <button
+                onClick={() => setGameMode('online')}
+                className="pixel-card rounded-lg p-4 w-full text-left transition-all hover:scale-[1.02]"
+                style={{ backgroundColor: 'var(--color-bg-card)', borderColor: 'var(--color-cyan)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{'\u{1F30D}'}</span>
+                  <div>
+                    <span className="pixel-text text-xs block mb-1" style={{ color: 'var(--color-cyan)' }}>
+                      ONLINE
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                      Everyone plays on their own device with a room code.
+                    </span>
+                  </div>
+                </div>
+              </button>
+              <button
                 onClick={() => setGameMode('pass')}
                 className="pixel-card rounded-lg p-4 w-full text-left transition-all hover:scale-[1.02]"
                 style={{ backgroundColor: 'var(--color-bg-card)' }}
@@ -762,8 +1389,202 @@ export default function PromptRoulettePage() {
             </div>
           )}
 
-          {/* Player Count + Start */}
-          {gameMode && (
+          {/* Online Lobby */}
+          {gameMode === 'online' && onlineLobbyPhase === 'choice' && (
+            <div className="space-y-3 mb-8">
+              <button
+                onClick={() => setGameMode(null)}
+                className="text-xs hover:opacity-80"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                &larr; Change mode
+              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={() => setOnlineLobbyPhase('create')}
+                  className="pixel-btn w-full py-3 text-sm"
+                  style={{ borderColor: 'var(--color-cyan)', color: 'var(--color-cyan)' }}
+                >
+                  CREATE ROOM
+                </button>
+                <button
+                  onClick={() => setOnlineLobbyPhase('join')}
+                  className="w-full py-3 text-sm rounded border transition-colors"
+                  style={{
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text)',
+                    backgroundColor: 'var(--color-bg-card)',
+                  }}
+                >
+                  JOIN ROOM
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Online: Create or Join form */}
+          {gameMode === 'online' && (onlineLobbyPhase === 'create' || onlineLobbyPhase === 'join') && (
+            <div className="space-y-4 mb-8">
+              <button
+                onClick={() => { setOnlineLobbyPhase('choice'); setOnlineError(null); }}
+                className="text-xs hover:opacity-80"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                &larr; Back
+              </button>
+              <h3 className="pixel-text text-xs text-center" style={{ color: 'var(--color-cyan)' }}>
+                {onlineLobbyPhase === 'create' ? 'CREATE ROOM' : 'JOIN ROOM'}
+              </h3>
+              <div>
+                <label className="pixel-text block mb-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}>
+                  YOUR NAME
+                </label>
+                <input
+                  type="text"
+                  value={onlineDisplayName}
+                  onChange={(e) => setOnlineDisplayName(e.target.value)}
+                  placeholder="Enter your name..."
+                  maxLength={16}
+                  className="w-full px-4 py-3 rounded-lg text-sm"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text)',
+                    border: '2px solid var(--color-border)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+              {onlineLobbyPhase === 'join' && (
+                <div>
+                  <label className="pixel-text block mb-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}>
+                    ROOM CODE
+                  </label>
+                  <input
+                    type="text"
+                    value={onlineJoinCode}
+                    onChange={(e) => setOnlineJoinCode(e.target.value.toUpperCase().slice(0, 6))}
+                    placeholder="ABC123"
+                    maxLength={6}
+                    className="w-full px-4 py-3 rounded-lg text-center pixel-text text-lg tracking-widest"
+                    style={{
+                      backgroundColor: 'var(--color-surface)',
+                      color: 'var(--color-cyan)',
+                      border: '2px solid var(--color-border)',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              )}
+              {onlineError && (
+                <p className="text-xs text-center" style={{ color: 'var(--color-red)' }}>{onlineError}</p>
+              )}
+              <button
+                onClick={onlineLobbyPhase === 'create' ? handleOnlineCreateRoom : handleOnlineJoinRoom}
+                disabled={onlineIsCreating}
+                className="pixel-btn w-full py-3 text-sm"
+                style={{
+                  borderColor: 'var(--color-cyan)',
+                  color: 'var(--color-cyan)',
+                  opacity: onlineIsCreating ? 0.6 : 1,
+                }}
+              >
+                {onlineIsCreating ? 'LOADING...' : onlineLobbyPhase === 'create' ? 'CREATE' : 'JOIN'}
+              </button>
+            </div>
+          )}
+
+          {/* Online: Waiting Room / Lobby */}
+          {gameMode === 'online' && onlineLobbyPhase === 'waiting' && phase === 'setup' && (
+            <div className="space-y-4 mb-8">
+              {/* Room Code Display */}
+              <div className="text-center">
+                <p className="pixel-text text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                  ROOM CODE
+                </p>
+                <div
+                  className="inline-block px-6 py-3 rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    border: '2px solid var(--color-cyan)',
+                  }}
+                >
+                  <span
+                    className="pixel-text text-2xl tracking-[0.3em]"
+                    style={{ color: 'var(--color-cyan)' }}
+                  >
+                    {onlineRoomCode}
+                  </span>
+                </div>
+                <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                  Share this code with friends
+                </p>
+              </div>
+
+              {/* Player List */}
+              <div
+                className="pixel-card rounded-lg p-4"
+                style={{ backgroundColor: 'var(--color-bg-card)' }}
+              >
+                <h4
+                  className="pixel-text text-xs mb-3"
+                  style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+                >
+                  PLAYERS ({onlinePlayers.length}/{ONLINE_MAX_PLAYERS})
+                </h4>
+                <div className="space-y-2">
+                  {onlinePlayers.map((p) => (
+                    <div key={p.id} className="flex items-center gap-2">
+                      <span className="text-lg">{p.avatar}</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text)' }}>
+                        {p.name}
+                      </span>
+                      {p.isHost && (
+                        <span
+                          className="pixel-text text-xs px-2 py-0.5 rounded"
+                          style={{ color: 'var(--color-orange)', border: '1px solid var(--color-orange)', fontSize: '0.45rem' }}
+                        >
+                          HOST
+                        </span>
+                      )}
+                      {p.id === onlineMyId && (
+                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>(you)</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Start / Waiting */}
+              {amHost ? (
+                <div className="text-center">
+                  <button
+                    onClick={handleOnlineStartGame}
+                    disabled={onlinePlayers.length < ONLINE_MIN_PLAYERS}
+                    className="pixel-btn text-sm px-8 py-3"
+                    style={{
+                      borderColor: 'var(--color-cyan)',
+                      color: 'var(--color-cyan)',
+                      opacity: onlinePlayers.length >= ONLINE_MIN_PLAYERS ? 1 : 0.4,
+                      cursor: onlinePlayers.length >= ONLINE_MIN_PLAYERS ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    {onlinePlayers.length >= ONLINE_MIN_PLAYERS
+                      ? 'START GAME'
+                      : `WAITING FOR PLAYERS (${onlinePlayers.length}/${ONLINE_MIN_PLAYERS} min)`}
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-muted)' }}>
+                    Waiting for host to start...
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Player Count + Start (pass/room modes only) */}
+          {gameMode && gameMode !== 'online' && (
             <>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
@@ -890,8 +1711,25 @@ export default function PromptRoulettePage() {
             )}
           </div>
 
-          {/* Timer (room mode) */}
-          {gameMode === 'room' && <TimerBar />}
+          {/* Timer (room / online mode) */}
+          {(gameMode === 'room' || gameMode === 'online') && <TimerBar />}
+
+          {/* Online: private writing */}
+          {gameMode === 'online' && (
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                style={{ backgroundColor: 'var(--color-surface)' }}>
+                <span className="pixel-text text-xs" style={{ color: 'var(--color-cyan)' }}>
+                  {onlineMyAnswerSubmitted ? 'ANSWER SUBMITTED' : 'WRITE YOUR ANSWER'}
+                </span>
+              </div>
+              {onlineMyAnswerSubmitted && (
+                <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                  Waiting for other players...
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Current Writer Info (pass mode) */}
           {gameMode === 'pass' && (
@@ -914,45 +1752,87 @@ export default function PromptRoulettePage() {
 
           {/* Answer Input */}
           <div className="space-y-3">
-            <div className="relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={answerInput}
-                onChange={(e) => setAnswerInput(e.target.value.slice(0, MAX_ANSWER_LENGTH))}
-                onKeyDown={(e) => e.key === 'Enter' && answerInput.trim() && submitAnswer()}
-                placeholder="Write your answer..."
-                maxLength={MAX_ANSWER_LENGTH}
-                className="w-full px-4 py-3 rounded-lg text-sm outline-none border transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text)',
-                }}
-              />
-              <span
-                className="absolute right-3 top-1/2 -translate-y-1/2 mono-text text-xs"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                {answerInput.length}/{MAX_ANSWER_LENGTH}
-              </span>
-            </div>
-            <button
-              onClick={submitAnswer}
-              disabled={!answerInput.trim()}
-              className="pixel-btn w-full text-sm py-3"
-              style={{
-                opacity: !answerInput.trim() ? 0.4 : 1,
-                borderColor: 'var(--color-accent)',
-                color: 'var(--color-accent)',
-              }}
-            >
-              {gameMode === 'pass'
-                ? currentWritingPlayer < players.length - 1
-                  ? 'SUBMIT & PASS'
-                  : 'SUBMIT & REVEAL'
-                : 'SUBMIT ANSWER'}
-            </button>
+            {/* Hide input if online and already submitted */}
+            {!(isOnline && onlineMyAnswerSubmitted) && (
+              <>
+                <div className="relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={answerInput}
+                    onChange={(e) => setAnswerInput(e.target.value.slice(0, MAX_ANSWER_LENGTH))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && answerInput.trim()) {
+                        if (isOnline) handleOnlineSubmitAnswer();
+                        else submitAnswer();
+                      }
+                    }}
+                    placeholder="Write your answer..."
+                    maxLength={MAX_ANSWER_LENGTH}
+                    className="w-full px-4 py-3 rounded-lg text-sm outline-none border transition-colors"
+                    style={{
+                      backgroundColor: 'var(--color-surface)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text)',
+                    }}
+                  />
+                  <span
+                    className="absolute right-3 top-1/2 -translate-y-1/2 mono-text text-xs"
+                    style={{ color: 'var(--color-text-muted)' }}
+                  >
+                    {answerInput.length}/{MAX_ANSWER_LENGTH}
+                  </span>
+                </div>
+                <button
+                  onClick={isOnline ? handleOnlineSubmitAnswer : submitAnswer}
+                  disabled={!answerInput.trim()}
+                  className="pixel-btn w-full text-sm py-3"
+                  style={{
+                    opacity: !answerInput.trim() ? 0.4 : 1,
+                    borderColor: isOnline ? 'var(--color-cyan)' : 'var(--color-accent)',
+                    color: isOnline ? 'var(--color-cyan)' : 'var(--color-accent)',
+                  }}
+                >
+                  {isOnline
+                    ? 'SUBMIT ANSWER'
+                    : gameMode === 'pass'
+                    ? currentWritingPlayer < players.length - 1
+                      ? 'SUBMIT & PASS'
+                      : 'SUBMIT & REVEAL'
+                    : 'SUBMIT ANSWER'}
+                </button>
+              </>
+            )}
+
+            {/* Online: show who has submitted */}
+            {isOnline && (
+              <div className="text-center mt-4">
+                <p className="text-xs mb-2" style={{ color: 'var(--color-text-muted)' }}>
+                  {onlineSubmittedIds.size}/{onlinePlayers.length} answers submitted
+                </p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {onlinePlayers.map((p) => (
+                    <span
+                      key={p.id}
+                      className="text-lg transition-opacity"
+                      style={{ opacity: onlineSubmittedIds.has(p.id) ? 1 : 0.3 }}
+                      title={p.name}
+                    >
+                      {p.avatar}
+                    </span>
+                  ))}
+                </div>
+                {amHost && onlineSubmittedIds.size >= 2 && (
+                  <button
+                    onClick={handleOnlineReveal}
+                    className="pixel-btn text-xs mt-3 px-4"
+                    style={{ borderColor: 'var(--color-orange)', color: 'var(--color-orange)' }}
+                  >
+                    REVEAL ANSWERS
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Room mode: show who has submitted */}
             {gameMode === 'room' && (
@@ -997,6 +1877,8 @@ export default function PromptRoulettePage() {
      ================================================================ */
 
   if (phase === 'revealing') {
+    const displayAnswers = isOnline ? onlineAnswers : answers;
+
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
         <Header />
@@ -1016,7 +1898,7 @@ export default function PromptRoulettePage() {
 
           {/* Answer Cards */}
           <div className="space-y-3">
-            {answers.map((answer, i) => (
+            {displayAnswers.map((answer, i) => (
               <div
                 key={i}
                 className="transition-all duration-500"
@@ -1055,20 +1937,94 @@ export default function PromptRoulettePage() {
      ================================================================ */
 
   if (phase === 'voting') {
+    // Online voting: each player votes on their own device
+    if (isOnline) {
+      return (
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+          <Header />
+          <div className="max-w-xl mx-auto px-4 py-6">
+            <div className="text-center mb-4">
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                {currentPrompt?.text}
+              </p>
+            </div>
+
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                style={{ backgroundColor: 'var(--color-surface)' }}>
+                <span className="pixel-text text-xs" style={{ color: 'var(--color-purple)' }}>
+                  {onlineMyVoteCast ? 'VOTE CAST' : 'PICK YOUR FAVORITE'}
+                </span>
+              </div>
+              {onlineMyVoteCast && (
+                <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                  Waiting for other votes... ({onlineVotedIds.size}/{onlinePlayers.length})
+                </p>
+              )}
+            </div>
+
+            {!onlineMyVoteCast && (
+              <div className="space-y-3">
+                {onlineAnswers.map((answer, i) => {
+                  const isOwn = answer.playerId === onlineMyId;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => !isOwn && handleOnlineVote(i)}
+                      disabled={isOwn}
+                      className="pixel-card rounded-lg p-4 w-full text-left transition-all"
+                      style={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        opacity: isOwn ? 0.35 : 1,
+                        cursor: isOwn ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <p className="text-sm md:text-base" style={{ color: 'var(--color-text)' }}>
+                        &ldquo;{answer.text}&rdquo;
+                      </p>
+                      {isOwn && (
+                        <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                          (your answer)
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {onlineMyVoteCast && (
+              <div className="flex justify-center gap-2 flex-wrap mt-4">
+                {onlinePlayers.map((p) => (
+                  <span
+                    key={p.id}
+                    className="text-lg transition-opacity"
+                    style={{ opacity: onlineVotedIds.has(p.id) ? 1 : 0.3 }}
+                    title={p.name}
+                  >
+                    {p.avatar}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Offline voting (pass-the-phone / room)
     const voter = players[currentVotingPlayer];
 
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-6">
-          {/* Prompt reminder */}
           <div className="text-center mb-4">
             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
               {currentPrompt?.text}
             </p>
           </div>
 
-          {/* Voter info */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
               style={{ backgroundColor: 'var(--color-surface)' }}>
@@ -1082,7 +2038,6 @@ export default function PromptRoulettePage() {
             </p>
           </div>
 
-          {/* Answer Cards */}
           <div className="space-y-3">
             {answers.map((answer, i) => {
               const isOwnAnswer = answer.playerId === voter.id;
@@ -1112,7 +2067,6 @@ export default function PromptRoulettePage() {
             })}
           </div>
 
-          {/* Progress */}
           <div className="text-center mt-4">
             <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Vote {currentVotingPlayer + 1} of {players.length}
@@ -1129,20 +2083,143 @@ export default function PromptRoulettePage() {
 
   if (phase === 'results') {
     const isMega = currentPrompt?.category === 'mega';
+
+    if (isOnline) {
+      const displayAnswers = onlineAnswers;
+      const maxVotes = Math.max(...displayAnswers.map(a => a.votes), 1);
+      const onlineSorted = [...onlinePlayers].sort((a, b) => b.score - a.score);
+
+      return (
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+          <Header />
+          <div className="max-w-xl mx-auto px-4 py-6">
+            <div className="text-center mb-6">
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                {currentPrompt?.text}
+              </p>
+            </div>
+
+            {onlineRoundWinner && (
+              <div className="text-center mb-6 animate-scale-in">
+                <span className="text-4xl">{'\u{1F451}'}</span>
+                <p className="pixel-text text-sm mt-1" style={{ color: 'var(--color-orange)' }}>
+                  {onlineRoundWinner.name} WINS!
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {[...displayAnswers]
+                .sort((a, b) => b.votes - a.votes)
+                .map((answer, i) => {
+                  const author = onlinePlayers.find(p => p.id === answer.playerId);
+                  const barWidth = maxVotes > 0 ? (answer.votes / maxVotes) * 100 : 0;
+                  const isWinner = answer.votes === maxVotes && answer.votes > 0;
+                  return (
+                    <div
+                      key={i}
+                      className="pixel-card rounded-lg p-4 animate-fade-in-up"
+                      style={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        animationDelay: `${i * 100}ms`,
+                        borderColor: isWinner ? 'var(--color-orange)' : undefined,
+                        boxShadow: isWinner ? '0 0 12px rgba(245, 158, 11, 0.2)' : undefined,
+                      }}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <p className="text-sm md:text-base flex-1" style={{ color: 'var(--color-text)' }}>
+                          &ldquo;{answer.text}&rdquo;
+                        </p>
+                        <span className="mono-text text-sm font-bold ml-3" style={{ color: 'var(--color-accent)' }}>
+                          +{answer.votes * (isMega ? MEGA_MULTIPLIER : 1)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface)' }}>
+                          <div
+                            className="h-full rounded-full transition-all duration-700 ease-out"
+                            style={{
+                              width: `${barWidth}%`,
+                              backgroundColor: isWinner ? 'var(--color-orange)' : 'var(--color-accent)',
+                              boxShadow: isWinner ? '0 0 8px var(--color-orange)' : undefined,
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs mono-text" style={{ color: 'var(--color-text-muted)' }}>
+                          {answer.votes}v
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-2">
+                        <span className="text-sm">{author?.avatar}</span>
+                        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                          {author?.name}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Mini scoreboard */}
+            <div className="pixel-card rounded-lg p-3 mt-4" style={{ backgroundColor: 'var(--color-bg-card)' }}>
+              <div className="space-y-1">
+                {onlineSorted.map((p, i) => (
+                  <div key={p.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs" style={{ color: i === 0 ? 'var(--color-orange)' : 'var(--color-text-muted)' }}>
+                        {i === 0 ? '\u{1F451}' : `#${i + 1}`}
+                      </span>
+                      <span className="text-sm">{p.avatar}</span>
+                      <span className="text-xs" style={{ color: 'var(--color-text)' }}>{p.name}</span>
+                    </div>
+                    <span className="mono-text text-xs font-bold" style={{ color: 'var(--color-accent)' }}>{p.score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {amHost && (
+              <div className="text-center mt-8">
+                <button
+                  onClick={handleOnlineAdvanceToNext}
+                  className="pixel-btn text-sm px-8 py-3"
+                  style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
+                >
+                  {currentPrompt?.category === 'mega'
+                    ? 'FINAL RESULTS'
+                    : currentPromptIndex + 1 < roundPrompts.length
+                    ? 'NEXT PROMPT'
+                    : currentRound < TOTAL_ROUNDS
+                    ? 'NEXT ROUND'
+                    : 'MEGA ROUND'}
+                </button>
+              </div>
+            )}
+            {!amHost && (
+              <div className="text-center mt-8">
+                <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-muted)' }}>
+                  Waiting for host...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Offline results
     const maxVotes = Math.max(...answers.map((a) => a.votes), 1);
 
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-6">
-          {/* Prompt */}
           <div className="text-center mb-6">
             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
               {currentPrompt?.text}
             </p>
           </div>
 
-          {/* Winner */}
           {roundWinner && (
             <div className="text-center mb-6 animate-scale-in">
               <span className="text-4xl">{'\u{1F451}'}</span>
@@ -1152,7 +2229,6 @@ export default function PromptRoulettePage() {
             </div>
           )}
 
-          {/* Answer Results with Vote Bars */}
           <div className="space-y-3">
             {[...answers]
               .sort((a, b) => b.votes - a.votes)
@@ -1180,7 +2256,6 @@ export default function PromptRoulettePage() {
                         +{answer.votes * (isMega ? MEGA_MULTIPLIER : 1)}
                       </span>
                     </div>
-                    {/* Vote bar */}
                     <div className="flex items-center gap-2 mt-2">
                       <div
                         className="flex-1 h-3 rounded-full overflow-hidden"
@@ -1199,7 +2274,6 @@ export default function PromptRoulettePage() {
                         {answer.votes}v
                       </span>
                     </div>
-                    {/* Author reveal */}
                     <div className="flex items-center gap-1 mt-2">
                       <span className="text-sm">{author?.avatar}</span>
                       <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
@@ -1211,7 +2285,6 @@ export default function PromptRoulettePage() {
               })}
           </div>
 
-          {/* Continue Button */}
           <div className="text-center mt-8">
             <button
               onClick={advanceToNext}
@@ -1237,6 +2310,30 @@ export default function PromptRoulettePage() {
      ================================================================ */
 
   if (phase === 'round-summary') {
+    // Online scoreboard for round summary
+    const OnlineScoreboardInline = () => {
+      const sorted = [...onlinePlayers].sort((a, b) => b.score - a.score);
+      return (
+        <div className="pixel-card rounded-lg p-4 md:p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
+          <h3 className="pixel-text text-sm mb-3" style={{ color: 'var(--color-accent)' }}>SCOREBOARD</h3>
+          <div className="space-y-2">
+            {sorted.map((p, i) => (
+              <div key={p.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm" style={{ color: i === 0 ? 'var(--color-orange)' : 'var(--color-text-muted)' }}>
+                    {i === 0 ? '\u{1F451}' : `#${i + 1}`}
+                  </span>
+                  <span className="text-lg">{p.avatar}</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text)' }}>{p.name}</span>
+                </div>
+                <span className="mono-text font-bold" style={{ color: 'var(--color-accent)' }}>{p.score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
         <Header />
@@ -1254,16 +2351,32 @@ export default function PromptRoulettePage() {
             </p>
           </div>
 
-          <Scoreboard />
+          {isOnline ? <OnlineScoreboardInline /> : <Scoreboard />}
 
           <div className="text-center mt-8">
-            <button
-              onClick={resetForNewPrompt}
-              className="pixel-btn text-sm px-8 py-3"
-              style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
-            >
-              LET&apos;S GO!
-            </button>
+            {isOnline ? (
+              amHost ? (
+                <button
+                  onClick={handleOnlineStartNextRound}
+                  className="pixel-btn text-sm px-8 py-3"
+                  style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
+                >
+                  LET&apos;S GO!
+                </button>
+              ) : (
+                <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-muted)' }}>
+                  Waiting for host...
+                </p>
+              )
+            ) : (
+              <button
+                onClick={resetForNewPrompt}
+                className="pixel-btn text-sm px-8 py-3"
+                style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
+              >
+                LET&apos;S GO!
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1298,20 +2411,60 @@ export default function PromptRoulettePage() {
             DOUBLE POINTS!
           </p>
 
-          <Scoreboard compact />
+          {isOnline ? (
+            <div className="pixel-card rounded-lg p-3" style={{ backgroundColor: 'var(--color-bg-card)' }}>
+              <h3 className="pixel-text text-xs mb-3" style={{ color: 'var(--color-accent)' }}>SCOREBOARD</h3>
+              <div className="space-y-2">
+                {[...onlinePlayers].sort((a, b) => b.score - a.score).map((p, i) => (
+                  <div key={p.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs" style={{ color: i === 0 ? 'var(--color-orange)' : 'var(--color-text-muted)' }}>
+                        {i === 0 ? '\u{1F451}' : `#${i + 1}`}
+                      </span>
+                      <span className="text-sm">{p.avatar}</span>
+                      <span className="text-xs" style={{ color: 'var(--color-text)' }}>{p.name}</span>
+                    </div>
+                    <span className="mono-text text-xs font-bold" style={{ color: 'var(--color-accent)' }}>{p.score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Scoreboard compact />
+          )}
 
           <div className="mt-8">
-            <button
-              onClick={startMegaRound}
-              className="pixel-btn text-sm px-8 py-3"
-              style={{
-                borderColor: 'var(--color-pink)',
-                color: 'var(--color-pink)',
-                boxShadow: '0 0 16px rgba(236, 72, 153, 0.3)',
-              }}
-            >
-              BRING IT ON
-            </button>
+            {isOnline ? (
+              amHost ? (
+                <button
+                  onClick={handleOnlineStartMega}
+                  className="pixel-btn text-sm px-8 py-3"
+                  style={{
+                    borderColor: 'var(--color-pink)',
+                    color: 'var(--color-pink)',
+                    boxShadow: '0 0 16px rgba(236, 72, 153, 0.3)',
+                  }}
+                >
+                  BRING IT ON
+                </button>
+              ) : (
+                <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-muted)' }}>
+                  Waiting for host...
+                </p>
+              )
+            ) : (
+              <button
+                onClick={startMegaRound}
+                className="pixel-btn text-sm px-8 py-3"
+                style={{
+                  borderColor: 'var(--color-pink)',
+                  color: 'var(--color-pink)',
+                  boxShadow: '0 0 16px rgba(236, 72, 153, 0.3)',
+                }}
+              >
+                BRING IT ON
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1323,9 +2476,10 @@ export default function PromptRoulettePage() {
      ================================================================ */
 
   if (phase === 'final-results') {
-    const winner = sortedPlayers[0];
-    const runnerUp = sortedPlayers[1];
-    const third = sortedPlayers[2];
+    const onlineSorted = isOnline ? [...onlinePlayers].sort((a, b) => b.score - a.score) : [];
+    const winner = isOnline ? onlineSorted[0] : sortedPlayers[0];
+    const runnerUp = isOnline ? onlineSorted[1] : sortedPlayers[1];
+    const third = isOnline ? onlineSorted[2] : sortedPlayers[2];
 
     return (
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
@@ -1420,7 +2574,27 @@ export default function PromptRoulettePage() {
           </div>
 
           {/* Full Scoreboard */}
-          <Scoreboard />
+          {isOnline ? (
+            <div className="pixel-card rounded-lg p-4 md:p-6" style={{ backgroundColor: 'var(--color-bg-card)' }}>
+              <h3 className="pixel-text text-sm mb-3" style={{ color: 'var(--color-accent)' }}>SCOREBOARD</h3>
+              <div className="space-y-2">
+                {onlineSorted.map((p, i) => (
+                  <div key={p.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm" style={{ color: i === 0 ? 'var(--color-orange)' : 'var(--color-text-muted)' }}>
+                        {i === 0 ? '\u{1F451}' : `#${i + 1}`}
+                      </span>
+                      <span className="text-lg">{p.avatar}</span>
+                      <span className="text-sm" style={{ color: 'var(--color-text)' }}>{p.name}</span>
+                    </div>
+                    <span className="mono-text font-bold" style={{ color: 'var(--color-accent)' }}>{p.score}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Scoreboard />
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 justify-center mt-8">
