@@ -11,7 +11,8 @@ type Category =
   | "reflex"
   | "creative"
   | "simulation"
-  | "trivia";
+  | "trivia"
+  | "multiplayer";
 
 interface Game {
   id: string;
@@ -180,6 +181,97 @@ const games: Game[] = [
     category: "simulation",
     isNew: true,
   },
+  // Multiplayer games
+  {
+    id: "pixel-impostor",
+    title: "Pixel Impostor",
+    description: "One word, one liar, find the fake",
+    icon: "\uD83D\uDD75\uFE0F",
+    path: "/games/pixel-impostor",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "spyfall-dev",
+    title: "Spyfall: Dev Edition",
+    description: "Everyone knows the location... except the spy",
+    icon: "\uD83D\uDD0D",
+    path: "/games/spyfall-dev",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "person-do-thing",
+    title: "Person Do Thing",
+    description: "Describe anything with only 34 words",
+    icon: "\uD83D\uDDE3\uFE0F",
+    path: "/games/person-do-thing",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "prompt-roulette",
+    title: "Prompt Roulette",
+    description: "Write the funniest answer, everyone votes",
+    icon: "\uD83C\uDFB0",
+    path: "/games/prompt-roulette",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "wavelength",
+    title: "Wavelength",
+    description: "Guess where the clue falls on the spectrum",
+    icon: "\uD83D\uDCE1",
+    path: "/games/wavelength",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "stack-overflow",
+    title: "Stack Overflow",
+    description: "Real tech facts vs convincing lies",
+    icon: "\uD83D\uDCDA",
+    path: "/games/stack-overflow",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "merge-conflict",
+    title: "Merge Conflict",
+    description: "Two devs, one function, zero communication",
+    icon: "\uD83D\uDD00",
+    path: "/games/merge-conflict",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "dev-trivia",
+    title: "Dev Trivia Showdown",
+    description: "Team programming trivia with wagering",
+    icon: "\uD83C\uDFC6",
+    path: "/games/dev-trivia",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "glitch-artist",
+    title: "Glitch Artist",
+    description: "Everyone draws, one player fakes it",
+    icon: "\uD83C\uDFA8",
+    path: "/games/glitch-artist",
+    category: "multiplayer",
+    isNew: true,
+  },
+  {
+    id: "retro-reflex",
+    title: "Retro Reflex Duel",
+    description: "Rapid-fire micro-challenges",
+    icon: "\u26A1",
+    path: "/games/retro-reflex",
+    category: "multiplayer",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
@@ -190,6 +282,7 @@ const categories: { key: Category; label: string }[] = [
   { key: "creative", label: "Creative" },
   { key: "simulation", label: "Simulation" },
   { key: "trivia", label: "Trivia" },
+  { key: "multiplayer", label: "Multiplayer" },
 ];
 
 const categoryColors: Record<Category, string> = {
@@ -200,6 +293,7 @@ const categoryColors: Record<Category, string> = {
   creative: "var(--color-pink)",
   simulation: "var(--color-blue)",
   trivia: "var(--color-cyan)",
+  multiplayer: "var(--color-green)",
 };
 
 function getNewCount(cat: Category): number {
