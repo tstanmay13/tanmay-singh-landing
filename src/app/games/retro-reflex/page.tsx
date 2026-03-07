@@ -579,9 +579,35 @@ export default function RetroReflexDuelPage() {
 
   const startSetup = (mode: GameMode) => {
     setGameMode(mode);
-    const count = mode === 'split' ? 2 : playerCount;
+    if (mode === 'split') {
+      // Split screen is always 2 players — skip setup, go straight to game
+      setPlayerCount(2);
+      setPlayerNames(['P1', 'P2']);
+      setPhase('setup'); // will auto-start via startGame
+      // Directly start the game
+      const pList: Player[] = ['P1', 'P2'].map((name, i) => ({
+        id: i,
+        name,
+        scores: [],
+        times: [],
+        totalPoints: 0,
+        streak: 0,
+        bestStreak: 0,
+      }));
+      setPlayers(pList);
+      setCurrentChallengeIdx(0);
+      setCurrentPlayerIdx(0);
+      setResults([]);
+      setRoundTimes({});
+      const picked = shuffle([...CHALLENGE_DEFS]).slice(0, CHALLENGES_PER_GAME);
+      setChallenges(picked);
+      setCountdown(3);
+      setPhase('countdown');
+      return;
+    }
+    const count = playerCount;
     setPlayerCount(count);
-    setPlayerNames(Array.from({ length: count }, (_, i) => `Player ${i + 1}`));
+    setPlayerNames(Array.from({ length: count }, (_, i) => `P${i + 1}`));
     setPhase('setup');
   };
 
@@ -2042,54 +2068,30 @@ export default function RetroReflexDuelPage() {
             {gameMode === 'pass' ? 'PASS THE PHONE' : 'SPLIT SCREEN'} SETUP
           </h2>
 
-          {gameMode === 'pass' && (
-            <div className="mb-6 text-center">
-              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>Players</p>
-              <div className="flex gap-2 justify-center">
-                {[2, 3, 4, 5, 6, 7, 8].map((n) => (
-                  <button
-                    key={n}
-                    className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
-                    style={{
-                      backgroundColor: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
-                      color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
-                      border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                    }}
-                    onClick={() => {
-                      setPlayerCount(n);
-                      setPlayerNames(Array.from({ length: n }, (_, i) => playerNames[i] || `Player ${i + 1}`));
-                    }}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3 mb-8">
-            {playerNames.map((name, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="pixel-text text-xs w-8" style={{ color: PLAYER_COLORS[i % PLAYER_COLORS.length] }}>
-                  P{i + 1}
-                </span>
-                <input
-                  className="flex-1 px-3 py-2 rounded-lg text-sm"
+          <div className="mb-8 text-center">
+            <p className="pixel-text text-xs mb-4" style={{ color: 'var(--color-text-secondary)' }}>HOW MANY PLAYERS?</p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                <button
+                  key={n}
+                  className="w-12 h-12 rounded-lg text-sm font-bold transition-all"
                   style={{
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text)',
-                    border: '2px solid var(--color-border)',
+                    backgroundColor: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                    border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
                   }}
-                  value={name}
-                  onChange={(e) => {
-                    const copy = [...playerNames];
-                    copy[i] = e.target.value;
-                    setPlayerNames(copy);
+                  onClick={() => {
+                    setPlayerCount(n);
+                    setPlayerNames(Array.from({ length: n }, (_, i) => `P${i + 1}`));
                   }}
-                  placeholder={`Player ${i + 1}`}
-                />
-              </div>
-            ))}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs mt-3" style={{ color: 'var(--color-text-secondary)' }}>
+              Players will be P1, P2, P3...
+            </p>
           </div>
 
           <button className="pixel-btn w-full py-4" onClick={startGame}>

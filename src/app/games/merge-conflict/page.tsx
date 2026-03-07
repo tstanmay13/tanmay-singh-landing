@@ -175,7 +175,7 @@ export default function MergeConflictPage() {
 
   // Setup
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerNameInput, setPlayerNameInput] = useState('');
+  const [playerCount, setPlayerCount] = useState(4);
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('setup');
@@ -257,19 +257,6 @@ export default function MergeConflictPage() {
   /* ================================================================
      GAME LOGIC
      ================================================================ */
-
-  const addPlayer = useCallback(() => {
-    const name = playerNameInput.trim();
-    if (!name || players.length >= MAX_PLAYERS) return;
-    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return;
-    const avatar = AVATARS[players.length % AVATARS.length];
-    setPlayers((prev) => [...prev, { id: prev.length, name, score: 0, avatar }]);
-    setPlayerNameInput('');
-  }, [playerNameInput, players]);
-
-  const removePlayer = (id: number) => {
-    setPlayers((prev) => prev.filter((p) => p.id !== id));
-  };
 
   const generatePairs = useCallback((playerList: Player[]): [number, number][] => {
     const shuffled = shuffle(playerList);
@@ -552,94 +539,70 @@ export default function MergeConflictPage() {
               </div>
             </div>
 
-            {/* Player entry */}
+            {/* Player count picker */}
             <div className="pixel-card" style={{ padding: '1.25rem' }}>
-              <h2 className="pixel-text" style={{ fontSize: '0.7rem', color: 'var(--color-text)', marginBottom: '0.75rem' }}>
-                ADD PLAYERS ({players.length}/{MAX_PLAYERS})
+              <h2 className="pixel-text" style={{ fontSize: '0.7rem', color: 'var(--color-text)', marginBottom: '0.75rem', textAlign: 'center' }}>
+                HOW MANY DEVS?
               </h2>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                <input
-                  type="text"
-                  value={playerNameInput}
-                  onChange={(e) => setPlayerNameInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') addPlayer(); }}
-                  placeholder="Enter player name..."
-                  maxLength={16}
-                  style={{
-                    flex: 1,
-                    padding: '0.6rem 0.8rem',
-                    background: 'var(--color-bg)',
-                    border: '2px solid var(--color-border)',
-                    borderRadius: '4px',
-                    color: 'var(--color-text)',
-                    fontSize: '0.85rem',
-                    fontFamily: 'var(--font-mono)',
-                    outline: 'none',
-                  }}
-                />
-                <button
-                  onClick={addPlayer}
-                  className="pixel-btn"
-                  style={{ padding: '0.6rem 1rem', fontSize: '0.7rem' }}
-                  disabled={!playerNameInput.trim() || players.length >= MAX_PLAYERS}
-                >
-                  ADD
-                </button>
-              </div>
-
-              {/* Player list */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {players.map((p) => (
-                  <div
-                    key={p.id}
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                {[2, 3, 4, 5, 6].map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPlayerCount(n)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.5rem 0.75rem',
-                      background: 'var(--color-bg)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '4px',
+                      width: '3rem',
+                      height: '3rem',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                      background: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
+                      color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                      border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
                     }}
                   >
-                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>
-                      {p.avatar} {p.name}
-                    </span>
-                    <button
-                      onClick={() => removePlayer(p.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-red)',
-                        cursor: 'pointer',
-                        fontSize: '0.75rem',
-                        fontFamily: 'var(--font-mono)',
-                      }}
-                    >
-                      X
-                    </button>
-                  </div>
+                    {n}
+                  </button>
                 ))}
               </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+                Paired as Dev A &amp; Dev B, Dev C &amp; Dev D...
+              </p>
             </div>
 
             {/* Start button */}
-            {players.length >= MIN_PLAYERS && (
-              <button
-                onClick={startGame}
-                className="pixel-btn"
-                style={{
-                  padding: '1rem',
-                  fontSize: '0.85rem',
-                  width: '100%',
-                  background: 'var(--color-accent)',
-                  color: 'var(--color-bg)',
-                  border: 'none',
-                }}
-              >
-                {'git merge --no-ff'} ({Math.ceil(players.length / 2)} pairs)
-              </button>
-            )}
+            <button
+              onClick={() => {
+                const generatedPlayers = Array.from({ length: playerCount }, (_, i) => ({
+                  id: i,
+                  name: `P${i + 1}`,
+                  score: 0,
+                  avatar: AVATARS[i % AVATARS.length],
+                }));
+                setPlayers(generatedPlayers);
+                // Need to start game after setting players - use direct call
+                const newPairs = generatePairs(generatedPlayers);
+                setPairs(newPairs);
+                setCurrentPairIndex(0);
+                setPairResults([]);
+                const spec = pickSpec(usedSpecs);
+                setUsedSpecs((prev) => new Set(prev).add(spec.text));
+                setCurrentSpec(spec);
+                setPhase('spec-reveal');
+              }}
+              className="pixel-btn"
+              style={{
+                padding: '1rem',
+                fontSize: '0.85rem',
+                width: '100%',
+                background: 'var(--color-accent)',
+                color: 'var(--color-bg)',
+                border: 'none',
+              }}
+            >
+              {'git merge --no-ff'} ({Math.ceil(playerCount / 2)} pairs)
+            </button>
           </div>
         )}
 

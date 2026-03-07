@@ -230,8 +230,7 @@ const TARGET_WORDS: TargetWord[] = [
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
 
 type GamePhase =
-  | 'setup'           // Player name entry
-  | 'difficulty'      // Choose difficulty
+  | 'setup'           // Player count + difficulty selection
   | 'pass'            // Pass the phone screen
   | 'describe'        // Active player describes
   | 'turn-result'     // Show result after turn
@@ -279,7 +278,7 @@ export default function PersonDoThingPage() {
   // Game state
   const [phase, setPhase] = useState<GamePhase>('setup');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerNameInput, setPlayerNameInput] = useState('');
+  const [playerCount, setPlayerCount] = useState(4);
   const [difficulty, setDifficulty] = useState<Difficulty>('mixed');
   const [wordQueue, setWordQueue] = useState<TargetWord[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -335,18 +334,6 @@ export default function PersonDoThingPage() {
     setLastTurnResult(result);
     setPhase('turn-result');
   }, [currentPlayerIndex, currentWord]);
-
-  const addPlayer = () => {
-    const name = playerNameInput.trim();
-    if (!name || players.length >= 12) return;
-    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return;
-    setPlayers((prev) => [...prev, { name, score: 0 }]);
-    setPlayerNameInput('');
-  };
-
-  const removePlayer = (index: number) => {
-    setPlayers((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const startGame = (diff: Difficulty) => {
     setDifficulty(diff);
@@ -426,7 +413,7 @@ export default function PersonDoThingPage() {
   const resetGame = () => {
     setPhase('setup');
     setPlayers([]);
-    setPlayerNameInput('');
+    setPlayerCount(4);
     setTurnResults([]);
     setCurrentPlayerIndex(0);
     setCurrentRound(0);
@@ -458,8 +445,24 @@ export default function PersonDoThingPage() {
 
   if (!mounted) return null;
 
-  // ─── Setup Phase: Player Name Entry ───────────────────────────
+  // ─── Setup Phase: Player Count + Difficulty (Combined) ────────
   if (phase === 'setup') {
+    const difficulties: { key: Difficulty; label: string; desc: string; color: string }[] = [
+      { key: 'easy', label: 'EASY', desc: 'Common everyday words', color: getDifficultyColor('easy') },
+      { key: 'medium', label: 'MEDIUM', desc: 'Bigger concepts & ideas', color: getDifficultyColor('medium') },
+      { key: 'hard', label: 'HARD', desc: 'Abstract & complex terms', color: getDifficultyColor('hard') },
+      { key: 'mixed', label: 'MIXED', desc: 'All difficulties combined', color: getDifficultyColor('mixed') },
+    ];
+
+    const handleStart = (diff: Difficulty) => {
+      const generatedPlayers = Array.from({ length: playerCount }, (_, i) => ({
+        name: `Player ${i + 1}`,
+        score: 0,
+      }));
+      setPlayers(generatedPlayers);
+      startGame(diff);
+    };
+
     return (
       <div
         className="min-h-screen p-4 md:p-8"
@@ -487,93 +490,75 @@ export default function PersonDoThingPage() {
           </div>
 
           <div
-            className="pixel-card rounded-lg p-6"
+            className="pixel-card rounded-lg p-6 mb-4"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
           >
             <h2
-              className="pixel-text text-xs mb-4"
+              className="pixel-text text-xs mb-4 text-center"
               style={{ color: 'var(--color-text-secondary)' }}
             >
-              ADD PLAYERS (2-12)
+              HOW MANY PLAYERS?
             </h2>
 
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={playerNameInput}
-                onChange={(e) => setPlayerNameInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
-                placeholder="Enter name..."
-                maxLength={16}
-                className="flex-1 px-3 py-2 rounded text-sm outline-none border"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text)',
-                }}
-              />
-              <button
-                onClick={addPlayer}
-                disabled={!playerNameInput.trim() || players.length >= 12}
-                className="pixel-btn text-xs px-4"
-                style={{
-                  opacity: !playerNameInput.trim() || players.length >= 12 ? 0.4 : 1,
-                }}
-              >
-                ADD
-              </button>
+            <div className="flex gap-2 justify-center flex-wrap mb-2">
+              {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                <button
+                  key={n}
+                  className="w-11 h-11 rounded-lg text-sm font-bold transition-all"
+                  style={{
+                    backgroundColor: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                    border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  }}
+                  onClick={() => setPlayerCount(n)}
+                >
+                  {n}
+                </button>
+              ))}
             </div>
-
-            {players.length > 0 && (
-              <div className="space-y-2 mb-4">
-                {players.map((player, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-3 py-2 rounded border"
-                    style={{
-                      borderColor: 'var(--color-border)',
-                      backgroundColor: 'var(--color-surface)',
-                    }}
-                  >
-                    <span className="text-sm">
-                      <span style={{ color: 'var(--color-accent)' }}>P{i + 1}</span>{' '}
-                      {player.name}
-                    </span>
-                    <button
-                      onClick={() => removePlayer(i)}
-                      className="text-xs px-2 py-1 rounded transition-colors hover:opacity-80"
-                      style={{ color: 'var(--color-red)' }}
-                    >
-                      X
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <p
-              className="text-xs text-center mb-4"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              {players.length}/12 players
+            <p className="text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
+              Players will be Player 1, Player 2, Player 3...
             </p>
+          </div>
 
-            <button
-              onClick={() => setPhase('difficulty')}
-              disabled={players.length < 2}
-              className="pixel-btn w-full"
-              style={{
-                opacity: players.length < 2 ? 0.4 : 1,
-                cursor: players.length < 2 ? 'not-allowed' : 'pointer',
-              }}
+          <div
+            className="pixel-card rounded-lg p-6 mb-4"
+            style={{ backgroundColor: 'var(--color-bg-card)' }}
+          >
+            <h2
+              className="pixel-text text-xs mb-4 text-center"
+              style={{ color: 'var(--color-text-secondary)' }}
             >
-              {players.length < 2 ? 'NEED AT LEAST 2 PLAYERS' : 'CHOOSE DIFFICULTY'}
-            </button>
+              PICK DIFFICULTY & START
+            </h2>
+
+            <div className="space-y-3">
+              {difficulties.map(({ key, label, desc, color }) => (
+                <button
+                  key={key}
+                  onClick={() => handleStart(key)}
+                  className="pixel-card rounded-lg p-4 w-full text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  style={{ backgroundColor: 'var(--color-surface)' }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="pixel-text text-xs" style={{ color }}>
+                        {label}
+                      </span>
+                      <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                        {desc}
+                      </p>
+                    </div>
+                    <span className="text-2xl" style={{ color }}>&gt;</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* How to play */}
           <div
-            className="pixel-card rounded-lg p-6 mt-4"
+            className="pixel-card rounded-lg p-6"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
           >
             <h3
@@ -591,79 +576,6 @@ export default function PersonDoThingPage() {
               <li>6. Pass the phone to the next player</li>
             </ol>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Difficulty Selection Phase ───────────────────────────────
-  if (phase === 'difficulty') {
-    const difficulties: { key: Difficulty; label: string; desc: string }[] = [
-      { key: 'easy', label: 'EASY', desc: 'Common everyday words' },
-      { key: 'medium', label: 'MEDIUM', desc: 'Bigger concepts & ideas' },
-      { key: 'hard', label: 'HARD', desc: 'Abstract & complex terms' },
-      { key: 'mixed', label: 'MIXED', desc: 'All difficulties combined' },
-    ];
-
-    return (
-      <div
-        className="min-h-screen p-4 md:p-8 flex items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <div className="max-w-lg w-full">
-          <div className="text-center mb-8">
-            <h1
-              className="pixel-text text-lg md:text-xl mb-2"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              PICK DIFFICULTY
-            </h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              {players.length} players ready
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {difficulties.map(({ key, label, desc }) => (
-              <button
-                key={key}
-                onClick={() => startGame(key)}
-                className="pixel-card rounded-lg p-4 w-full text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{ backgroundColor: 'var(--color-bg-card)' }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span
-                      className="pixel-text text-xs"
-                      style={{ color: getDifficultyColor(key) }}
-                    >
-                      {label}
-                    </span>
-                    <p
-                      className="text-sm mt-1"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                    >
-                      {desc}
-                    </p>
-                  </div>
-                  <span
-                    className="text-2xl"
-                    style={{ color: getDifficultyColor(key) }}
-                  >
-                    &gt;
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => setPhase('setup')}
-            className="block mx-auto mt-6 text-sm transition-colors hover:opacity-80"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            &larr; Back to setup
-          </button>
         </div>
       </div>
     );
