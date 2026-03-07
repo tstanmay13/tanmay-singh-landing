@@ -18,6 +18,8 @@ interface RepoData {
   updatedAt: string;
   url: string;
   homepage: string | null;
+  isPrivate?: boolean;
+  archived?: boolean;
 }
 
 interface CommitData {
@@ -232,20 +234,37 @@ function RepoCard({
           className="pixel-text text-xs md:text-sm flex-1 mr-2"
           style={{ color: "var(--color-text)" }}
         >
+          {repo.isPrivate && (
+            <span title="Private repo" className="mr-1">&#128274;</span>
+          )}
           {repo.name}
         </h3>
-        {featured && (
-          <span
-            className="pixel-text text-[8px] px-2 py-1 rounded-sm border shrink-0"
-            style={{
-              color: "var(--color-accent)",
-              backgroundColor: "rgba(0, 255, 136, 0.1)",
-              borderColor: "var(--color-accent)",
-            }}
-          >
-            PINNED
-          </span>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {repo.isPrivate && (
+            <span
+              className="pixel-text text-[8px] px-2 py-1 rounded-sm border"
+              style={{
+                color: "var(--color-purple)",
+                backgroundColor: "rgba(168, 85, 247, 0.1)",
+                borderColor: "var(--color-purple)",
+              }}
+            >
+              PRIVATE
+            </span>
+          )}
+          {featured && (
+            <span
+              className="pixel-text text-[8px] px-2 py-1 rounded-sm border"
+              style={{
+                color: "var(--color-accent)",
+                backgroundColor: "rgba(0, 255, 136, 0.1)",
+                borderColor: "var(--color-accent)",
+              }}
+            >
+              PINNED
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Description */}
@@ -310,26 +329,28 @@ function RepoCard({
 
       {/* Links */}
       <div className="flex gap-3 mt-auto">
-        <a
-          href={repo.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="pixel-text text-[9px] px-3 py-2 border-2 transition-all duration-200"
-          style={{
-            borderColor: "var(--color-border)",
-            color: "var(--color-text-secondary)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "var(--color-text)";
-            e.currentTarget.style.color = "var(--color-text)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "var(--color-border)";
-            e.currentTarget.style.color = "var(--color-text-secondary)";
-          }}
-        >
-          GitHub
-        </a>
+        {!repo.isPrivate && (
+          <a
+            href={repo.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pixel-text text-[9px] px-3 py-2 border-2 transition-all duration-200"
+            style={{
+              borderColor: "var(--color-border)",
+              color: "var(--color-text-secondary)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--color-text)";
+              e.currentTarget.style.color = "var(--color-text)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--color-border)";
+              e.currentTarget.style.color = "var(--color-text-secondary)";
+            }}
+          >
+            GitHub
+          </a>
+        )}
         {repo.homepage && (
           <a
             href={repo.homepage}
