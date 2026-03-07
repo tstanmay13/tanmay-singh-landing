@@ -105,7 +105,7 @@ export default function TypeRacerPage() {
         return prev;
       });
     }, 500);
-  }, [calculateWpm]);
+  }, [calculateWpm, recordPlay]);
 
   const finishRace = useCallback((finalTyped: string, errorSet: Set<number>, start: number) => {
     if (wpmIntervalRef.current) {

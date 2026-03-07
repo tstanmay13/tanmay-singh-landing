@@ -322,7 +322,7 @@ export default function MinesweeperPage() {
         return newGrid;
       });
     },
-    [gameStatus, config, difficulty, timer]
+    [gameStatus, config, difficulty, timer, recordPlay]
   );
 
   const toggleFlag = useCallback(

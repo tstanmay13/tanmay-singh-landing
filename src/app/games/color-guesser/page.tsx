@@ -172,7 +172,7 @@ export default function ColorGuesserPage() {
       roundStartTime: Date.now(),
       results: [],
     });
-  }, []);
+  }, [recordPlay]);
 
   const advanceRound = useCallback(() => {
     setGame((prev) => {

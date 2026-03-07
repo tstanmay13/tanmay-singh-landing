@@ -63,7 +63,7 @@ export default function SnakesGamePage() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [gameStarted]);
+  }, [gameStarted, recordPlay]);
 
   useEffect(() => {
     if (!gameStarted || gameOver) return;

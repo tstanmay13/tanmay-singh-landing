@@ -170,7 +170,7 @@ export default function MazeRunnerPage() {
     recordPlay();
     setLevelTimes([]);
     startLevel(0);
-  }, [startLevel]);
+  }, [startLevel, recordPlay]);
 
   // ---------------------------------------------------------------------------
   // Movement

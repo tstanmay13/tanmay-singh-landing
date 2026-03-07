@@ -282,7 +282,7 @@ export default function PixelPerfectorPage() {
     setLevel(1);
     setResults([]);
     startLevel(1, order);
-  }, []);
+  }, [recordPlay]);
 
   const startLevel = (lvl: number, order: number[]) => {
     const pattern = PATTERNS[order[lvl - 1]];

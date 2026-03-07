@@ -56,7 +56,7 @@ export default function ReflexDuelPage() {
       drawTimeRef.current = Date.now();
       setPhase('draw');
     }, delay);
-  }, []);
+  }, [recordPlay]);
 
   const handleScreenClick = useCallback(() => {
     if (phase === 'ready') {

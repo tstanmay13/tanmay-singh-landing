@@ -254,7 +254,7 @@ export default function FlappyPixelPage() {
       setGameState("idle");
       resetGame();
     }
-  }, [resetGame, spawnPipe]);
+  }, [resetGame, spawnPipe, recordPlay]);
 
   // --- Input handlers ---
   useEffect(() => {

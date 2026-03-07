@@ -321,7 +321,7 @@ export default function StackTowerPage() {
       color: getColor(state.stack.length),
     };
     state.speed = newSpeed;
-  }, []);
+  }, [recordPlay]);
 
   const handleRestart = useCallback(() => {
     const newState = initGame();
