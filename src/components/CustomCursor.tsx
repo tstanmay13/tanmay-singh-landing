@@ -66,7 +66,9 @@ export default function CustomCursor() {
         style={{
           left: pos.x,
           top: pos.y,
-          transform: `translate(-50%, -50%) scale(${clicking ? 0.8 : hovering ? 1.4 : 1})`,
+          transform: hovering
+            ? `translate(-10px, -2px) scale(${clicking ? 0.8 : 1.4})`
+            : `scale(${clicking ? 0.8 : 1})`,
         }}
       >
         {/* Pixel art cursor */}
