@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import GamePlayCounter from '@/components/GamePlayCounter';
+import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /* ================================================================
    TYPES
@@ -39,6 +41,21 @@ interface SubmittedAnswer {
   votedBy: number[];
 }
 
+interface OnlinePlayer {
+  odp_id: string;          // unique id for this online session
+  display_name: string;
+  avatar: string;
+  reputation: number;
+  badges: string[];
+}
+
+interface OnlineSubmittedAnswer {
+  playerDpId: string;      // odp_id of the author ('' for real answer)
+  text: string;
+  isReal: boolean;
+  votedBy: string[];       // odp_ids who voted for this
+}
+
 type GamePhase =
   | 'setup'
   | 'pass-phone'
@@ -49,7 +66,20 @@ type GamePhase =
   | 'round-summary'
   | 'final-results';
 
-type GameMode = 'pass' | 'room';
+type OnlinePhase =
+  | 'lobby-choice'
+  | 'lobby-create'
+  | 'lobby-join'
+  | 'lobby-waiting'
+  | 'online-writing'
+  | 'online-waiting-for-fakes'
+  | 'online-voting'
+  | 'online-waiting-for-votes'
+  | 'online-reveal'
+  | 'online-round-summary'
+  | 'online-final-results';
+
+type GameMode = 'pass' | 'room' | 'online';
 
 /* ================================================================
    FACT PROMPT DATABASE (105 prompts)
@@ -223,6 +253,1281 @@ function shuffle<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+/* ================================================================
+   ONLINE MULTIPLAYER COMPONENT
+   ================================================================ */
+
+const ONLINE_MIN_PLAYERS = 3;
+const ONLINE_MAX_PLAYERS = 8;
+
+function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
+  // ── Lobby state ──
+  const [onlinePhase, setOnlinePhase] = useState<OnlinePhase>('lobby-choice');
+  const [displayName, setDisplayName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [roomCode, setRoomCode] = useState('');
+  const [myId, setMyId] = useState('');
+  const [isHost, setIsHost] = useState(false);
+  const [lobbyPlayers, setLobbyPlayers] = useState<OnlinePlayer[]>([]);
+  const [lobbyError, setLobbyError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ── Game state ──
+  const [currentRound, setCurrentRound] = useState(1);
+  const [currentPrompt, setCurrentPrompt] = useState<FactPrompt | null>(null);
+  const [usedPromptIndices, setUsedPromptIndices] = useState<number[]>([]);
+  const [answerInput, setAnswerInput] = useState('');
+  const [hasSubmittedFake, setHasSubmittedFake] = useState(false);
+  const [fakeCount, setFakeCount] = useState(0);
+  const [shuffledAnswers, setShuffledAnswers] = useState<OnlineSubmittedAnswer[]>([]);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [voteCount, setVoteCount] = useState(0);
+  const [revealedIndex, setRevealedIndex] = useState(-1);
+  const [showAccepted, setShowAccepted] = useState(false);
+
+  // Badge tracking
+  const [correctStreaks, setCorrectStreaks] = useState<Record<string, number>>({});
+  const [totalCorrect, setTotalCorrect] = useState<Record<string, number>>({});
+  const [totalFooled, setTotalFooled] = useState<Record<string, number>>({});
+  const [everFooled, setEverFooled] = useState<Set<string>>(new Set());
+
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // ── Reveal animation ──
+  useEffect(() => {
+    if (onlinePhase !== 'online-reveal') return;
+    if (revealedIndex < shuffledAnswers.length - 1) {
+      const timer = setTimeout(() => setRevealedIndex((i) => i + 1), 1200);
+      return () => clearTimeout(timer);
+    }
+    if (revealedIndex === shuffledAnswers.length - 1 && !showAccepted) {
+      const timer = setTimeout(() => setShowAccepted(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [onlinePhase, revealedIndex, shuffledAnswers.length, showAccepted]);
+
+  // ── Focus input ──
+  useEffect(() => {
+    if (onlinePhase === 'online-writing' && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [onlinePhase]);
+
+  // Refs that the broadcast handler needs access to (avoids stale closures)
+  const isHostRef = useRef(isHost);
+  isHostRef.current = isHost;
+  const correctStreaksRef = useRef(correctStreaks);
+  correctStreaksRef.current = correctStreaks;
+  const totalCorrectRef = useRef(totalCorrect);
+  totalCorrectRef.current = totalCorrect;
+  const totalFooledRef = useRef(totalFooled);
+  totalFooledRef.current = totalFooled;
+  const everFooledRef = useRef(everFooled);
+  everFooledRef.current = everFooled;
+  const broadcastRef = useRef<(payload: Record<string, unknown>) => void>(() => {});
+
+  // ── Subscribe to broadcast channel ──
+  const subscribeToRoom = useCallback((code: string) => {
+    if (channelRef.current) {
+      channelRef.current.unsubscribe();
+    }
+    const channel = supabase.channel(`room:${code}`, {
+      config: { broadcast: { self: true } },
+    });
+
+    channel
+      .on('broadcast', { event: 'so_event' }, ({ payload }) => {
+        const evt = payload as { type: string; [key: string]: unknown };
+
+        switch (evt.type) {
+          case 'player_joined': {
+            const p = evt.player as OnlinePlayer;
+            setLobbyPlayers((prev) => {
+              if (prev.find((x) => x.odp_id === p.odp_id)) return prev;
+              return [...prev, p];
+            });
+            break;
+          }
+          case 'player_left': {
+            const id = evt.player_id as string;
+            setLobbyPlayers((prev) => prev.filter((p) => p.odp_id !== id));
+            break;
+          }
+          case 'game_started': {
+            const prompt = evt.prompt as FactPrompt;
+            const round = evt.round as number;
+            const players = evt.players as OnlinePlayer[];
+            collectedFakesRef.current = new Map();
+            collectedVotesRef.current = new Map();
+            setCurrentPrompt(prompt);
+            setCurrentRound(round);
+            setLobbyPlayers(players);
+            setAnswerInput('');
+            setHasSubmittedFake(false);
+            setFakeCount(0);
+            setHasVoted(false);
+            setVoteCount(0);
+            setShuffledAnswers([]);
+            setRevealedIndex(-1);
+            setShowAccepted(false);
+            setOnlinePhase('online-writing');
+            break;
+          }
+          case 'fake_submitted': {
+            setFakeCount((c) => c + 1);
+            // Host collects fakes
+            if (isHostRef.current) {
+              const pid = evt.player_id as string;
+              const text = evt.fake_text as string;
+              collectedFakesRef.current.set(pid, text);
+
+              setLobbyPlayers((currentPlayers) => {
+                if (collectedFakesRef.current.size >= currentPlayers.length) {
+                  const fakes: OnlineSubmittedAnswer[] = [];
+                  collectedFakesRef.current.forEach((fakeText, playerId) => {
+                    fakes.push({ playerDpId: playerId, text: fakeText, isReal: false, votedBy: [] });
+                  });
+                  setCurrentPrompt((prompt) => {
+                    if (!prompt) return prompt;
+                    const real: OnlineSubmittedAnswer = { playerDpId: '', text: prompt.answer, isReal: true, votedBy: [] };
+                    const allShuffled = shuffle([...fakes, real]);
+                    setTimeout(() => {
+                      broadcastRef.current({ type: 'all_fakes_in', answers: allShuffled });
+                    }, 500);
+                    return prompt;
+                  });
+                }
+                return currentPlayers;
+              });
+            }
+            break;
+          }
+          case 'all_fakes_in': {
+            const answers = evt.answers as OnlineSubmittedAnswer[];
+            setShuffledAnswers(answers);
+            setHasVoted(false);
+            setVoteCount(0);
+            setOnlinePhase('online-voting');
+            break;
+          }
+          case 'vote_cast': {
+            setVoteCount((c) => c + 1);
+            // Host collects votes
+            if (isHostRef.current) {
+              const pid = evt.player_id as string;
+              const idx = evt.answer_index as number;
+              collectedVotesRef.current.set(pid, idx);
+
+              setLobbyPlayers((currentPlayers) => {
+                if (collectedVotesRef.current.size >= currentPlayers.length) {
+                  setShuffledAnswers((answers) => {
+                    const updatedAnswers = answers.map((a) => ({ ...a, votedBy: [] as string[] }));
+                    collectedVotesRef.current.forEach((ansIdx, voterId) => {
+                      if (updatedAnswers[ansIdx]) {
+                        updatedAnswers[ansIdx].votedBy.push(voterId);
+                      }
+                    });
+
+                    const updatedPlayers = currentPlayers.map((p) => ({ ...p }));
+                    const cs = { ...correctStreaksRef.current };
+                    const tc = { ...totalCorrectRef.current };
+                    const tf = { ...totalFooledRef.current };
+                    const ef = new Set(everFooledRef.current);
+
+                    updatedAnswers.forEach((answer) => {
+                      if (answer.isReal) {
+                        answer.votedBy.forEach((voterId) => {
+                          const p = updatedPlayers.find((pl) => pl.odp_id === voterId);
+                          if (p) {
+                            p.reputation += 1;
+                            cs[voterId] = (cs[voterId] || 0) + 1;
+                            tc[voterId] = (tc[voterId] || 0) + 1;
+                          }
+                        });
+                        currentPlayers.forEach((p) => {
+                          if (!answer.votedBy.includes(p.odp_id)) {
+                            cs[p.odp_id] = 0;
+                            ef.add(p.odp_id);
+                          }
+                        });
+                      } else {
+                        const author = updatedPlayers.find((p) => p.odp_id === answer.playerDpId);
+                        if (author) {
+                          const fooledCount = answer.votedBy.length;
+                          author.reputation += fooledCount;
+                          tf[author.odp_id] = (tf[author.odp_id] || 0) + fooledCount;
+                        }
+                      }
+                    });
+
+                    updatedAnswers.forEach((answer) => {
+                      if (!answer.isReal && answer.votedBy.length === currentPlayers.length - 1) {
+                        const author = updatedPlayers.find((p) => p.odp_id === answer.playerDpId);
+                        if (author && !author.badges.includes('fooled_everyone')) {
+                          author.badges = [...author.badges, 'fooled_everyone'];
+                        }
+                      }
+                    });
+
+                    setCorrectStreaks(cs);
+                    setTotalCorrect(tc);
+                    setTotalFooled(tf);
+                    setEverFooled(ef);
+
+                    setTimeout(() => {
+                      broadcastRef.current({ type: 'reveal', answers: updatedAnswers, players: updatedPlayers });
+                    }, 500);
+
+                    return updatedAnswers;
+                  });
+                }
+                return currentPlayers;
+              });
+            }
+            break;
+          }
+          case 'reveal': {
+            const answers = evt.answers as OnlineSubmittedAnswer[];
+            const players = evt.players as OnlinePlayer[];
+            setShuffledAnswers(answers);
+            setLobbyPlayers(players);
+            setRevealedIndex(-1);
+            setShowAccepted(false);
+            setOnlinePhase('online-reveal');
+            break;
+          }
+          case 'round_summary': {
+            const players = evt.players as OnlinePlayer[];
+            setLobbyPlayers(players);
+            setOnlinePhase('online-round-summary');
+            break;
+          }
+          case 'next_round': {
+            const prompt = evt.prompt as FactPrompt;
+            const round = evt.round as number;
+            const players = evt.players as OnlinePlayer[];
+            collectedFakesRef.current = new Map();
+            collectedVotesRef.current = new Map();
+            setCurrentPrompt(prompt);
+            setCurrentRound(round);
+            setLobbyPlayers(players);
+            setAnswerInput('');
+            setHasSubmittedFake(false);
+            setFakeCount(0);
+            setHasVoted(false);
+            setVoteCount(0);
+            setShuffledAnswers([]);
+            setRevealedIndex(-1);
+            setShowAccepted(false);
+            setOnlinePhase('online-writing');
+            break;
+          }
+          case 'game_over': {
+            const players = evt.players as OnlinePlayer[];
+            setLobbyPlayers(players);
+            setOnlinePhase('online-final-results');
+            break;
+          }
+        }
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+  }, []);
+
+  // ── Cleanup on unmount ──
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+    };
+  }, []);
+
+  // ── Broadcast helper ──
+  const broadcast = useCallback((payload: Record<string, unknown>) => {
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'so_event',
+      payload,
+    });
+  }, []);
+
+  // Keep broadcastRef in sync so the channel handler can use it
+  broadcastRef.current = broadcast;
+
+  // ── Create room ──
+  const handleCreateRoom = useCallback(async () => {
+    const name = displayName.trim();
+    if (!name) { setLobbyError('Enter your name'); return; }
+    setIsSubmitting(true);
+    setLobbyError(null);
+    try {
+      const response = await fetch('/api/games/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game_id: 'stack-overflow',
+          display_name: name,
+          mode: 'online',
+          max_players: ONLINE_MAX_PLAYERS,
+        }),
+      });
+      if (!response.ok) {
+        const d = await response.json();
+        throw new Error(d.error || 'Failed to create room');
+      }
+      const data = await response.json();
+      const code = data.room.code as string;
+      const pid = data.player.id as string;
+      setRoomCode(code);
+      setMyId(pid);
+      setIsHost(true);
+      const me: OnlinePlayer = {
+        odp_id: pid,
+        display_name: name,
+        avatar: AVATARS[0],
+        reputation: 0,
+        badges: [],
+      };
+      setLobbyPlayers([me]);
+      subscribeToRoom(code);
+      setOnlinePhase('lobby-waiting');
+    } catch (err) {
+      setLobbyError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [displayName, subscribeToRoom]);
+
+  // ── Join room ──
+  const handleJoinRoom = useCallback(async () => {
+    const name = displayName.trim();
+    const code = joinCode.trim().toUpperCase();
+    if (!name) { setLobbyError('Enter your name'); return; }
+    if (code.length < 4) { setLobbyError('Enter a valid room code'); return; }
+    setIsSubmitting(true);
+    setLobbyError(null);
+    try {
+      const response = await fetch(`/api/games/rooms/${code}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ display_name: name }),
+      });
+      if (!response.ok) {
+        const d = await response.json();
+        throw new Error(d.error || 'Failed to join room');
+      }
+      const data = await response.json();
+      const pid = data.player.id as string;
+      setRoomCode(data.room.code);
+      setMyId(pid);
+      setIsHost(false);
+      // Build lobby players from existing players
+      const existingPlayers = (data.players as Array<{ id: string; display_name: string }>).map(
+        (p, i) => ({
+          odp_id: p.id,
+          display_name: p.display_name,
+          avatar: AVATARS[i % AVATARS.length],
+          reputation: 0,
+          badges: [],
+        })
+      );
+      setLobbyPlayers(existingPlayers);
+      subscribeToRoom(data.room.code);
+      // Announce join
+      setTimeout(() => {
+        channelRef.current?.send({
+          type: 'broadcast',
+          event: 'so_event',
+          payload: {
+            type: 'player_joined',
+            player: existingPlayers.find((p) => p.odp_id === pid),
+          },
+        });
+      }, 500);
+      setOnlinePhase('lobby-waiting');
+    } catch (err) {
+      setLobbyError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [displayName, joinCode, subscribeToRoom]);
+
+  // ── Host starts game ──
+  const hostPickPrompt = useCallback((): { prompt: FactPrompt; newIndices: number[] } => {
+    const available = FACT_PROMPTS
+      .map((p, i) => ({ prompt: p, index: i }))
+      .filter(({ index }) => !usedPromptIndices.includes(index));
+    const pick = available[Math.floor(Math.random() * available.length)];
+    const newIndices = [...usedPromptIndices, pick.index];
+    setUsedPromptIndices(newIndices);
+    return { prompt: pick.prompt, newIndices };
+  }, [usedPromptIndices]);
+
+  const handleHostStart = useCallback(() => {
+    if (lobbyPlayers.length < ONLINE_MIN_PLAYERS) return;
+    const { prompt } = hostPickPrompt();
+    // Assign avatars based on order
+    const playersWithAvatars = lobbyPlayers.map((p, i) => ({
+      ...p,
+      avatar: AVATARS[i % AVATARS.length],
+      reputation: 0,
+      badges: [],
+    }));
+    setLobbyPlayers(playersWithAvatars);
+    broadcast({
+      type: 'game_started',
+      prompt,
+      round: 1,
+      players: playersWithAvatars,
+    });
+  }, [lobbyPlayers, hostPickPrompt, broadcast]);
+
+  // ── Submit fake answer ──
+  const handleSubmitFake = useCallback(() => {
+    const text = answerInput.trim();
+    if (!text || hasSubmittedFake) return;
+    setHasSubmittedFake(true);
+    setAnswerInput('');
+    // Send privately to host via broadcast (all players receive, host collects)
+    broadcast({
+      type: 'fake_submitted',
+      player_id: myId,
+      fake_text: text,
+    });
+    setOnlinePhase('online-waiting-for-fakes');
+  }, [answerInput, hasSubmittedFake, myId, broadcast]);
+
+  // ── Host: refs for collecting fakes and votes ──
+  const collectedFakesRef = useRef<Map<string, string>>(new Map());
+
+  // ── Cast vote ──
+  const handleCastVote = useCallback((answerIndex: number) => {
+    if (hasVoted) return;
+    const target = shuffledAnswers[answerIndex];
+    // Can't vote for own answer
+    if (target.playerDpId === myId) return;
+    setHasVoted(true);
+    broadcast({
+      type: 'vote_cast',
+      player_id: myId,
+      answer_index: answerIndex,
+    });
+    setOnlinePhase('online-waiting-for-votes');
+  }, [hasVoted, shuffledAnswers, myId, broadcast]);
+
+  const collectedVotesRef = useRef<Map<string, number>>(new Map());
+
+  // ── Host: advance to round summary ──
+  const handleShowScores = useCallback(() => {
+    if (!isHost) return;
+    broadcast({
+      type: 'round_summary',
+      players: lobbyPlayers,
+    });
+  }, [isHost, broadcast, lobbyPlayers]);
+
+  // ── Host: next round or game over ──
+  const handleNextRound = useCallback(() => {
+    if (!isHost) return;
+    if (currentRound >= TOTAL_ROUNDS) {
+      // Final badges
+      const finalPlayers = lobbyPlayers.map((p) => ({ ...p }));
+      finalPlayers.forEach((p) => {
+        if ((totalCorrect[p.odp_id] || 0) >= 3 && !p.badges.includes('truth_seeker')) {
+          p.badges = [...p.badges, 'truth_seeker'];
+        }
+        if ((totalFooled[p.odp_id] || 0) >= 5 && !p.badges.includes('master_bluffer')) {
+          p.badges = [...p.badges, 'master_bluffer'];
+        }
+        if (!everFooled.has(p.odp_id) && !p.badges.includes('never_fooled')) {
+          p.badges = [...p.badges, 'never_fooled'];
+        }
+        if ((correctStreaks[p.odp_id] || 0) >= 3 && !p.badges.includes('hot_streak')) {
+          p.badges = [...p.badges, 'hot_streak'];
+        }
+      });
+      broadcast({
+        type: 'game_over',
+        players: finalPlayers,
+      });
+      return;
+    }
+    const { prompt } = hostPickPrompt();
+    collectedFakesRef.current = new Map();
+    collectedVotesRef.current = new Map();
+    broadcast({
+      type: 'next_round',
+      prompt,
+      round: currentRound + 1,
+      players: lobbyPlayers,
+    });
+  }, [isHost, currentRound, lobbyPlayers, hostPickPrompt, broadcast, totalCorrect, totalFooled, everFooled, correctStreaks]);
+
+  // ── Leave room ──
+  const handleLeave = useCallback(() => {
+    if (channelRef.current) {
+      broadcast({ type: 'player_left', player_id: myId });
+      channelRef.current.unsubscribe();
+      channelRef.current = null;
+    }
+    onBack();
+  }, [myId, broadcast, onBack]);
+
+  // ── Sorted players for leaderboard ──
+  const sortedOnlinePlayers = [...lobbyPlayers].sort((a, b) => b.reputation - a.reputation);
+
+  /* ── RENDER ── */
+
+  // Lobby: choice
+  if (onlinePhase === 'lobby-choice') {
+    return (
+      <div className="space-y-4">
+        <p className="pixel-text text-xs text-center mb-4" style={{ color: 'var(--color-text-secondary)' }}>
+          ONLINE MULTIPLAYER
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            onClick={() => setOnlinePhase('lobby-create')}
+            className="pixel-border p-6 text-center transition-all hover:scale-[1.02]"
+            style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-cyan)' }}
+          >
+            <div className="pixel-text text-xs mb-1" style={{ color: 'var(--color-cyan)' }}>CREATE ROOM</div>
+            <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Host a game &amp; share the code
+            </div>
+          </button>
+          <button
+            onClick={() => setOnlinePhase('lobby-join')}
+            className="pixel-border p-6 text-center transition-all hover:scale-[1.02]"
+            style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-purple)' }}
+          >
+            <div className="pixel-text text-xs mb-1" style={{ color: 'var(--color-purple)' }}>JOIN ROOM</div>
+            <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Enter a friend&apos;s code
+            </div>
+          </button>
+        </div>
+        <button onClick={onBack} className="w-full mt-3 py-2 text-xs hover:opacity-80" style={{ color: 'var(--color-text-secondary)' }}>
+          &larr; Change mode
+        </button>
+      </div>
+    );
+  }
+
+  // Lobby: create / join form
+  if (onlinePhase === 'lobby-create' || onlinePhase === 'lobby-join') {
+    return (
+      <div className="space-y-4">
+        <button
+          onClick={() => { setOnlinePhase('lobby-choice'); setLobbyError(null); }}
+          className="text-sm transition-colors"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          &larr; Back
+        </button>
+        <h3 className="pixel-text text-xs text-center" style={{ color: 'var(--color-cyan)' }}>
+          {onlinePhase === 'lobby-create' ? 'CREATE ROOM' : 'JOIN ROOM'}
+        </h3>
+        <div>
+          <label className="pixel-text text-xs block mb-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}>
+            YOUR NAME
+          </label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Enter your name..."
+            maxLength={16}
+            className="w-full px-4 py-3 rounded-lg text-sm"
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              color: 'var(--color-text)',
+              border: '2px solid var(--color-border)',
+              outline: 'none',
+            }}
+          />
+        </div>
+        {onlinePhase === 'lobby-join' && (
+          <div>
+            <label className="pixel-text text-xs block mb-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}>
+              ROOM CODE
+            </label>
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
+              placeholder="ABC123"
+              maxLength={6}
+              className="w-full px-4 py-3 rounded-lg text-center pixel-text text-lg tracking-widest"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                color: 'var(--color-cyan)',
+                border: '2px solid var(--color-border)',
+                outline: 'none',
+              }}
+            />
+          </div>
+        )}
+        {lobbyError && (
+          <p className="text-xs text-center" style={{ color: 'var(--color-red)' }}>{lobbyError}</p>
+        )}
+        <button
+          onClick={onlinePhase === 'lobby-create' ? handleCreateRoom : handleJoinRoom}
+          disabled={isSubmitting}
+          className="pixel-btn w-full py-3 text-sm"
+          style={{ opacity: isSubmitting ? 0.6 : 1 }}
+        >
+          {isSubmitting ? 'LOADING...' : onlinePhase === 'lobby-create' ? 'CREATE' : 'JOIN'}
+        </button>
+      </div>
+    );
+  }
+
+  // Lobby: waiting for players
+  if (onlinePhase === 'lobby-waiting') {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <button onClick={handleLeave} className="text-sm transition-colors" style={{ color: 'var(--color-text-secondary)' }}>
+            &larr; Leave
+          </button>
+          <span className="pixel-text text-xs" style={{ color: 'var(--color-accent)' }}>
+            {lobbyPlayers.length} / {ONLINE_MAX_PLAYERS}
+          </span>
+        </div>
+
+        {/* Room code display */}
+        <div className="text-center py-6">
+          <p className="pixel-text text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>ROOM CODE</p>
+          <div
+            className="inline-block px-8 py-4 rounded-lg pixel-text text-2xl tracking-[0.3em] select-all cursor-pointer"
+            style={{
+              background: 'var(--color-bg-card)',
+              color: 'var(--color-cyan)',
+              border: '2px solid var(--color-cyan)',
+            }}
+            onClick={() => navigator.clipboard?.writeText(roomCode)}
+            title="Click to copy"
+          >
+            {roomCode}
+          </div>
+          <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>tap to copy</p>
+        </div>
+
+        {/* Player list */}
+        <div
+          className="pixel-border p-4 rounded-lg"
+          style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
+        >
+          <p className="pixel-text text-xs mb-3" style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}>PLAYERS</p>
+          <div className="space-y-2">
+            {lobbyPlayers.map((p, i) => (
+              <div key={p.odp_id} className="flex items-center gap-3 py-1">
+                <span className="text-lg">{AVATARS[i % AVATARS.length]}</span>
+                <span className="text-sm flex-1">{p.display_name}</span>
+                {i === 0 && (
+                  <span className="pixel-text text-xs px-2 py-0.5" style={{ color: 'var(--color-orange)', border: '1px solid var(--color-orange)' }}>
+                    HOST
+                  </span>
+                )}
+                {p.odp_id === myId && (
+                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>(you)</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Start button (host only) */}
+        {isHost && (
+          <button
+            onClick={handleHostStart}
+            disabled={lobbyPlayers.length < ONLINE_MIN_PLAYERS}
+            className="pixel-btn w-full py-3 text-sm"
+            style={{
+              background: lobbyPlayers.length >= ONLINE_MIN_PLAYERS ? 'var(--color-orange)' : 'var(--color-bg-card)',
+              color: lobbyPlayers.length >= ONLINE_MIN_PLAYERS ? 'var(--color-bg)' : 'var(--color-text-muted)',
+              opacity: lobbyPlayers.length >= ONLINE_MIN_PLAYERS ? 1 : 0.5,
+              cursor: lobbyPlayers.length >= ONLINE_MIN_PLAYERS ? 'pointer' : 'not-allowed',
+            }}
+          >
+            {lobbyPlayers.length >= ONLINE_MIN_PLAYERS
+              ? 'START GAME'
+              : `NEED ${ONLINE_MIN_PLAYERS - lobbyPlayers.length} MORE PLAYER${ONLINE_MIN_PLAYERS - lobbyPlayers.length !== 1 ? 'S' : ''}`}
+          </button>
+        )}
+        {!isHost && (
+          <div className="text-center py-4">
+            <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-secondary)' }}>
+              WAITING FOR HOST TO START...
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Online: writing phase
+  if (onlinePhase === 'online-writing') {
+    return (
+      <div
+        className="min-h-screen p-4 md:p-8"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <span className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              ROUND {currentRound}/{TOTAL_ROUNDS}
+            </span>
+            {currentPrompt && (
+              <span
+                className="pixel-text text-xs px-2 py-1"
+                style={{
+                  color: CATEGORY_COLORS[currentPrompt.category],
+                  border: `1px solid ${CATEGORY_COLORS[currentPrompt.category]}`,
+                }}
+              >
+                {CATEGORY_LABELS[currentPrompt.category]}
+              </span>
+            )}
+          </div>
+
+          {/* Prompt */}
+          <div
+            className="pixel-border p-6 mb-8 text-center"
+            style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-orange)' }}
+          >
+            <p className="text-sm md:text-base leading-relaxed">
+              {currentPrompt?.text.split('___').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <span
+                      className="pixel-text inline-block mx-1 px-2 py-0.5"
+                      style={{ background: 'var(--color-orange)', color: 'var(--color-bg)' }}
+                    >
+                      ???
+                    </span>
+                  )}
+                </span>
+              ))}
+            </p>
+          </div>
+
+          <div className="text-center mb-4">
+            <p className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              TYPE YOUR FAKE ANSWER
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <input
+              ref={inputRef}
+              type="text"
+              value={answerInput}
+              onChange={(e) => setAnswerInput(e.target.value.slice(0, MAX_ANSWER_LENGTH))}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmitFake(); }}
+              placeholder="Type something believable..."
+              maxLength={MAX_ANSWER_LENGTH}
+              className="w-full px-4 py-3 pixel-border text-sm"
+              style={{
+                background: 'var(--color-bg-secondary)',
+                color: 'var(--color-text)',
+                borderColor: 'var(--color-border)',
+              }}
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                {answerInput.length}/{MAX_ANSWER_LENGTH}
+              </span>
+              <button
+                onClick={handleSubmitFake}
+                disabled={!answerInput.trim()}
+                className="px-6 py-2 pixel-btn pixel-text text-xs"
+                style={{
+                  background: answerInput.trim() ? 'var(--color-accent)' : 'var(--color-bg-card)',
+                  color: answerInput.trim() ? 'var(--color-bg)' : 'var(--color-text-muted)',
+                  cursor: answerInput.trim() ? 'pointer' : 'not-allowed',
+                }}
+              >
+                SUBMIT
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Online: waiting for all fakes
+  if (onlinePhase === 'online-waiting-for-fakes') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="text-center max-w-md">
+          <div className="text-4xl mb-6">{'\u270D\uFE0F'}</div>
+          <p className="pixel-text text-sm mb-4" style={{ color: 'var(--color-accent)' }}>
+            ANSWER SUBMITTED!
+          </p>
+          <p className="pixel-text text-xs mb-6 animate-pulse" style={{ color: 'var(--color-text-secondary)' }}>
+            WAITING FOR OTHER PLAYERS...
+          </p>
+          <div className="flex justify-center gap-2">
+            {lobbyPlayers.map((p, i) => (
+              <div
+                key={p.odp_id}
+                className="w-3 h-3 rounded-full transition-all"
+                style={{ background: i < fakeCount ? 'var(--color-accent)' : 'var(--color-border)' }}
+                title={p.display_name}
+              />
+            ))}
+          </div>
+          <p className="text-xs mt-3" style={{ color: 'var(--color-text-muted)' }}>
+            {fakeCount}/{lobbyPlayers.length} submitted
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Online: voting phase
+  if (onlinePhase === 'online-voting') {
+    return (
+      <div
+        className="min-h-screen p-4 md:p-8"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <span className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              ROUND {currentRound}/{TOTAL_ROUNDS}
+            </span>
+            <span className="pixel-text text-xs" style={{ color: 'var(--color-blue)' }}>
+              VOTE NOW
+            </span>
+          </div>
+
+          <div
+            className="pixel-border p-4 mb-6 text-center"
+            style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
+          >
+            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              {currentPrompt?.text}
+            </p>
+          </div>
+
+          <p className="pixel-text text-xs text-center mb-6" style={{ color: 'var(--color-blue)' }}>
+            WHICH ANSWER IS REAL? TAP TO VOTE
+          </p>
+
+          <div className="space-y-3">
+            {shuffledAnswers.map((answer, i) => {
+              const isOwnAnswer = answer.playerDpId === myId;
+              return (
+                <button
+                  key={i}
+                  onClick={() => !isOwnAnswer && handleCastVote(i)}
+                  disabled={isOwnAnswer}
+                  className="w-full text-left pixel-border p-4 transition-all"
+                  style={{
+                    background: isOwnAnswer ? 'var(--color-bg-secondary)' : 'var(--color-bg-card)',
+                    borderColor: isOwnAnswer ? 'var(--color-border)' : 'var(--color-border-hover)',
+                    opacity: isOwnAnswer ? 0.5 : 1,
+                    cursor: isOwnAnswer ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="flex flex-col items-center pt-1"
+                      style={{ color: isOwnAnswer ? 'var(--color-text-muted)' : 'var(--color-text-secondary)' }}
+                    >
+                      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+                        <path d="M8 0L16 12H0L8 0Z" />
+                      </svg>
+                      <span className="text-xs mt-1">0</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm">{answer.text}</p>
+                      {isOwnAnswer && (
+                        <p className="text-xs mt-1 italic" style={{ color: 'var(--color-text-muted)' }}>
+                          (your answer)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Online: waiting for all votes
+  if (onlinePhase === 'online-waiting-for-votes') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="text-center max-w-md">
+          <div className="text-4xl mb-6">{'\u{1F5F3}\uFE0F'}</div>
+          <p className="pixel-text text-sm mb-4" style={{ color: 'var(--color-blue)' }}>
+            VOTE CAST!
+          </p>
+          <p className="pixel-text text-xs mb-6 animate-pulse" style={{ color: 'var(--color-text-secondary)' }}>
+            WAITING FOR OTHER VOTES...
+          </p>
+          <div className="flex justify-center gap-2">
+            {lobbyPlayers.map((p, i) => (
+              <div
+                key={p.odp_id}
+                className="w-3 h-3 rounded-full transition-all"
+                style={{ background: i < voteCount ? 'var(--color-blue)' : 'var(--color-border)' }}
+                title={p.display_name}
+              />
+            ))}
+          </div>
+          <p className="text-xs mt-3" style={{ color: 'var(--color-text-muted)' }}>
+            {voteCount}/{lobbyPlayers.length} voted
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Online: reveal phase
+  if (onlinePhase === 'online-reveal') {
+    return (
+      <div
+        className="min-h-screen p-4 md:p-8"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <span className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              ROUND {currentRound}/{TOTAL_ROUNDS}
+            </span>
+          </div>
+
+          <div
+            className="pixel-border p-4 mb-8 text-center"
+            style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-orange)' }}
+          >
+            <p className="text-sm">{currentPrompt?.text}</p>
+          </div>
+
+          <p className="pixel-text text-xs text-center mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+            REVEALING ANSWERS...
+          </p>
+
+          <div className="space-y-3">
+            {shuffledAnswers.map((answer, i) => {
+              const isRevealed = i <= revealedIndex;
+              const isReal = answer.isReal;
+              const author = lobbyPlayers.find((p) => p.odp_id === answer.playerDpId);
+              const fooledCount = answer.votedBy.length;
+              const voters = answer.votedBy.map(
+                (vid) => lobbyPlayers.find((p) => p.odp_id === vid)?.display_name || '?'
+              );
+
+              return (
+                <div
+                  key={i}
+                  className="pixel-border p-4 transition-all"
+                  style={{
+                    background:
+                      isRevealed && isReal && showAccepted
+                        ? 'rgba(0, 255, 136, 0.1)'
+                        : 'var(--color-bg-card)',
+                    borderColor:
+                      isRevealed && isReal && showAccepted
+                        ? 'var(--color-accent)'
+                        : isRevealed
+                        ? 'var(--color-border-hover)'
+                        : 'var(--color-border)',
+                    opacity: isRevealed ? 1 : 0.3,
+                    transform: isRevealed ? 'translateX(0)' : 'translateX(20px)',
+                    transition: 'all 0.4s ease',
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-center pt-1 min-w-[24px]">
+                      {isRevealed && isReal && showAccepted ? (
+                        <div className="text-lg" style={{ color: 'var(--color-accent)' }}>{'\u2713'}</div>
+                      ) : (
+                        <div style={{ color: 'var(--color-text-secondary)' }}>
+                          <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
+                            <path d="M8 0L16 12H0L8 0Z" />
+                          </svg>
+                          <span className="text-xs text-center block">{isRevealed ? fooledCount : '?'}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm mb-1">{answer.text}</p>
+                      {isRevealed && (
+                        <div className="mt-2">
+                          {isReal ? (
+                            showAccepted && (
+                              <span
+                                className="pixel-text text-xs px-2 py-1 inline-block"
+                                style={{ background: 'var(--color-accent)', color: 'var(--color-bg)' }}
+                              >
+                                {'\u2713'} ACCEPTED ANSWER
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                              Written by {author?.avatar} {author?.display_name}
+                              {fooledCount > 0 && (
+                                <span style={{ color: 'var(--color-orange)' }}>
+                                  {' '}&middot; fooled {voters.join(', ')}
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {showAccepted && isHost && (
+            <div className="text-center mt-8 animate-fade-in-up">
+              <button
+                onClick={handleShowScores}
+                className="px-8 py-3 pixel-btn pixel-text text-sm"
+                style={{ background: 'var(--color-orange)', color: 'var(--color-bg)' }}
+              >
+                SEE SCORES
+              </button>
+            </div>
+          )}
+          {showAccepted && !isHost && (
+            <div className="text-center mt-8">
+              <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-secondary)' }}>
+                WAITING FOR HOST...
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Online: round summary
+  if (onlinePhase === 'online-round-summary') {
+    return (
+      <div
+        className="min-h-screen p-4 md:p-8"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="pixel-text text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+              ROUND {currentRound} COMPLETE
+            </p>
+            <h2 className="pixel-text text-lg" style={{ color: 'var(--color-orange)' }}>
+              REPUTATION BOARD
+            </h2>
+          </div>
+
+          <div className="space-y-3 mb-8">
+            {sortedOnlinePlayers.map((p, rank) => (
+              <div
+                key={p.odp_id}
+                className="pixel-border p-4 flex items-center justify-between"
+                style={{
+                  background: rank === 0 ? 'rgba(245, 158, 11, 0.1)' : 'var(--color-bg-card)',
+                  borderColor: rank === 0 ? 'var(--color-orange)' : 'var(--color-border)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="pixel-text text-xs w-6 text-center"
+                    style={{ color: rank === 0 ? 'var(--color-orange)' : 'var(--color-text-muted)' }}
+                  >
+                    #{rank + 1}
+                  </span>
+                  <span className="text-xl">{p.avatar}</span>
+                  <span className="text-sm">{p.display_name}</span>
+                  {p.odp_id === myId && (
+                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>(you)</span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <span className="pixel-text text-sm" style={{ color: 'var(--color-orange)' }}>
+                    {p.reputation}
+                  </span>
+                  <span className="text-xs ml-1" style={{ color: 'var(--color-text-muted)' }}>REP</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {isHost ? (
+            <button
+              onClick={handleNextRound}
+              className="w-full py-3 pixel-btn pixel-text text-sm"
+              style={{ background: 'var(--color-accent)', color: 'var(--color-bg)' }}
+            >
+              {currentRound >= TOTAL_ROUNDS ? 'FINAL RESULTS' : 'NEXT ROUND'}
+            </button>
+          ) : (
+            <div className="text-center py-4">
+              <p className="pixel-text text-xs animate-pulse" style={{ color: 'var(--color-text-secondary)' }}>
+                WAITING FOR HOST...
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Online: final results
+  if (onlinePhase === 'online-final-results') {
+    const winner = sortedOnlinePlayers[0];
+    return (
+      <div
+        className="min-h-screen p-4 md:p-8"
+        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="pixel-text text-xl md:text-2xl mb-2" style={{ color: 'var(--color-orange)' }}>
+              GAME OVER
+            </h2>
+            <p className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              THE RESULTS ARE IN
+            </p>
+          </div>
+
+          {/* Winner */}
+          <div
+            className="pixel-border p-8 text-center mb-8"
+            style={{ background: 'rgba(245, 158, 11, 0.08)', borderColor: 'var(--color-orange)' }}
+          >
+            <div className="text-5xl mb-3">{winner?.avatar}</div>
+            <p className="pixel-text text-lg mb-1" style={{ color: 'var(--color-orange)' }}>
+              {winner?.display_name}
+            </p>
+            <p className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              TOP CONTRIBUTOR
+            </p>
+            <p className="pixel-text text-2xl mt-3" style={{ color: 'var(--color-orange)' }}>
+              {winner?.reputation}
+              <span className="text-xs ml-1" style={{ color: 'var(--color-text-muted)' }}>REP</span>
+            </p>
+          </div>
+
+          {/* Leaderboard */}
+          <div className="space-y-2 mb-8">
+            {sortedOnlinePlayers.map((p, rank) => (
+              <div
+                key={p.odp_id}
+                className="pixel-border p-3 flex items-center justify-between"
+                style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="pixel-text text-xs w-6 text-center"
+                    style={{
+                      color: rank === 0 ? 'var(--color-orange)' : rank === 1 ? 'var(--color-text-secondary)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    #{rank + 1}
+                  </span>
+                  <span className="text-lg">{p.avatar}</span>
+                  <span className="text-sm">{p.display_name}</span>
+                  {p.odp_id === myId && (
+                    <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>(you)</span>
+                  )}
+                </div>
+                <span className="pixel-text text-sm" style={{ color: 'var(--color-orange)' }}>
+                  {p.reputation}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Badges */}
+          {sortedOnlinePlayers.some((p) => p.badges.length > 0) && (
+            <div className="mb-8">
+              <p className="pixel-text text-xs text-center mb-4" style={{ color: 'var(--color-text-secondary)' }}>
+                BADGES EARNED
+              </p>
+              <div className="space-y-2">
+                {sortedOnlinePlayers
+                  .filter((p) => p.badges.length > 0)
+                  .map((p) => (
+                    <div key={p.odp_id}>
+                      {p.badges.map((b) => {
+                        const def = BADGE_DEFS[b];
+                        if (!def) return null;
+                        return (
+                          <div
+                            key={b}
+                            className="pixel-border p-3 flex items-center gap-3"
+                            style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-purple)' }}
+                          >
+                            <span className="text-xl">{def.icon}</span>
+                            <div>
+                              <span className="text-sm">{p.avatar} {p.display_name}</span>
+                              <span className="pixel-text text-xs ml-2" style={{ color: 'var(--color-purple)' }}>
+                                {def.label}
+                              </span>
+                              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{def.desc}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="space-y-3">
+            <button
+              onClick={handleLeave}
+              className="w-full py-3 pixel-btn pixel-text text-xs"
+              style={{
+                background: 'var(--color-bg-card)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              BACK TO MENU
+            </button>
+            <Link
+              href="/games"
+              className="block text-center py-2 text-xs hover:opacity-80"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              &larr; Back to Arcade
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 /* ================================================================
@@ -605,12 +1910,33 @@ export default function StackOverflowPage() {
                     Everyone sees the same screen
                   </div>
                 </button>
+                <button
+                  onClick={() => setGameMode('online')}
+                  className="pixel-border p-6 text-center transition-all hover:scale-[1.02] sm:col-span-2"
+                  style={{
+                    background: 'var(--color-bg-card)',
+                    borderColor: 'var(--color-cyan)',
+                  }}
+                >
+                  <div className="text-3xl mb-2">{'\u{1F310}'}</div>
+                  <div className="pixel-text text-xs mb-1" style={{ color: 'var(--color-cyan)' }}>
+                    ONLINE
+                  </div>
+                  <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                    Room code &middot; everyone on their own device
+                  </div>
+                </button>
               </div>
             </div>
           )}
 
-          {/* Player count + start */}
-          {gameMode && (
+          {/* Online mode */}
+          {gameMode === 'online' && (
+            <OnlineStackOverflow onBack={() => setGameMode(null)} />
+          )}
+
+          {/* Player count + start (pass / room modes only) */}
+          {gameMode && gameMode !== 'online' && (
             <>
               <div className="mb-6">
                 <p
