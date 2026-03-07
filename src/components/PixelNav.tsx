@@ -31,7 +31,7 @@ export default function PixelNav() {
             TS
           </span>
           <span className="hidden sm:inline text-sm text-[var(--color-text-secondary)] pixel-text">
-            tanmay.dev
+            tanmay singh
           </span>
         </Link>
 
