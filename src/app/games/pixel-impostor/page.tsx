@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { WORD_CATEGORIES, getRandomPair, getTotalPairCount } from './words';
 import type { WordPair } from './words';
+import OnlineGame from './OnlineGame';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 export default function PixelImpostorPage() {
   const [mounted, setMounted] = useState(false);
+  const [mode, setMode] = useState<'select' | 'local' | 'online'>('select');
 
   // Game config
   const [players, setPlayers] = useState<Player[]>([]);
@@ -395,6 +397,7 @@ export default function PixelImpostorPage() {
     setCurrentRound(0);
     setRoundState(null);
     setPhase('mode-select');
+    setMode('select');
   };
 
   // ─── Render Helpers ─────────────────────────────────────────────────────
@@ -405,6 +408,12 @@ export default function PixelImpostorPage() {
   const sortedByScore = [...players].sort((a, b) => b.score - a.score);
 
   if (!mounted) return null;
+
+  // ─── Online Mode ──────────────────────────────────────────────────────────
+
+  if (mode === 'online') {
+    return <OnlineGame onBack={() => setMode('select')} />;
+  }
 
   // ─── Privacy Screen Overlay ─────────────────────────────────────────────
 
@@ -474,11 +483,20 @@ export default function PixelImpostorPage() {
           </div>
 
           <div className="space-y-4">
-            <button onClick={() => setPhase('lobby')} className="pixel-card w-full p-6 rounded-lg text-left transition-all hover:scale-[1.02]" style={{ backgroundColor: 'var(--color-bg-card)', border: '2px solid var(--color-border)' }}>
+            <button onClick={() => { setMode('online'); }} className="pixel-card w-full p-6 rounded-lg text-left transition-all hover:scale-[1.02]" style={{ backgroundColor: 'var(--color-bg-card)', border: '2px solid var(--color-accent)' }}>
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{'\uD83C\uDF10'}</span>
+                <div>
+                  <h3 className="pixel-text text-sm mb-1" style={{ color: 'var(--color-accent)' }}>ONLINE</h3>
+                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Each player on their own device. Share a room code.</p>
+                </div>
+              </div>
+            </button>
+            <button onClick={() => { setMode('local'); setPhase('lobby'); }} className="pixel-card w-full p-6 rounded-lg text-left transition-all hover:scale-[1.02]" style={{ backgroundColor: 'var(--color-bg-card)', border: '2px solid var(--color-border)' }}>
               <div className="flex items-center gap-4">
                 <span className="text-3xl">{'\uD83D\uDCF1'}</span>
                 <div>
-                  <h3 className="pixel-text text-sm mb-1" style={{ color: 'var(--color-accent)' }}>PASS THE PHONE</h3>
+                  <h3 className="pixel-text text-sm mb-1" style={{ color: 'var(--color-accent)' }}>SAME DEVICE</h3>
                   <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Share one device. Perfect for in-person play.</p>
                 </div>
               </div>
