@@ -300,6 +300,24 @@ const games: Game[] = [
     category: "puzzle",
     isNew: true,
   },
+  {
+    id: "code-review",
+    title: "Code Review From Hell",
+    description: "Satisfy impossible review comments",
+    icon: "\uD83E\uDD13",
+    path: "/games/code-review",
+    category: "puzzle",
+    isNew: true,
+  },
+  {
+    id: "tos-game",
+    title: "Terms of Service",
+    description: "Find the absurd clauses in legal text",
+    icon: "\uD83D\uDCDC",
+    path: "/games/tos-game",
+    category: "puzzle",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
