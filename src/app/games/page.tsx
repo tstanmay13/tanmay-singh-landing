@@ -272,6 +272,34 @@ const games: Game[] = [
     category: "multiplayer",
     isNew: true,
   },
+  // Solo deep games
+  {
+    id: "ecosystem",
+    title: "Ecosystem Architect",
+    description: "Design ecosystems, watch life emerge",
+    icon: "\uD83C\uDF3F",
+    path: "/games/ecosystem",
+    category: "simulation",
+    isNew: true,
+  },
+  {
+    id: "galactic-census",
+    title: "Galactic Census",
+    description: "Survey alien civilizations across the galaxy",
+    icon: "\uD83D\uDEF8",
+    path: "/games/galactic-census",
+    category: "puzzle",
+    isNew: true,
+  },
+  {
+    id: "deja-vu",
+    title: "Deja Vu",
+    description: "Escape a room that keeps resetting",
+    icon: "\uD83D\uDD04",
+    path: "/games/deja-vu",
+    category: "puzzle",
+    isNew: true,
+  },
 ];
 
 const categories: { key: Category; label: string }[] = [
