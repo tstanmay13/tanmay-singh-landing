@@ -345,7 +345,7 @@ export default function DevTriviaShowdownPage() {
   // Lobby / setup
   const [phase, setPhase] = useState<GamePhase>('lobby');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerInput, setPlayerInput] = useState('');
+  const [playerCount, setPlayerCount] = useState(6);
   const [mode, setMode] = useState<'teams' | 'pass'>('teams');
 
   // Game state
@@ -407,23 +407,6 @@ export default function DevTriviaShowdownPage() {
   }, []);
 
   // ─── Lobby ────────────────────────────────────────────────────
-  const addPlayer = () => {
-    const name = playerInput.trim();
-    if (!name || players.some(p => p.name === name)) return;
-    setPlayers(prev => [...prev, { name, team: (prev.length % 2) as 0 | 1 }]);
-    setPlayerInput('');
-  };
-
-  const removePlayer = (idx: number) => {
-    setPlayers(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const toggleTeam = (idx: number) => {
-    setPlayers(prev => prev.map((p, i) => i === idx ? { ...p, team: (p.team === 0 ? 1 : 0) as 0 | 1 } : p));
-  };
-
-  const canStart = players.length >= 4 && players.some(p => p.team === 0) && players.some(p => p.team === 1);
-
   const startGame = () => {
     setScores([0, 0]);
     setRound(0);
@@ -638,102 +621,56 @@ export default function DevTriviaShowdownPage() {
               </button>
             </div>
 
-            {/* Add players */}
+            {/* Player count */}
             <div
               className="pixel-card rounded-lg p-5 mb-6"
               style={{ backgroundColor: 'var(--color-bg-card)' }}
             >
-              <h3 className="pixel-text text-xs mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-                ADD PLAYERS (4-12)
+              <h3 className="pixel-text text-xs mb-4 text-center" style={{ color: 'var(--color-text-secondary)' }}>
+                HOW MANY PLAYERS?
               </h3>
-              <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  value={playerInput}
-                  onChange={e => setPlayerInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addPlayer()}
-                  placeholder="Player name..."
-                  maxLength={16}
-                  className="flex-1 px-3 py-2 rounded text-sm"
-                  style={{
-                    backgroundColor: 'var(--color-bg-secondary)',
-                    border: '2px solid var(--color-border)',
-                    color: 'var(--color-text)',
-                    outline: 'none',
-                  }}
-                />
-                <button
-                  className="pixel-btn text-xs px-4"
-                  onClick={addPlayer}
-                  disabled={players.length >= 12}
-                >
-                  ADD
-                </button>
-              </div>
-
-              {/* Player list */}
-              <div className="space-y-2">
-                {players.map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-3 py-2 rounded"
+              <div className="flex gap-2 justify-center flex-wrap mb-3">
+                {[4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                  <button
+                    key={n}
+                    className="w-11 h-11 rounded-lg text-sm font-bold transition-all"
                     style={{
-                      backgroundColor: 'var(--color-bg-secondary)',
-                      border: `1px solid ${TEAM_COLORS[p.team]}`,
+                      backgroundColor: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
+                      color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                      border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
                     }}
+                    onClick={() => setPlayerCount(n)}
                   >
-                    <span className="text-sm font-medium">{p.name}</span>
-                    <div className="flex gap-2 items-center">
-                      <button
-                        className="pixel-text text-[10px] px-2 py-1 rounded"
-                        style={{
-                          backgroundColor: TEAM_COLORS[p.team],
-                          color: 'var(--color-bg)',
-                        }}
-                        onClick={() => toggleTeam(i)}
-                      >
-                        {TEAM_NAMES[p.team]}
-                      </button>
-                      <button
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ color: 'var(--color-red)' }}
-                        onClick={() => removePlayer(i)}
-                      >
-                        X
-                      </button>
-                    </div>
-                  </div>
+                    {n}
+                  </button>
                 ))}
               </div>
 
-              {players.length > 0 && (
-                <div className="flex justify-between mt-4 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                  <span style={{ color: TEAM_COLORS[0] }}>
-                    {TEAM_NAMES[0]}: {players.filter(p => p.team === 0).length}
-                  </span>
-                  <span style={{ color: TEAM_COLORS[1] }}>
-                    {TEAM_NAMES[1]}: {players.filter(p => p.team === 1).length}
-                  </span>
-                </div>
-              )}
+              {/* Team preview */}
+              <div className="flex justify-center gap-4 text-xs">
+                <span style={{ color: TEAM_COLORS[0] }}>
+                  {TEAM_NAMES[0]}: {Math.ceil(playerCount / 2)}
+                </span>
+                <span style={{ color: TEAM_COLORS[1] }}>
+                  {TEAM_NAMES[1]}: {Math.floor(playerCount / 2)}
+                </span>
+              </div>
             </div>
 
             <div className="text-center">
               <button
                 className="pixel-btn text-sm px-8 py-3"
-                onClick={startGame}
-                disabled={!canStart}
-                style={{
-                  opacity: canStart ? 1 : 0.4,
+                onClick={() => {
+                  const generated = Array.from({ length: playerCount }, (_, i) => ({
+                    name: `Player ${i + 1}`,
+                    team: (i % 2) as 0 | 1,
+                  }));
+                  setPlayers(generated);
+                  startGame();
                 }}
               >
                 START SHOWDOWN
               </button>
-              {!canStart && players.length > 0 && (
-                <p className="text-xs mt-2" style={{ color: 'var(--color-red)' }}>
-                  Need at least 4 players with both teams filled
-                </p>
-              )}
             </div>
           </div>
         )}

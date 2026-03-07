@@ -88,7 +88,7 @@ export default function GlitchArtistPage() {
   // Game state
   const [phase, setPhase] = useState<GamePhase>('setup');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerNameInput, setPlayerNameInput] = useState('');
+  const [playerCount, setPlayerCount] = useState(5);
   const [glitchIndex, setGlitchIndex] = useState(-1);
   const [prompt, setPrompt] = useState('');
   const [usedPrompts, setUsedPrompts] = useState<Set<string>>(new Set());
@@ -283,28 +283,7 @@ export default function GlitchArtistPage() {
   };
 
   // ─── Game logic ─────────────────────────────────────────────
-  const addPlayer = () => {
-    const name = playerNameInput.trim();
-    if (!name || players.length >= 10) return;
-    if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return;
-    setPlayers(prev => [
-      ...prev,
-      {
-        name,
-        color: PLAYER_COLORS[prev.length % PLAYER_COLORS.length],
-        hasDrawn: false,
-        votes: 0,
-      },
-    ]);
-    setPlayerNameInput('');
-  };
-
-  const removePlayer = (index: number) => {
-    setPlayers(prev => {
-      const updated = prev.filter((_, i) => i !== index);
-      return updated.map((p, i) => ({ ...p, color: PLAYER_COLORS[i % PLAYER_COLORS.length] }));
-    });
-  };
+  const COLOR_NAMES = ['Red', 'Blue', 'Gold', 'Green', 'Pink', 'Orange', 'Purple', 'Teal', 'Lime', 'Coral'];
 
   const startGame = () => {
     if (players.length < 4) return;
@@ -584,75 +563,81 @@ export default function GlitchArtistPage() {
             </ol>
           </div>
 
-          {/* Add players */}
+          {/* Player count */}
           <div
             className="pixel-card rounded-lg p-4 mb-6"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
           >
-            <h3 className="pixel-text text-xs mb-4" style={{ color: 'var(--color-text)' }}>
-              PLAYERS ({players.length}/10)
+            <h3 className="pixel-text text-xs mb-4 text-center" style={{ color: 'var(--color-text)' }}>
+              HOW MANY PLAYERS?
             </h3>
 
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={playerNameInput}
-                onChange={e => setPlayerNameInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addPlayer()}
-                placeholder="Enter name..."
-                maxLength={16}
-                className="flex-1 px-3 py-2 rounded text-sm outline-none"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                  border: '2px solid var(--color-border)',
-                }}
-              />
-              <button
-                onClick={addPlayer}
-                disabled={!playerNameInput.trim() || players.length >= 10}
-                className="pixel-btn text-xs px-4 py-2 disabled:opacity-30"
-              >
-                ADD
-              </button>
+            <div className="flex gap-2 justify-center flex-wrap mb-4">
+              {[4, 5, 6, 7, 8, 9, 10].map((n) => (
+                <button
+                  key={n}
+                  className="w-12 h-12 rounded-lg text-sm font-bold transition-all"
+                  style={{
+                    backgroundColor: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                    border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  }}
+                  onClick={() => setPlayerCount(n)}
+                >
+                  {n}
+                </button>
+              ))}
             </div>
 
-            {players.length > 0 && (
-              <div className="space-y-2">
-                {players.map((player, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-3 py-2 rounded"
-                    style={{ backgroundColor: 'var(--color-surface)' }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-sm"
-                        style={{ backgroundColor: player.color }}
-                      />
-                      <span className="text-sm">{player.name}</span>
-                    </div>
-                    <button
-                      onClick={() => removePlayer(i)}
-                      className="text-xs px-2 py-1 rounded transition-colors"
-                      style={{ color: 'var(--color-red)' }}
-                    >
-                      X
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Color preview */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              {Array.from({ length: playerCount }, (_, i) => (
+                <div key={i} className="flex items-center gap-1 px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-surface)' }}>
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: PLAYER_COLORS[i] }} />
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{COLOR_NAMES[i]}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <button
-            onClick={startGame}
-            disabled={players.length < 4}
-            className="pixel-btn w-full py-3 disabled:opacity-30"
+            onClick={() => {
+              const generated = Array.from({ length: playerCount }, (_, i) => ({
+                name: COLOR_NAMES[i],
+                color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+                hasDrawn: false,
+                votes: 0,
+              }));
+              setPlayers(generated);
+              // Inline startGame since we need players set
+              const gi = Math.floor(Math.random() * playerCount);
+              setGlitchIndex(gi);
+              let available = PROMPTS.filter(p => !usedPrompts.has(p));
+              if (available.length === 0) {
+                setUsedPrompts(new Set());
+                available = [...PROMPTS];
+              }
+              const chosen = available[Math.floor(Math.random() * available.length)];
+              setPrompt(chosen);
+              setUsedPrompts(prev => new Set([...prev, chosen]));
+              setStrokes([]);
+              setCurrentPeekIndex(0);
+              setPeekRevealed(false);
+              setCurrentDrawerIndex(0);
+              setVotes({});
+              setVotingPlayerIndex(0);
+              setGlitchGuess('');
+              setGlitchGuessResult(null);
+              setRound(prev => prev + 1);
+              const shuffledIndices = shuffleArray(Array.from({ length: playerCount }, (_, i) => i));
+              setDrawOrder(shuffledIndices);
+              setRoundScores(new Array(playerCount).fill(0));
+              setTotalScores(prev => prev.length !== playerCount ? new Array(playerCount).fill(0) : prev);
+              setPhase('peek');
+            }}
+            className="pixel-btn w-full py-3"
           >
-            {players.length < 4
-              ? `NEED ${4 - players.length} MORE PLAYER${4 - players.length > 1 ? 'S' : ''}`
-              : 'START GAME'}
+            START GAME
           </button>
         </div>
       </div>
