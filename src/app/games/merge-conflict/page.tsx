@@ -532,7 +532,7 @@ export default function MergeConflictPage() {
               Two devs. One function. Zero communication.
             </p>
           </div>
-          <GamePlayCounter gameId="merge-conflict" />
+          <GamePlayCounter slug="merge-conflict" />
         </div>
 
         {/* SETUP PHASE */}

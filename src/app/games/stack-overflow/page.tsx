@@ -560,7 +560,7 @@ export default function StackOverflowPage() {
             >
               &larr; BACK
             </Link>
-            <GamePlayCounter gameId="stack-overflow" />
+            <GamePlayCounter slug="stack-overflow" />
           </div>
 
           {/* Title */}

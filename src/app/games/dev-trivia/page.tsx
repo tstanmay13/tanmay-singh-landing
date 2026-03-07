@@ -574,7 +574,7 @@ export default function DevTriviaShowdownPage() {
   // ─── Render ───────────────────────────────────────────────────
   if (!mounted) return null;
 
-  const winner = scores[0] > scores[1] ? 0 : scores[1] > scores[0] ? 1 : -1;
+  const winner: 0 | 1 | -1 = scores[0] > scores[1] ? 0 : scores[1] > scores[0] ? 1 : -1;
 
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
@@ -1201,8 +1201,8 @@ export default function DevTriviaShowdownPage() {
             {winner >= 0 ? (
               <>
                 <div className="mb-6">
-                  <div className="pixel-text text-xl md:text-2xl mb-1" style={{ color: TEAM_COLORS[winner] }}>
-                    {TEAM_NAMES[winner]} WINS!
+                  <div className="pixel-text text-xl md:text-2xl mb-1" style={{ color: TEAM_COLORS[winner as 0 | 1] }}>
+                    {TEAM_NAMES[winner as 0 | 1]} WINS!
                   </div>
                   <div className="text-6xl my-4">
                     {winner === 0 ? '[ A ]' : '[ B ]'}
