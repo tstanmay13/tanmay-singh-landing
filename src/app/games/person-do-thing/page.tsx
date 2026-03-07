@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 // ─── The 34 allowed words ───────────────────────────────────────
 const ALLOWED_WORDS = [
@@ -245,11 +245,10 @@ interface TurnResult {
   playerIndex: number;
   word: string;
   guessedCorrectly: boolean;
-  timeUsed: number;
   pointsEarned: number;
 }
 
-const TURN_DURATION = 60; // seconds
+const POINTS_PER_CORRECT = 100;
 const ROUNDS_PER_PLAYER = 2;
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -264,11 +263,6 @@ function shuffleArray<T>(arr: T[]): T[] {
 function getWordsForDifficulty(difficulty: Difficulty): TargetWord[] {
   if (difficulty === 'mixed') return shuffleArray(TARGET_WORDS);
   return shuffleArray(TARGET_WORDS.filter((w) => w.difficulty === difficulty));
-}
-
-function calculatePoints(timeRemaining: number): number {
-  // Faster guesses = more points. Max 100, min 10
-  return Math.max(10, Math.round(10 + (timeRemaining / TURN_DURATION) * 90));
 }
 
 // ─── Component ──────────────────────────────────────────────────
@@ -288,52 +282,14 @@ export default function PersonDoThingPage() {
   // Turn state
   const [currentWord, setCurrentWord] = useState<string>('');
   const [sentence, setSentence] = useState<string[]>([]);
-  const [timeLeft, setTimeLeft] = useState(TURN_DURATION);
-  const [turnActive, setTurnActive] = useState(false);
   const [lastTurnResult, setLastTurnResult] = useState<TurnResult | null>(null);
   const [scoreAnimation, setScoreAnimation] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
   const [skippedWords, setSkippedWords] = useState<string[]>([]);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Timer
-  useEffect(() => {
-    if (turnActive && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((t) => {
-          if (t <= 1) {
-            setTurnActive(false);
-            handleTimeUp();
-            return 0;
-          }
-          return t - 1;
-        });
-      }, 1000);
-      return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-      };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [turnActive]);
-
-  const handleTimeUp = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    const result: TurnResult = {
-      playerIndex: currentPlayerIndex,
-      word: currentWord,
-      guessedCorrectly: false,
-      timeUsed: TURN_DURATION,
-      pointsEarned: 0,
-    };
-    setTurnResults((prev) => [...prev, result]);
-    setLastTurnResult(result);
-    setPhase('turn-result');
-  }, [currentPlayerIndex, currentWord]);
 
   const startGame = (diff: Difficulty) => {
     setDifficulty(diff);
@@ -351,26 +307,19 @@ export default function PersonDoThingPage() {
     if (!word) return;
     setCurrentWord(word.word);
     setSentence([]);
-    setTimeLeft(TURN_DURATION);
-    setTurnActive(true);
     setSkippedWords([]);
     setPhase('describe');
   };
 
   const handleCorrectGuess = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setTurnActive(false);
-    const timeUsed = TURN_DURATION - timeLeft;
-    const points = calculatePoints(timeLeft);
     const result: TurnResult = {
       playerIndex: currentPlayerIndex,
       word: currentWord,
       guessedCorrectly: true,
-      timeUsed,
-      pointsEarned: points,
+      pointsEarned: POINTS_PER_CORRECT,
     };
     setPlayers((prev) =>
-      prev.map((p, i) => (i === currentPlayerIndex ? { ...p, score: p.score + points } : p))
+      prev.map((p, i) => (i === currentPlayerIndex ? { ...p, score: p.score + POINTS_PER_CORRECT } : p))
     );
     setTurnResults((prev) => [...prev, result]);
     setLastTurnResult(result);
@@ -380,7 +329,6 @@ export default function PersonDoThingPage() {
   };
 
   const skipWord = () => {
-    if (!turnActive) return;
     setSkippedWords((prev) => [...prev, currentWord]);
     const nextIdx = wordIndex + 1;
     if (nextIdx < wordQueue.length) {
@@ -426,12 +374,6 @@ export default function PersonDoThingPage() {
 
   const removeWordFromSentence = (index: number) => {
     setSentence((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const getTimerColor = (): string => {
-    if (timeLeft > 30) return 'var(--color-accent)';
-    if (timeLeft > 15) return 'var(--color-orange)';
-    return 'var(--color-red)';
   };
 
   const getDifficultyColor = (diff: string): string => {
@@ -572,7 +514,7 @@ export default function PersonDoThingPage() {
               <li>2. BUT you can only tap from 34 basic words</li>
               <li>3. Others shout their guesses out loud</li>
               <li>4. Tap &quot;GOT IT!&quot; when someone guesses right</li>
-              <li>5. Faster guesses = more points</li>
+              <li>5. Take your time &mdash; no rush!</li>
               <li>6. Pass the phone to the next player</li>
             </ol>
           </div>
@@ -647,28 +589,11 @@ export default function PersonDoThingPage() {
 
   // ─── Describe Phase: Active Player's Turn ─────────────────────
   if (phase === 'describe') {
-    const timerPercent = (timeLeft / TURN_DURATION) * 100;
-
     return (
       <div
         className="min-h-screen flex flex-col"
         style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
       >
-        {/* Timer Bar */}
-        <div
-          className="w-full h-2 shrink-0"
-          style={{ backgroundColor: 'var(--color-surface)' }}
-        >
-          <div
-            className="h-full transition-all duration-1000 ease-linear"
-            style={{
-              width: `${timerPercent}%`,
-              backgroundColor: getTimerColor(),
-              boxShadow: `0 0 8px ${getTimerColor()}`,
-            }}
-          />
-        </div>
-
         {/* Header */}
         <div
           className="px-4 py-3 border-b shrink-0"
@@ -679,10 +604,10 @@ export default function PersonDoThingPage() {
               {players[currentPlayerIndex].name}&apos;s turn
             </span>
             <span
-              className="pixel-text text-sm mono-text"
-              style={{ color: getTimerColor() }}
+              className="text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
             >
-              {timeLeft}s
+              No time limit
             </span>
           </div>
         </div>
@@ -812,7 +737,7 @@ export default function PersonDoThingPage() {
             className="pixel-text text-base md:text-lg mb-2"
             style={{ color: isCorrect ? 'var(--color-accent)' : 'var(--color-red)' }}
           >
-            {isCorrect ? 'CORRECT!' : 'TIME\'S UP!'}
+            {isCorrect ? 'CORRECT!' : 'SKIPPED'}
           </h2>
 
           <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>
@@ -833,9 +758,6 @@ export default function PersonDoThingPage() {
               >
                 +{lastTurnResult.pointsEarned}
               </span>
-              <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                {lastTurnResult.timeUsed}s to guess
-              </p>
             </div>
           )}
 

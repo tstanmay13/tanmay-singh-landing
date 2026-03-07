@@ -12,7 +12,15 @@ export async function POST(
 ) {
   try {
     const { code } = await params;
-    const admin = createAdminClient();
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 503 }
+      );
+    }
 
     // Fetch room
     const { data: room } = await admin

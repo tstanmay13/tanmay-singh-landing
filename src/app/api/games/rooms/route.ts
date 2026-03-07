@@ -30,7 +30,15 @@ export async function POST(request: NextRequest) {
     const maxPlayers = Math.min(Math.max(body.max_players ?? 8, 2), 15);
     const mode = body.mode === 'pass-the-phone' ? 'pass-the-phone' : 'online';
 
-    const admin = createAdminClient();
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 503 }
+      );
+    }
     const sessionToken = crypto.randomUUID();
 
     // Generate a unique room code (retry on collision)
@@ -42,7 +50,6 @@ export async function POST(request: NextRequest) {
         .from('game_rooms')
         .select('id')
         .eq('code', code)
-        .neq('status', 'expired')
         .single();
       if (!existing) break;
       attempts++;

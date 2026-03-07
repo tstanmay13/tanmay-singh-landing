@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase';
+import { supabase, createAdminClient } from '@/lib/supabase';
 import { identifyPlayer } from '@/lib/multiplayer/helpers';
 import type { GameRoom, GameState, UpdateStateRequest } from '@/lib/multiplayer/types';
 
 /**
  * GET /api/games/rooms/[code]/state — Get current game state
+ * Uses the public (anon) client since RLS allows SELECT on game_state and non-expired rooms.
  */
 export async function GET(
   _request: NextRequest,
@@ -12,9 +13,9 @@ export async function GET(
 ) {
   try {
     const { code } = await params;
-    const admin = createAdminClient();
+    const db = supabase;
 
-    const { data: room } = await admin
+    const { data: room } = await db
       .from('game_rooms')
       .select('*')
       .eq('code', code.toUpperCase())
@@ -27,7 +28,7 @@ export async function GET(
       );
     }
 
-    const { data: state } = await admin
+    const { data: state } = await db
       .from('game_state')
       .select('*')
       .eq('room_id', room.id)
@@ -67,7 +68,15 @@ export async function POST(
       );
     }
 
-    const admin = createAdminClient();
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 503 }
+      );
+    }
 
     // Fetch room
     const { data: room } = await admin

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase';
-import { toPublicPlayer, checkRoomExpiry } from '@/lib/multiplayer/helpers';
+import { supabase, createAdminClient } from '@/lib/supabase';
+import { toPublicPlayer } from '@/lib/multiplayer/helpers';
 import type { GameRoom, GamePlayer, GameState, RoomInfoResponse } from '@/lib/multiplayer/types';
 
 /**
  * GET /api/games/rooms/[code] — Get room info + players + state
+ * Uses the public (anon) client since RLS allows SELECT on non-expired rooms.
  */
 export async function GET(
   _request: NextRequest,
@@ -12,10 +13,12 @@ export async function GET(
 ) {
   try {
     const { code } = await params;
-    const admin = createAdminClient();
+
+    // Use public client — RLS policy filters out expired rooms on SELECT
+    const db = supabase;
 
     // Fetch room
-    const { data: room, error: roomError } = await admin
+    const { data: room, error: roomError } = await db
       .from('game_rooms')
       .select('*')
       .eq('code', code.toUpperCase())
@@ -30,8 +33,18 @@ export async function GET(
 
     const typedRoom = room as GameRoom;
 
-    // Check expiry
-    if (typedRoom.status === 'expired' || (await checkRoomExpiry(typedRoom))) {
+    // Check expiry (mark expired if past expires_at)
+    if (new Date(typedRoom.expires_at) < new Date()) {
+      // Need admin client to write the expiry update
+      try {
+        const admin = createAdminClient();
+        await admin
+          .from('game_rooms')
+          .update({ status: 'expired' })
+          .eq('id', typedRoom.id);
+      } catch {
+        // If admin client unavailable, still report the room as expired
+      }
       return NextResponse.json(
         { error: 'Room has expired' },
         { status: 410 }
@@ -39,14 +52,14 @@ export async function GET(
     }
 
     // Fetch players
-    const { data: players } = await admin
+    const { data: players } = await db
       .from('game_players')
       .select('*')
       .eq('room_id', typedRoom.id)
       .order('player_order', { ascending: true });
 
     // Fetch state
-    const { data: state } = await admin
+    const { data: state } = await db
       .from('game_state')
       .select('*')
       .eq('room_id', typedRoom.id)
