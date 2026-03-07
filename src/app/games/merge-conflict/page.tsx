@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import GamePlayCounter from '@/components/GamePlayCounter';
+import OnlineGame from './OnlineGame';
 
 /* ================================================================
    TYPES
@@ -33,6 +34,7 @@ interface PairResult {
 }
 
 type GamePhase =
+  | 'mode-select'
   | 'setup'
   | 'spec-reveal'
   | 'writing-a'
@@ -42,6 +44,8 @@ type GamePhase =
   | 'voting'
   | 'pair-results'
   | 'final-results';
+
+type GameMode = 'same-device' | 'online';
 
 interface FunctionSpec {
   text: string;
@@ -173,12 +177,15 @@ function determineMergeStatus(linesA: string[], linesB: string[]): 'CONFLICT' | 
 export default function MergeConflictPage() {
   const [mounted, setMounted] = useState(false);
 
+  // Mode
+  const [gameMode, setGameMode] = useState<GameMode | null>(null);
+
   // Setup
   const [players, setPlayers] = useState<Player[]>([]);
   const [playerCount, setPlayerCount] = useState(4);
 
   // Game state
-  const [phase, setPhase] = useState<GamePhase>('setup');
+  const [phase, setPhase] = useState<GamePhase>('mode-select');
   const [usedSpecs, setUsedSpecs] = useState<Set<string>>(new Set());
 
   // Current pair
@@ -412,7 +419,8 @@ export default function MergeConflictPage() {
   };
 
   const resetGame = () => {
-    setPhase('setup');
+    setPhase('mode-select');
+    setGameMode(null);
     setPlayers((prev) => prev.map((p) => ({ ...p, score: 0 })));
     setPairResults([]);
     setCurrentPairIndex(0);
@@ -522,10 +530,9 @@ export default function MergeConflictPage() {
           <GamePlayCounter slug="merge-conflict" />
         </div>
 
-        {/* SETUP PHASE */}
-        {phase === 'setup' && (
+        {/* MODE SELECT */}
+        {phase === 'mode-select' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* How to play */}
             <div className="pixel-card" style={{ padding: '1.25rem' }}>
               <h2 className="pixel-text" style={{ fontSize: '0.7rem', color: 'var(--color-accent)', marginBottom: '0.75rem' }}>
                 HOW TO PLAY
@@ -539,6 +546,56 @@ export default function MergeConflictPage() {
               </div>
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={() => { setGameMode('same-device'); setPhase('setup'); }}
+                className="pixel-btn"
+                style={{
+                  padding: '1rem',
+                  fontSize: '0.85rem',
+                  width: '100%',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-bg)',
+                  border: 'none',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ display: 'block', marginBottom: '0.25rem' }}>SAME DEVICE</span>
+                <span style={{ fontSize: '0.65rem', opacity: 0.8, fontFamily: 'var(--font-body)' }}>
+                  Pass the phone between players. 2-6 devs.
+                </span>
+              </button>
+
+              <button
+                onClick={() => { setGameMode('online'); setPhase('setup'); }}
+                className="pixel-btn"
+                style={{
+                  padding: '1rem',
+                  fontSize: '0.85rem',
+                  width: '100%',
+                  background: 'var(--color-purple)',
+                  color: 'var(--color-bg)',
+                  border: 'none',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ display: 'block', marginBottom: '0.25rem' }}>ONLINE</span>
+                <span style={{ fontSize: '0.65rem', opacity: 0.8, fontFamily: 'var(--font-body)' }}>
+                  Room code multiplayer. Both devs write simultaneously. 2-8 players.
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ONLINE MODE */}
+        {gameMode === 'online' && phase === 'setup' && (
+          <OnlineGame onBack={() => { setPhase('mode-select'); setGameMode(null); }} />
+        )}
+
+        {/* SETUP PHASE (same device) */}
+        {gameMode === 'same-device' && phase === 'setup' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Player count picker */}
             <div className="pixel-card" style={{ padding: '1.25rem' }}>
               <h2 className="pixel-text" style={{ fontSize: '0.7rem', color: 'var(--color-text)', marginBottom: '0.75rem', textAlign: 'center' }}>
