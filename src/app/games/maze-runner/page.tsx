@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -137,6 +138,7 @@ export default function MazeRunnerPage() {
   const animFrameRef = useRef<number>(0);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { recordPlay } = useGamePlay('maze-runner');
 
   // Load personal best from localStorage
   useEffect(() => {
@@ -165,6 +167,7 @@ export default function MazeRunnerPage() {
   }, []);
 
   const startGame = useCallback(() => {
+    recordPlay();
     setLevelTimes([]);
     startLevel(0);
   }, [startLevel]);

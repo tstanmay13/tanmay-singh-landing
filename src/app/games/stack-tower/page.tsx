@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useGamePlay } from "@/components/GamePlayCounter";
 import Link from "next/link";
 
 // --- Constants ---
@@ -74,6 +75,7 @@ export default function StackTowerPage() {
   const [started, setStarted] = useState(false);
   const [perfectFlash, setPerfectFlash] = useState(false);
   const [best, setBest] = useState(0);
+  const { recordPlay } = useGamePlay('stack-tower');
 
   // Hydration safety
   useEffect(() => {
@@ -249,6 +251,7 @@ export default function StackTowerPage() {
     // Start the game on first tap
     if (!state.started) {
       state.started = true;
+      recordPlay();
       setStarted(true);
       return;
     }

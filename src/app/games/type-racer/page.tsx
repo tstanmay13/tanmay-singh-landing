@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 type GameState = 'idle' | 'racing' | 'finished';
 
@@ -68,6 +69,7 @@ export default function TypeRacerPage() {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const wpmIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { recordPlay } = useGamePlay('type-racer');
 
   useEffect(() => {
     setMounted(true);
@@ -83,6 +85,7 @@ export default function TypeRacerPage() {
   }, []);
 
   const startRace = useCallback(() => {
+    recordPlay();
     setGameState('racing');
     setTyped('');
     setErrors(new Set());

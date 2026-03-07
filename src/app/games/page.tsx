@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -163,11 +163,11 @@ const games: Game[] = [
     isNew: true,
   },
   {
-    id: "guess-framework",
-    title: "Guess the Framework",
-    description: "Name that JS framework",
-    icon: "🔍",
-    path: "/games/guess-framework",
+    id: "code-quiz",
+    title: "Code Quiz",
+    description: "150+ questions across 8 tech categories",
+    icon: "{ }",
+    path: "/games/code-quiz",
     category: "trivia",
     isNew: true,
   },
@@ -209,6 +209,14 @@ function getNewCount(cat: Category): number {
 
 export default function GamesPage() {
   const [activeFilter, setActiveFilter] = useState<Category>("all");
+  const [playCounts, setPlayCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    fetch("/api/games/plays")
+      .then((res) => res.json())
+      .then((data: Record<string, number>) => setPlayCounts(data))
+      .catch(() => {});
+  }, []);
 
   const filteredGames = useMemo(() => {
     if (activeFilter === "all") return games;
@@ -375,16 +383,29 @@ export default function GamesPage() {
                       {game.description}
                     </p>
 
-                    {/* Category badge */}
-                    <span
-                      className="pixel-text text-[8px] px-2 py-1 border inline-block mb-3"
-                      style={{
-                        borderColor: categoryColors[game.category],
-                        color: categoryColors[game.category],
-                      }}
-                    >
-                      {game.category.toUpperCase()}
-                    </span>
+                    {/* Category badge + play count */}
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <span
+                        className="pixel-text text-[8px] px-2 py-1 border inline-block"
+                        style={{
+                          borderColor: categoryColors[game.category],
+                          color: categoryColors[game.category],
+                        }}
+                      >
+                        {game.category.toUpperCase()}
+                      </span>
+                      {(playCounts[game.id] ?? 0) > 0 && (
+                        <span
+                          className="pixel-text text-[8px] px-2 py-1 inline-block"
+                          style={{
+                            color: "var(--color-text-muted)",
+                            border: "1px solid var(--color-border)",
+                          }}
+                        >
+                          {playCounts[game.id].toLocaleString()} PLAYS
+                        </span>
+                      )}
+                    </div>
 
                     {/* Play button */}
                     <div className="mt-auto">

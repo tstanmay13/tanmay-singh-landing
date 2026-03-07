@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useGamePlay } from "@/components/GamePlayCounter";
 import Link from "next/link";
 
 // ---------------------------------------------------------------------------
@@ -284,6 +285,7 @@ export default function GuessFrameworkPage() {
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const answeredRef = useRef(false);
+  const { recordPlay } = useGamePlay('guess-framework');
 
   // mount guard
   useEffect(() => {
@@ -346,6 +348,7 @@ export default function GuessFrameworkPage() {
 
   // ------- game flow -------
   const startGame = () => {
+    recordPlay();
     const picked = pickRounds();
     setRounds(picked);
     setRoundIndex(0);

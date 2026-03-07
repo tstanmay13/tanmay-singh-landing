@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -206,6 +207,7 @@ export default function MinesweeperPage() {
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
   const config = DIFFICULTIES[difficulty];
+  const { recordPlay } = useGamePlay('minesweeper');
 
   // Mount guard
   useEffect(() => {
@@ -279,6 +281,7 @@ export default function MinesweeperPage() {
           currentGrid = placeMines(prev, config.rows, config.cols, config.mines, row, col);
           currentStatus = 'playing';
           setGameStatus('playing');
+          recordPlay();
         }
 
         const clickedCell = currentGrid[row][col];

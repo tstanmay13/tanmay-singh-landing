@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useGamePlay } from '@/components/GamePlayCounter';
 
 type GamePhase = 'ready' | 'waiting' | 'draw' | 'result' | 'cheated';
 
@@ -26,6 +27,7 @@ export default function ReflexDuelPage() {
 
   const drawTimeRef = useRef<number>(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { recordPlay } = useGamePlay('reflex-duel');
 
   useEffect(() => {
     setMounted(true);
@@ -45,6 +47,7 @@ export default function ReflexDuelPage() {
   }, []);
 
   const startDuel = useCallback(() => {
+    recordPlay();
     setPhase('waiting');
     setResult(null);
 

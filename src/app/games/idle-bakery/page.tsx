@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useReducer, useCallback, useRef } from "react";
+import GamePlayCounter from "@/components/GamePlayCounter";
 
 // ============================================
 // TYPES
@@ -401,6 +402,7 @@ export default function IdleBakeryPage() {
           <p className="pixel-text text-[10px]" style={{ color: "var(--color-text-muted)" }}>
             BAKE - SELL - UPGRADE
           </p>
+          <div className="mt-2"><GamePlayCounter slug="idle-bakery" onPlay /></div>
         </header>
 
         {/* Resources Bar */}

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import GamePlayCounter from '@/components/GamePlayCounter';
 
 // --- Types ---
 
@@ -374,6 +375,7 @@ export default function PixelPainterPage() {
           >
             Pixel Painter
           </h1>
+          <div className="mb-2"><GamePlayCounter slug="pixel-painter" onPlay /></div>
           <p
             className="text-sm"
             style={{ color: 'var(--color-text-secondary)' }}

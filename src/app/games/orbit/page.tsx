@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
+import GamePlayCounter from "@/components/GamePlayCounter";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -688,6 +689,7 @@ export default function OrbitPage() {
           >
             N-BODY GRAVITY SIMULATOR
           </p>
+          <div className="mt-2"><GamePlayCounter slug="orbit" onPlay /></div>
         </header>
 
         {/* Main content */}
