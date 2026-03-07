@@ -235,7 +235,7 @@ export default function StackOverflowPage() {
   // Setup
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerNameInput, setPlayerNameInput] = useState('');
+  const [playerCount, setPlayerCount] = useState(4);
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('setup');
@@ -294,22 +294,6 @@ export default function StackOverflowPage() {
   /* ================================================================
      GAME LOGIC
      ================================================================ */
-
-  const addPlayer = useCallback(() => {
-    const name = playerNameInput.trim();
-    if (!name || players.length >= MAX_PLAYERS) return;
-    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return;
-    const avatar = AVATARS[players.length % AVATARS.length];
-    setPlayers((prev) => [
-      ...prev,
-      { id: prev.length, name, reputation: 0, avatar, badges: [] },
-    ]);
-    setPlayerNameInput('');
-  }, [playerNameInput, players]);
-
-  const removePlayer = (id: number) => {
-    setPlayers((prev) => prev.filter((p) => p.id !== id));
-  };
 
   const pickPrompt = useCallback((): FactPrompt => {
     const available = FACT_PROMPTS
@@ -515,7 +499,7 @@ export default function StackOverflowPage() {
     setPhase('setup');
     setGameMode(null);
     setPlayers([]);
-    setPlayerNameInput('');
+    setPlayerCount(4);
     setCurrentRound(1);
     setCurrentPrompt(null);
     setUsedPrompts(new Set());
@@ -625,101 +609,77 @@ export default function StackOverflowPage() {
             </div>
           )}
 
-          {/* Player setup */}
+          {/* Player count + start */}
           {gameMode && (
             <>
               <div className="mb-6">
                 <p
-                  className="pixel-text text-xs mb-3"
+                  className="pixel-text text-xs mb-3 text-center"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  ADD PLAYERS ({players.length}/{MAX_PLAYERS})
+                  HOW MANY PLAYERS?
                 </p>
-                <div className="flex gap-2">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={playerNameInput}
-                    onChange={(e) => setPlayerNameInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') addPlayer();
-                    }}
-                    placeholder="Enter name..."
-                    maxLength={16}
-                    className="flex-1 px-3 py-2 pixel-border text-sm"
-                    style={{
-                      background: 'var(--color-bg-secondary)',
-                      color: 'var(--color-text)',
-                      borderColor: 'var(--color-border)',
-                    }}
-                  />
-                  <button
-                    onClick={addPlayer}
-                    className="pixel-btn px-4 py-2 pixel-text text-xs"
-                    style={{
-                      background: 'var(--color-accent)',
-                      color: 'var(--color-bg)',
-                    }}
-                  >
-                    ADD
-                  </button>
-                </div>
-              </div>
-
-              {/* Player list */}
-              {players.length > 0 && (
-                <div className="space-y-2 mb-6">
-                  {players.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center justify-between px-3 py-2 pixel-border"
+                <div className="flex gap-2 justify-center flex-wrap mb-3">
+                  {Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, i) => i + MIN_PLAYERS).map((n) => (
+                    <button
+                      key={n}
+                      className="w-12 h-12 rounded-lg text-sm font-bold transition-all"
                       style={{
-                        background: 'var(--color-bg-card)',
-                        borderColor: 'var(--color-border)',
+                        backgroundColor: playerCount === n ? 'var(--color-orange)' : 'var(--color-surface)',
+                        color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                        border: `2px solid ${playerCount === n ? 'var(--color-orange)' : 'var(--color-border)'}`,
                       }}
+                      onClick={() => setPlayerCount(n)}
                     >
-                      <span className="text-sm">
-                        {p.avatar} {p.name}
-                      </span>
-                      <button
-                        onClick={() => removePlayer(p.id)}
-                        className="text-xs px-2 py-1 hover:opacity-80"
-                        style={{ color: 'var(--color-red)' }}
-                      >
-                        X
-                      </button>
-                    </div>
+                      {n}
+                    </button>
                   ))}
                 </div>
-              )}
+                <p className="text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
+                  Players will be Player 1, Player 2, Player 3...
+                </p>
+              </div>
 
               {/* Start */}
               <button
-                onClick={startGame}
-                disabled={players.length < MIN_PLAYERS}
+                onClick={() => {
+                  const generated = Array.from({ length: playerCount }, (_, i) => ({
+                    id: i,
+                    name: `Player ${i + 1}`,
+                    reputation: 0,
+                    avatar: AVATARS[i % AVATARS.length],
+                    badges: [] as string[],
+                  }));
+                  setPlayers(generated);
+                  const prompt = pickPrompt();
+                  setCurrentPrompt(prompt);
+                  setCurrentRound(1);
+                  setSubmittedAnswers([]);
+                  setCurrentWritingPlayer(0);
+                  setAnswerInput('');
+                  setCorrectStreaks({});
+                  setTotalCorrect({});
+                  setTotalFooled({});
+                  setEverFooled(new Set());
+                  if (gameMode === 'pass') {
+                    setPhase('pass-phone');
+                  } else {
+                    setPhase('writing');
+                  }
+                }}
                 className="w-full py-3 pixel-btn pixel-text text-sm transition-all"
                 style={{
-                  background:
-                    players.length >= MIN_PLAYERS
-                      ? 'var(--color-orange)'
-                      : 'var(--color-bg-card)',
-                  color:
-                    players.length >= MIN_PLAYERS
-                      ? 'var(--color-bg)'
-                      : 'var(--color-text-muted)',
-                  cursor:
-                    players.length >= MIN_PLAYERS ? 'pointer' : 'not-allowed',
+                  background: 'var(--color-orange)',
+                  color: 'var(--color-bg)',
+                  cursor: 'pointer',
                 }}
               >
-                {players.length < MIN_PLAYERS
-                  ? `NEED ${MIN_PLAYERS - players.length} MORE`
-                  : 'START GAME'}
+                START GAME
               </button>
 
               <button
                 onClick={() => {
                   setGameMode(null);
-                  setPlayers([]);
                 }}
                 className="w-full mt-3 py-2 text-xs hover:opacity-80"
                 style={{ color: 'var(--color-text-secondary)' }}

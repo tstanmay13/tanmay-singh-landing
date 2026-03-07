@@ -270,7 +270,7 @@ export default function PromptRoulettePage() {
   // Setup state
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerNameInput, setPlayerNameInput] = useState('');
+  const [playerCount, setPlayerCount] = useState(4);
 
   // Game state
   const [phase, setPhase] = useState<GamePhase>('setup');
@@ -363,21 +363,8 @@ export default function PromptRoulettePage() {
      GAME LOGIC
      ================================================================ */
 
-  const addPlayer = useCallback(() => {
-    const name = playerNameInput.trim();
-    if (!name || players.length >= MAX_PLAYERS) return;
-    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) return;
-    const avatar = AVATARS[players.length % AVATARS.length];
-    setPlayers((prev) => [...prev, { id: prev.length, name, score: 0, avatar }]);
-    setPlayerNameInput('');
-  }, [playerNameInput, players]);
-
-  const removePlayer = (id: number) => {
-    setPlayers((prev) => prev.filter((p) => p.id !== id));
-  };
-
   const startGame = useCallback(() => {
-    if (players.length < MIN_PLAYERS) return;
+    if (players.length < MIN_PLAYERS && playerCount < MIN_PLAYERS) return;
     const prompts = pickPrompts(PROMPTS_PER_ROUND, undefined, usedPrompts);
     const newUsed = new Set(usedPrompts);
     prompts.forEach((p) => newUsed.add(p.text));
@@ -775,13 +762,13 @@ export default function PromptRoulettePage() {
             </div>
           )}
 
-          {/* Player Setup */}
+          {/* Player Count + Start */}
           {gameMode && (
             <>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <p className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                    ADD PLAYERS ({players.length}/{MAX_PLAYERS})
+                    HOW MANY PLAYERS?
                   </p>
                   <button
                     onClick={() => setGameMode(null)}
@@ -791,81 +778,61 @@ export default function PromptRoulettePage() {
                     Change mode
                   </button>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={playerNameInput}
-                    onChange={(e) => setPlayerNameInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
-                    placeholder="Enter player name..."
-                    maxLength={16}
-                    className="flex-1 px-3 py-2 rounded-lg text-sm outline-none border transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-surface)',
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-text)',
-                    }}
-                  />
-                  <button
-                    onClick={addPlayer}
-                    disabled={!playerNameInput.trim() || players.length >= MAX_PLAYERS}
-                    className="pixel-btn text-xs px-4"
-                    style={{
-                      opacity: !playerNameInput.trim() || players.length >= MAX_PLAYERS ? 0.4 : 1,
-                    }}
-                  >
-                    ADD
-                  </button>
-                </div>
-              </div>
-
-              {/* Player List */}
-              {players.length > 0 && (
-                <div className="space-y-2 mb-8">
-                  {players.map((p) => (
-                    <div
-                      key={p.id}
-                      className="pixel-card rounded-lg px-4 py-2 flex items-center justify-between animate-fade-in-up"
-                      style={{ backgroundColor: 'var(--color-bg-card)' }}
+                <div className="flex gap-2 justify-center flex-wrap mb-3">
+                  {Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, i) => i + MIN_PLAYERS).map((n) => (
+                    <button
+                      key={n}
+                      className="w-12 h-12 rounded-lg text-sm font-bold transition-all"
+                      style={{
+                        backgroundColor: playerCount === n ? 'var(--color-pink)' : 'var(--color-surface)',
+                        color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                        border: `2px solid ${playerCount === n ? 'var(--color-pink)' : 'var(--color-border)'}`,
+                      }}
+                      onClick={() => setPlayerCount(n)}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{p.avatar}</span>
-                        <span className="text-sm">{p.name}</span>
-                      </div>
-                      <button
-                        onClick={() => removePlayer(p.id)}
-                        className="text-sm hover:opacity-80 transition-opacity"
-                        style={{ color: 'var(--color-red)' }}
-                      >
-                        {'\u2715'}
-                      </button>
-                    </div>
+                      {n}
+                    </button>
                   ))}
                 </div>
-              )}
+                <p className="text-xs text-center" style={{ color: 'var(--color-text-muted)' }}>
+                  Players will be Player 1, Player 2, Player 3...
+                </p>
+              </div>
 
               {/* Start Button */}
               <div className="text-center">
                 <button
-                  onClick={startGame}
-                  disabled={players.length < MIN_PLAYERS}
+                  onClick={() => {
+                    const generated = Array.from({ length: playerCount }, (_, i) => ({
+                      id: i,
+                      name: `Player ${i + 1}`,
+                      score: 0,
+                      avatar: AVATARS[i % AVATARS.length],
+                    }));
+                    setPlayers(generated);
+                    // Inline startGame logic since players state won't be set yet
+                    const prompts = pickPrompts(PROMPTS_PER_ROUND, undefined, usedPrompts);
+                    const newUsed = new Set(usedPrompts);
+                    prompts.forEach((p) => newUsed.add(p.text));
+                    setUsedPrompts(newUsed);
+                    setRoundPrompts(prompts);
+                    setCurrentPromptIndex(0);
+                    setCurrentPrompt(prompts[0]);
+                    setCurrentRound(1);
+                    setAnswers([]);
+                    setCurrentWritingPlayer(0);
+                    setTimeLeft(WRITING_TIME);
+                    setPhase('writing');
+                    setAnswerInput('');
+                  }}
                   className="pixel-btn text-sm px-8 py-3"
                   style={{
-                    opacity: players.length < MIN_PLAYERS ? 0.4 : 1,
                     borderColor: 'var(--color-pink)',
                     color: 'var(--color-pink)',
                   }}
                 >
-                  {players.length < MIN_PLAYERS
-                    ? `NEED ${MIN_PLAYERS - players.length} MORE`
-                    : 'START GAME'}
+                  START GAME
                 </button>
-                {players.length < MIN_PLAYERS && (
-                  <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
-                    Minimum {MIN_PLAYERS} players required
-                  </p>
-                )}
               </div>
             </>
           )}

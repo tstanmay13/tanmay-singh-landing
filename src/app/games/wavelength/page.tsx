@@ -218,7 +218,7 @@ export default function WavelengthPage() {
   const [mounted, setMounted] = useState(false);
 
   // Setup
-  const [playerNames, setPlayerNames] = useState<string[]>(['', '', '', '']);
+  const [playerCount, setPlayerCount] = useState(6);
   const [setupError, setSetupError] = useState('');
   const [enabledCategories, setEnabledCategories] = useState<Set<string>>(
     new Set(['general', 'dev', 'culture', 'food', 'philosophical'])
@@ -250,26 +250,6 @@ export default function WavelengthPage() {
 
   /* ── Setup Helpers ── */
 
-  const addPlayerSlot = () => {
-    if (playerNames.length < 12) {
-      setPlayerNames((prev) => [...prev, '']);
-    }
-  };
-
-  const removePlayerSlot = (index: number) => {
-    if (playerNames.length > 4) {
-      setPlayerNames((prev) => prev.filter((_, i) => i !== index));
-    }
-  };
-
-  const updatePlayerName = (index: number, name: string) => {
-    setPlayerNames((prev) => {
-      const copy = [...prev];
-      copy[index] = name;
-      return copy;
-    });
-  };
-
   const toggleCategory = (cat: string) => {
     setEnabledCategories((prev) => {
       const next = new Set(prev);
@@ -284,15 +264,12 @@ export default function WavelengthPage() {
   };
 
   const startGame = () => {
-    const names = playerNames.map((n) => n.trim()).filter((n) => n.length > 0);
-    if (names.length < 4) {
+    if (playerCount < 4) {
       setSetupError('Need at least 4 players');
       return;
     }
-    if (new Set(names).size !== names.length) {
-      setSetupError('Player names must be unique');
-      return;
-    }
+
+    const names = Array.from({ length: playerCount }, (_, i) => `Player ${i + 1}`);
 
     const allPlayers: Player[] = names.map((name, i) => ({
       id: i,
@@ -536,80 +513,47 @@ export default function WavelengthPage() {
             </div>
           </div>
 
-          {/* Player Names */}
+          {/* Player Count */}
           <div
             className="pixel-card rounded-lg p-4 md:p-6 mb-6"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
           >
             <h2
-              className="pixel-text text-xs mb-1"
+              className="pixel-text text-xs mb-1 text-center"
               style={{ color: 'var(--color-accent)' }}
             >
-              PLAYERS ({playerNames.length})
+              HOW MANY PLAYERS?
             </h2>
-            <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
-              4-12 players. Odd slots join {TEAM_NAMES[1]}, even slots join {TEAM_NAMES[2]}.
+            <p className="text-xs mb-4 text-center" style={{ color: 'var(--color-text-muted)' }}>
+              Odds join {TEAM_NAMES[1]}, evens join {TEAM_NAMES[2]}
             </p>
 
-            <div className="space-y-2">
-              {playerNames.map((name, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span
-                    className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{
-                      backgroundColor:
-                        (i % 2) === 0
-                          ? 'rgba(6,182,212,0.15)'
-                          : 'rgba(245,158,11,0.15)',
-                      color: (i % 2) === 0 ? TEAM_COLORS[1] : TEAM_COLORS[2],
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  <input
-                    type="text"
-                    placeholder={`Player ${i + 1}`}
-                    value={name}
-                    onChange={(e) => updatePlayerName(i, e.target.value)}
-                    maxLength={16}
-                    className="flex-1 px-3 py-2 rounded text-sm border outline-none transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-surface)',
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-text)',
-                    }}
-                    onFocus={(e) =>
-                      (e.target.style.borderColor = 'var(--color-accent)')
-                    }
-                    onBlur={(e) =>
-                      (e.target.style.borderColor = 'var(--color-border)')
-                    }
-                  />
-                  {playerNames.length > 4 && (
-                    <button
-                      onClick={() => removePlayerSlot(i)}
-                      className="text-xs px-2 py-1 rounded transition-colors"
-                      style={{ color: 'var(--color-red)' }}
-                    >
-                      X
-                    </button>
-                  )}
-                </div>
+            <div className="flex gap-2 justify-center flex-wrap mb-3">
+              {[4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
+                <button
+                  key={n}
+                  className="w-11 h-11 rounded-lg text-sm font-bold transition-all"
+                  style={{
+                    backgroundColor: playerCount === n ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color: playerCount === n ? 'var(--color-bg)' : 'var(--color-text)',
+                    border: `2px solid ${playerCount === n ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  }}
+                  onClick={() => setPlayerCount(n)}
+                >
+                  {n}
+                </button>
               ))}
             </div>
 
-            {playerNames.length < 12 && (
-              <button
-                onClick={addPlayerSlot}
-                className="mt-3 text-xs px-3 py-1.5 rounded border transition-colors hover:opacity-80"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                + Add Player
-              </button>
-            )}
+            {/* Team preview */}
+            <div className="flex gap-4 justify-center text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              <span style={{ color: TEAM_COLORS[1] }}>
+                {TEAM_NAMES[1]}: {Math.ceil(playerCount / 2)} players
+              </span>
+              <span style={{ color: TEAM_COLORS[2] }}>
+                {TEAM_NAMES[2]}: {Math.floor(playerCount / 2)} players
+              </span>
+            </div>
           </div>
 
           {setupError && (
