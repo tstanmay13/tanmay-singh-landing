@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase";
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const supabase = createAdminClient();
     const { error } = await supabase.rpc("increment_play_count", {
       slug_param: slug,
     });
