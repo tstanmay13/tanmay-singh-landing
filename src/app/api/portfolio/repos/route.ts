@@ -69,8 +69,10 @@ export async function GET() {
 
     const rawRepos: GitHubRepo[] = await response.json();
 
+    const BLOCKED_REPOS = ["tanmay-irika-austin-demo"];
+
     const repos: RepoData[] = rawRepos
-      .filter((repo) => !repo.fork && !repo.archived)
+      .filter((repo) => !repo.fork && !repo.archived && !BLOCKED_REPOS.includes(repo.name))
       .map((repo) => ({
         name: repo.name,
         description: repo.description,
