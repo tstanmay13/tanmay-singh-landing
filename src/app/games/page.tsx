@@ -12,7 +12,10 @@ type Category =
   | "creative"
   | "simulation"
   | "trivia"
-  | "multiplayer";
+  | "multiplayer"
+  | "deep";
+
+type SortOption = "newest" | "most-played" | "a-z";
 
 interface Game {
   id: string;
@@ -20,8 +23,10 @@ interface Game {
   description: string;
   icon: string;
   path: string;
-  category: Category;
+  category: Exclude<Category, "all" | "deep">;
   isNew: boolean;
+  isDeep?: boolean;
+  playerCount?: string;
 }
 
 const games: Game[] = [
@@ -30,7 +35,7 @@ const games: Game[] = [
     id: "slevens",
     title: "Slevens",
     description: "Shake to roll dice drinking game",
-    icon: "🎲",
+    icon: "\uD83C\uDFB2",
     path: "/games/slevens",
     category: "arcade",
     isNew: false,
@@ -39,7 +44,7 @@ const games: Game[] = [
     id: "snakes",
     title: "Snake Game",
     description: "Classic snake with pixel art",
-    icon: "🐍",
+    icon: "\uD83D\uDC0D",
     path: "/games/snakes",
     category: "arcade",
     isNew: false,
@@ -49,7 +54,7 @@ const games: Game[] = [
     id: "salary",
     title: "The Salary Game",
     description: "Can you spend a dev salary?",
-    icon: "💰",
+    icon: "\uD83D\uDCB0",
     path: "/games/salary",
     category: "simulation",
     isNew: true,
@@ -58,7 +63,7 @@ const games: Game[] = [
     id: "reflex-duel",
     title: "Reflex Duel",
     description: "Cowboy reaction time test",
-    icon: "🤠",
+    icon: "\uD83E\uDD20",
     path: "/games/reflex-duel",
     category: "reflex",
     isNew: true,
@@ -67,7 +72,7 @@ const games: Game[] = [
     id: "color-guesser",
     title: "Color Guesser",
     description: "Match hex codes to colors",
-    icon: "🎨",
+    icon: "\uD83C\uDFA8",
     path: "/games/color-guesser",
     category: "trivia",
     isNew: true,
@@ -76,7 +81,7 @@ const games: Game[] = [
     id: "type-racer",
     title: "Type Racer",
     description: "Speed typing with pixel car",
-    icon: "⌨️",
+    icon: "\u2328\uFE0F",
     path: "/games/type-racer",
     category: "reflex",
     isNew: true,
@@ -85,7 +90,7 @@ const games: Game[] = [
     id: "pixel-painter",
     title: "Pixel Art Painter",
     description: "Create pixel art masterpieces",
-    icon: "🖌️",
+    icon: "\uD83D\uDD8C\uFE0F",
     path: "/games/pixel-painter",
     category: "creative",
     isNew: true,
@@ -94,7 +99,7 @@ const games: Game[] = [
     id: "perfect-shape",
     title: "Draw Perfect Shape",
     description: "How steady is your hand?",
-    icon: "✏️",
+    icon: "\u270F\uFE0F",
     path: "/games/perfect-shape",
     category: "creative",
     isNew: true,
@@ -103,7 +108,7 @@ const games: Game[] = [
     id: "pixel-perfector",
     title: "Pixel Perfector",
     description: "Memorize and recreate pixel art",
-    icon: "👾",
+    icon: "\uD83D\uDC7E",
     path: "/games/pixel-perfector",
     category: "puzzle",
     isNew: true,
@@ -113,7 +118,7 @@ const games: Game[] = [
     id: "stack-tower",
     title: "Stack Tower",
     description: "Stack blocks, don't miss!",
-    icon: "🏗️",
+    icon: "\uD83C\uDFD7\uFE0F",
     path: "/games/stack-tower",
     category: "arcade",
     isNew: true,
@@ -122,7 +127,7 @@ const games: Game[] = [
     id: "orbit",
     title: "Orbit",
     description: "N-body gravity simulator",
-    icon: "🪐",
+    icon: "\uD83E\uDE90",
     path: "/games/orbit",
     category: "simulation",
     isNew: true,
@@ -131,7 +136,7 @@ const games: Game[] = [
     id: "breakout",
     title: "Breakout Remix",
     description: "Smash bricks with power-ups",
-    icon: "🧱",
+    icon: "\uD83E\uDDF1",
     path: "/games/breakout",
     category: "arcade",
     isNew: true,
@@ -140,7 +145,7 @@ const games: Game[] = [
     id: "flappy",
     title: "Flappy Pixel",
     description: "Pixel-art flappy bird",
-    icon: "🐦",
+    icon: "\uD83D\uDC26",
     path: "/games/flappy",
     category: "arcade",
     isNew: true,
@@ -149,7 +154,7 @@ const games: Game[] = [
     id: "minesweeper",
     title: "Minesweeper",
     description: "Classic mine-sweeping puzzle",
-    icon: "💣",
+    icon: "\uD83D\uDCA3",
     path: "/games/minesweeper",
     category: "puzzle",
     isNew: true,
@@ -158,7 +163,7 @@ const games: Game[] = [
     id: "maze-runner",
     title: "Maze Runner",
     description: "Navigate through fog of war",
-    icon: "🌀",
+    icon: "\uD83C\uDF00",
     path: "/games/maze-runner",
     category: "puzzle",
     isNew: true,
@@ -176,7 +181,7 @@ const games: Game[] = [
     id: "idle-bakery",
     title: "Idle Bakery",
     description: "Build your bakery empire",
-    icon: "🍞",
+    icon: "\uD83C\uDF5E",
     path: "/games/idle-bakery",
     category: "simulation",
     isNew: true,
@@ -190,6 +195,7 @@ const games: Game[] = [
     path: "/games/pixel-impostor",
     category: "multiplayer",
     isNew: true,
+    playerCount: "3-8 players",
   },
   {
     id: "spyfall-dev",
@@ -199,6 +205,7 @@ const games: Game[] = [
     path: "/games/spyfall-dev",
     category: "multiplayer",
     isNew: true,
+    playerCount: "4-10 players",
   },
   {
     id: "person-do-thing",
@@ -208,6 +215,7 @@ const games: Game[] = [
     path: "/games/person-do-thing",
     category: "multiplayer",
     isNew: true,
+    playerCount: "3-8 players",
   },
   {
     id: "prompt-roulette",
@@ -217,6 +225,7 @@ const games: Game[] = [
     path: "/games/prompt-roulette",
     category: "multiplayer",
     isNew: true,
+    playerCount: "3-10 players",
   },
   {
     id: "wavelength",
@@ -226,6 +235,7 @@ const games: Game[] = [
     path: "/games/wavelength",
     category: "multiplayer",
     isNew: true,
+    playerCount: "2-12 players",
   },
   {
     id: "stack-overflow",
@@ -235,6 +245,7 @@ const games: Game[] = [
     path: "/games/stack-overflow",
     category: "multiplayer",
     isNew: true,
+    playerCount: "3-8 players",
   },
   {
     id: "merge-conflict",
@@ -244,6 +255,7 @@ const games: Game[] = [
     path: "/games/merge-conflict",
     category: "multiplayer",
     isNew: true,
+    playerCount: "2 players",
   },
   {
     id: "dev-trivia",
@@ -253,6 +265,7 @@ const games: Game[] = [
     path: "/games/dev-trivia",
     category: "multiplayer",
     isNew: true,
+    playerCount: "2-8 players",
   },
   {
     id: "glitch-artist",
@@ -262,6 +275,7 @@ const games: Game[] = [
     path: "/games/glitch-artist",
     category: "multiplayer",
     isNew: true,
+    playerCount: "4-8 players",
   },
   {
     id: "retro-reflex",
@@ -271,6 +285,7 @@ const games: Game[] = [
     path: "/games/retro-reflex",
     category: "multiplayer",
     isNew: true,
+    playerCount: "2-4 players",
   },
   // Solo deep games
   {
@@ -281,6 +296,7 @@ const games: Game[] = [
     path: "/games/ecosystem",
     category: "simulation",
     isNew: true,
+    isDeep: true,
   },
   {
     id: "galactic-census",
@@ -290,6 +306,7 @@ const games: Game[] = [
     path: "/games/galactic-census",
     category: "puzzle",
     isNew: true,
+    isDeep: true,
   },
   {
     id: "deja-vu",
@@ -299,6 +316,7 @@ const games: Game[] = [
     path: "/games/deja-vu",
     category: "puzzle",
     isNew: true,
+    isDeep: true,
   },
   {
     id: "code-review",
@@ -308,6 +326,7 @@ const games: Game[] = [
     path: "/games/code-review",
     category: "puzzle",
     isNew: true,
+    isDeep: true,
   },
   {
     id: "tos-game",
@@ -317,18 +336,28 @@ const games: Game[] = [
     path: "/games/tos-game",
     category: "puzzle",
     isNew: true,
+    isDeep: true,
   },
 ];
 
-const categories: { key: Category; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "arcade", label: "Arcade" },
-  { key: "puzzle", label: "Puzzle" },
-  { key: "reflex", label: "Reflex" },
-  { key: "creative", label: "Creative" },
-  { key: "simulation", label: "Simulation" },
-  { key: "trivia", label: "Trivia" },
-  { key: "multiplayer", label: "Multiplayer" },
+const DEEP_GAME_IDS = new Set([
+  "code-review",
+  "tos-game",
+  "ecosystem",
+  "galactic-census",
+  "deja-vu",
+]);
+
+const categories: { key: Category; label: string; icon: string }[] = [
+  { key: "all", label: "All", icon: "\u2B50" },
+  { key: "arcade", label: "Arcade", icon: "\uD83D\uDD79\uFE0F" },
+  { key: "puzzle", label: "Puzzle", icon: "\uD83E\uDDE9" },
+  { key: "reflex", label: "Reflex", icon: "\u26A1" },
+  { key: "creative", label: "Creative", icon: "\uD83C\uDFA8" },
+  { key: "simulation", label: "Simulation", icon: "\uD83C\uDF0D" },
+  { key: "trivia", label: "Trivia", icon: "\uD83E\uDDE0" },
+  { key: "multiplayer", label: "Multiplayer", icon: "\uD83D\uDC65" },
+  { key: "deep", label: "Deep Games", icon: "\uD83C\uDF0A" },
 ];
 
 const categoryColors: Record<Category, string> = {
@@ -340,18 +369,24 @@ const categoryColors: Record<Category, string> = {
   simulation: "var(--color-blue)",
   trivia: "var(--color-cyan)",
   multiplayer: "var(--color-green)",
+  deep: "var(--color-yellow)",
 };
 
-function getNewCount(cat: Category): number {
-  if (cat === "all") return games.filter((g) => g.isNew).length;
-  return games.filter((g) => g.category === cat && g.isNew).length;
-}
+const sortOptions: { key: SortOption; label: string }[] = [
+  { key: "newest", label: "NEWEST" },
+  { key: "most-played", label: "MOST PLAYED" },
+  { key: "a-z", label: "A-Z" },
+];
 
 export default function GamesPage() {
+  const [mounted, setMounted] = useState(false);
   const [activeFilter, setActiveFilter] = useState<Category>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [playCounts, setPlayCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    setMounted(true);
     fetch("/api/games/plays")
       .then((res) => res.json())
       .then((data: Record<string, number>) => setPlayCounts(data))
@@ -359,9 +394,59 @@ export default function GamesPage() {
   }, []);
 
   const filteredGames = useMemo(() => {
-    if (activeFilter === "all") return games;
-    return games.filter((g) => g.category === activeFilter);
-  }, [activeFilter]);
+    let result = [...games];
+
+    // Category filter
+    if (activeFilter === "deep") {
+      result = result.filter((g) => g.isDeep);
+    } else if (activeFilter !== "all") {
+      result = result.filter((g) => g.category === activeFilter);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (g) =>
+          g.title.toLowerCase().includes(query) ||
+          g.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    switch (sortBy) {
+      case "newest":
+        result.sort((a, b) => {
+          if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
+          return 0;
+        });
+        break;
+      case "most-played":
+        result.sort(
+          (a, b) => (playCounts[b.id] ?? 0) - (playCounts[a.id] ?? 0)
+        );
+        break;
+      case "a-z":
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+    }
+
+    return result;
+  }, [activeFilter, searchQuery, sortBy, playCounts]);
+
+  const multiplayerCount = games.filter(
+    (g) => g.category === "multiplayer"
+  ).length;
+  const uniqueCategories = new Set(games.map((g) => g.category)).size;
+
+  if (!mounted) {
+    return (
+      <div
+        className="min-h-screen"
+        style={{ background: "var(--color-bg)" }}
+      />
+    );
+  }
 
   return (
     <div
@@ -373,7 +458,7 @@ export default function GamesPage() {
 
       <div className="relative z-10">
         {/* Header Section */}
-        <header className="pt-12 pb-8 px-4 text-center">
+        <header className="pt-12 pb-6 px-4 text-center">
           <Link
             href="/"
             className="pixel-text text-xs inline-block mb-8 transition-colors duration-200"
@@ -406,7 +491,7 @@ export default function GamesPage() {
 
           <ScrollReveal delay={100}>
             <p
-              className="pixel-text text-xs sm:text-sm animate-flicker mb-6"
+              className="pixel-text text-xs sm:text-sm animate-flicker mb-4"
               style={{ color: "var(--color-text-muted)" }}
             >
               INSERT COIN TO PLAY
@@ -418,10 +503,76 @@ export default function GamesPage() {
               className="pixel-text text-xs"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {games.length} GAMES AVAILABLE
+              {filteredGames.length} OF {games.length} GAMES
             </p>
           </ScrollReveal>
         </header>
+
+        {/* Search + Sort Row */}
+        <ScrollReveal delay={250}>
+          <div className="max-w-5xl mx-auto px-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+              {/* Search input */}
+              <div className="relative flex-1">
+                <span
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
+                  {"\uD83D\uDD0D"}
+                </span>
+                <input
+                  type="text"
+                  placeholder="SEARCH GAMES..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pixel-text text-[10px] w-full pl-9 pr-4 py-2.5 border-2 outline-none transition-all duration-200"
+                  style={{
+                    background: "var(--color-bg-card)",
+                    borderColor: searchQuery
+                      ? "var(--color-accent)"
+                      : "var(--color-border)",
+                    color: "var(--color-text)",
+                  }}
+                  onFocus={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--color-accent)")
+                  }
+                  onBlur={(e) => {
+                    if (!searchQuery) {
+                      e.currentTarget.style.borderColor = "var(--color-border)";
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Sort dropdown */}
+              <div className="flex gap-1.5">
+                {sortOptions.map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSortBy(opt.key)}
+                    className="pixel-text text-[9px] sm:text-[10px] px-2.5 sm:px-3 py-2 border-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
+                    style={{
+                      borderColor:
+                        sortBy === opt.key
+                          ? "var(--color-accent)"
+                          : "var(--color-border)",
+                      background:
+                        sortBy === opt.key
+                          ? "var(--color-accent)"
+                          : "var(--color-bg-card)",
+                      color:
+                        sortBy === opt.key
+                          ? "var(--color-bg)"
+                          : "var(--color-text-secondary)",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
 
         {/* Filter Bar */}
         <ScrollReveal delay={300}>
@@ -429,7 +580,12 @@ export default function GamesPage() {
             <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
               {categories.map((cat) => {
                 const isActive = activeFilter === cat.key;
-                const newCount = getNewCount(cat.key);
+                const count =
+                  cat.key === "all"
+                    ? games.length
+                    : cat.key === "deep"
+                      ? games.filter((g) => g.isDeep).length
+                      : games.filter((g) => g.category === cat.key).length;
                 return (
                   <button
                     key={cat.key}
@@ -450,19 +606,16 @@ export default function GamesPage() {
                         : "none",
                     }}
                   >
+                    <span className="mr-1.5">{cat.icon}</span>
                     {cat.label.toUpperCase()}
-                    {newCount > 0 && (
-                      <span
-                        className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[8px] pixel-text leading-none border"
-                        style={{
-                          background: "var(--color-red)",
-                          color: "#fff",
-                          borderColor: "var(--color-red)",
-                        }}
-                      >
-                        {newCount}
-                      </span>
-                    )}
+                    <span
+                      className="ml-1.5 opacity-70"
+                      style={{
+                        fontSize: "0.65em",
+                      }}
+                    >
+                      {count}
+                    </span>
                   </button>
                 );
               })}
@@ -473,101 +626,181 @@ export default function GamesPage() {
         {/* Game Cards Grid */}
         <main className="max-w-5xl mx-auto px-4 pb-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredGames.map((game, index) => (
-              <ScrollReveal key={game.id} delay={index * 60} variant="scale">
-                <Link href={game.path} className="block group">
-                  <div
-                    className="pixel-card p-6 text-center transition-all duration-250 relative"
-                    style={{ minHeight: "240px" }}
-                  >
-                    {/* NEW badge */}
-                    {game.isNew && (
-                      <span
-                        className="absolute top-3 right-3 pixel-text text-[8px] px-2 py-1 animate-glow-pulse"
-                        style={{
-                          background: "var(--color-accent)",
-                          color: "var(--color-bg)",
-                        }}
-                      >
-                        NEW
-                      </span>
-                    )}
+            {filteredGames.map((game, index) => {
+              const isMultiplayer = game.category === "multiplayer";
+              const color = categoryColors[game.category];
 
-                    {/* Cabinet screen area */}
+              return (
+                <ScrollReveal key={game.id} delay={index * 60} variant="scale">
+                  <Link href={game.path} className="block group">
                     <div
-                      className="mx-auto mb-4 w-20 h-20 flex items-center justify-center border-2 transition-all duration-250 group-hover:scale-110"
+                      className="pixel-card p-6 text-center transition-all duration-250 relative overflow-hidden"
                       style={{
-                        borderColor: "var(--color-border)",
-                        background: "var(--color-bg)",
+                        minHeight: "240px",
+                        borderColor: isMultiplayer ? color : undefined,
+                        animation: isMultiplayer
+                          ? "multiplayer-pulse 3s ease-in-out infinite"
+                          : undefined,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform =
+                          "translateY(-4px)";
+                        e.currentTarget.style.boxShadow = `0 8px 24px ${color}30, 0 0 20px ${color}15`;
+                        e.currentTarget.style.borderColor = color;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "";
+                        if (!isMultiplayer) {
+                          e.currentTarget.style.borderColor = "";
+                        }
                       }}
                     >
-                      <span className="text-4xl">{game.icon}</span>
-                    </div>
+                      {/* Badges - top row */}
+                      <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                        <div className="flex gap-1.5">
+                          {isMultiplayer && (
+                            <span
+                              className="pixel-text text-[7px] px-1.5 py-0.5"
+                              style={{
+                                background: "var(--color-green)",
+                                color: "#fff",
+                              }}
+                            >
+                              MULTIPLAYER
+                            </span>
+                          )}
+                          {game.isDeep && (
+                            <span
+                              className="pixel-text text-[7px] px-1.5 py-0.5"
+                              style={{
+                                background: "var(--color-yellow)",
+                                color: "#000",
+                              }}
+                            >
+                              DEEP
+                            </span>
+                          )}
+                        </div>
+                        {game.isNew && (
+                          <span
+                            className="pixel-text text-[7px] px-1.5 py-0.5 animate-glow-pulse"
+                            style={{
+                              background: "var(--color-accent)",
+                              color: "var(--color-bg)",
+                            }}
+                          >
+                            NEW
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Title */}
-                    <h2
-                      className="pixel-text text-xs sm:text-sm mb-2 transition-colors duration-200"
-                      style={{ color: "var(--color-text)" }}
-                    >
-                      {game.title.toUpperCase()}
-                    </h2>
-
-                    {/* Description */}
-                    <p
-                      className="text-xs mb-4 leading-relaxed"
-                      style={{
-                        color: "var(--color-text-muted)",
-                        fontFamily: "var(--font-body)",
-                      }}
-                    >
-                      {game.description}
-                    </p>
-
-                    {/* Category badge + play count */}
-                    <div className="flex items-center justify-center gap-2 mb-3">
-                      <span
-                        className="pixel-text text-[8px] px-2 py-1 border inline-block"
+                      {/* Cabinet screen area */}
+                      <div
+                        className="mx-auto mb-4 mt-4 w-20 h-20 flex items-center justify-center border-2 transition-all duration-250 group-hover:scale-110"
                         style={{
-                          borderColor: categoryColors[game.category],
-                          color: categoryColors[game.category],
+                          borderColor: "var(--color-border)",
+                          background: "var(--color-bg)",
                         }}
                       >
-                        {game.category.toUpperCase()}
-                      </span>
-                      {(playCounts[game.id] ?? 0) > 0 && (
+                        <span className="text-4xl">{game.icon}</span>
+                      </div>
+
+                      {/* Title */}
+                      <h2
+                        className="pixel-text text-xs sm:text-sm mb-2 transition-colors duration-200"
+                        style={{ color: "var(--color-text)" }}
+                      >
+                        {game.title.toUpperCase()}
+                      </h2>
+
+                      {/* Description */}
+                      <p
+                        className="text-xs mb-3 leading-relaxed"
+                        style={{
+                          color: "var(--color-text-muted)",
+                          fontFamily: "var(--font-body)",
+                        }}
+                      >
+                        {game.description}
+                      </p>
+
+                      {/* Player count for multiplayer */}
+                      {game.playerCount && (
+                        <p
+                          className="pixel-text text-[8px] mb-2"
+                          style={{ color: "var(--color-green)" }}
+                        >
+                          {game.playerCount.toUpperCase()}
+                        </p>
+                      )}
+
+                      {/* Category badge + play count */}
+                      <div className="flex items-center justify-center gap-2 mb-3">
                         <span
-                          className="pixel-text text-[8px] px-2 py-1 inline-block"
+                          className="pixel-text text-[8px] px-2 py-1 border inline-block"
                           style={{
-                            color: "var(--color-text-muted)",
-                            border: "1px solid var(--color-border)",
+                            borderColor: color,
+                            color: color,
                           }}
                         >
-                          {playCounts[game.id].toLocaleString()} PLAYS
+                          {game.category.toUpperCase()}
                         </span>
-                      )}
-                    </div>
+                        {(playCounts[game.id] ?? 0) > 0 && (
+                          <span
+                            className="pixel-text text-[8px] px-2 py-1 inline-block"
+                            style={{
+                              color: "var(--color-text-muted)",
+                              border: "1px solid var(--color-border)",
+                            }}
+                          >
+                            {playCounts[game.id].toLocaleString()} PLAYS
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Play button */}
-                    <div className="mt-auto">
-                      <span className="pixel-btn inline-block text-[10px] px-4 py-2 transition-all duration-200">
-                        PLAY
-                      </span>
+                      {/* Play button */}
+                      <div className="mt-auto">
+                        <span className="pixel-btn inline-block text-[10px] px-4 py-2 transition-all duration-200">
+                          {isMultiplayer ? "START LOBBY" : "PLAY"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </ScrollReveal>
-            ))}
+                  </Link>
+                </ScrollReveal>
+              );
+            })}
           </div>
 
           {/* Empty state */}
           {filteredGames.length === 0 && (
             <div className="text-center py-20">
               <p
-                className="pixel-text text-sm"
+                className="pixel-text text-2xl mb-4"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                NO GAMES FOUND IN THIS CATEGORY
+                NO GAMES FOUND
               </p>
+              <p
+                className="text-sm mb-6"
+                style={{
+                  color: "var(--color-text-muted)",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                {searchQuery
+                  ? `No results for "${searchQuery}"`
+                  : "No games in this category yet"}
+              </p>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setActiveFilter("all");
+                }}
+                className="pixel-btn text-[10px] cursor-pointer"
+              >
+                SHOW ALL GAMES
+              </button>
             </div>
           )}
         </main>
@@ -578,20 +811,72 @@ export default function GamesPage() {
           style={{ borderColor: "var(--color-border)" }}
         >
           <ScrollReveal>
-            <div className="max-w-3xl mx-auto space-y-3">
+            <div className="max-w-3xl mx-auto">
+              <div className="flex flex-wrap justify-center gap-6 sm:gap-10 mb-6">
+                <div>
+                  <p
+                    className="pixel-text text-lg sm:text-xl mb-1"
+                    style={{ color: "var(--color-accent)" }}
+                  >
+                    {games.length}
+                  </p>
+                  <p
+                    className="pixel-text text-[8px]"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    TOTAL GAMES
+                  </p>
+                </div>
+                <div>
+                  <p
+                    className="pixel-text text-lg sm:text-xl mb-1"
+                    style={{ color: "var(--color-green)" }}
+                  >
+                    {multiplayerCount}
+                  </p>
+                  <p
+                    className="pixel-text text-[8px]"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    MULTIPLAYER
+                  </p>
+                </div>
+                <div>
+                  <p
+                    className="pixel-text text-lg sm:text-xl mb-1"
+                    style={{ color: "var(--color-purple)" }}
+                  >
+                    {uniqueCategories}
+                  </p>
+                  <p
+                    className="pixel-text text-[8px]"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    CATEGORIES
+                  </p>
+                </div>
+                <div>
+                  <p
+                    className="pixel-text text-lg sm:text-xl mb-1"
+                    style={{ color: "var(--color-yellow)" }}
+                  >
+                    {DEEP_GAME_IDS.size}
+                  </p>
+                  <p
+                    className="pixel-text text-[8px]"
+                    style={{ color: "var(--color-text-muted)" }}
+                  >
+                    DEEP GAMES
+                  </p>
+                </div>
+              </div>
               <p
-                className="pixel-text text-[10px] sm:text-xs"
+                className="pixel-text text-[10px] sm:text-xs mb-6"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 TOTAL PLAY TIME: INFINITE
               </p>
-              <p
-                className="pixel-text text-[10px] sm:text-xs"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                HIGH SCORES: PRICELESS
-              </p>
-              <div className="pt-4">
+              <div>
                 <Link href="/" className="pixel-btn inline-block text-[10px]">
                   RETURN TO LOBBY
                 </Link>
@@ -600,6 +885,19 @@ export default function GamesPage() {
           </ScrollReveal>
         </footer>
       </div>
+
+      {/* Multiplayer pulse animation */}
+      <style jsx>{`
+        @keyframes multiplayer-pulse {
+          0%,
+          100% {
+            box-shadow: 0 0 5px var(--color-green);
+          }
+          50% {
+            box-shadow: 0 0 15px var(--color-green), 0 0 25px var(--color-green);
+          }
+        }
+      `}</style>
     </div>
   );
 }
