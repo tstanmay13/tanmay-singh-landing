@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import OnlineGame from './OnlineGame';
 
 /* ================================================================
    TYPES
@@ -216,6 +217,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 export default function WavelengthPage() {
   const [mounted, setMounted] = useState(false);
+  const [mode, setMode] = useState<'select' | 'local' | 'online'>('select');
 
   // Setup
   const [playerCount, setPlayerCount] = useState(6);
@@ -380,6 +382,11 @@ export default function WavelengthPage() {
     setGuessPosition(50);
   };
 
+  const fullReset = () => {
+    resetGame();
+    setMode('select');
+  };
+
   /* ── Slider Logic ── */
 
   const updateSliderFromEvent = useCallback(
@@ -422,7 +429,135 @@ export default function WavelengthPage() {
   if (!mounted) return null;
 
   /* ================================================================
-     SETUP SCREEN
+     ONLINE MODE
+     ================================================================ */
+  if (mode === 'online') {
+    return <OnlineGame onBack={() => setMode('select')} />;
+  }
+
+  /* ================================================================
+     MODE SELECT
+     ================================================================ */
+  if (mode === 'select') {
+    return (
+      <div
+        className="min-h-screen p-4 md:p-8"
+        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-lg mx-auto">
+          <Link
+            href="/games"
+            className="inline-flex items-center gap-2 text-sm mb-6 hover:opacity-80 transition-opacity"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {'\u2190'} Back to Arcade
+          </Link>
+
+          <div className="text-center mb-8">
+            <h1
+              className="pixel-text text-xl md:text-2xl mb-2"
+              style={{ color: 'var(--color-accent)' }}
+            >
+              WAVELENGTH
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              How well do you really know each other?
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <button
+              onClick={() => setMode('online')}
+              className="pixel-card w-full p-6 rounded-lg text-left transition-all hover:scale-[1.02]"
+              style={{
+                backgroundColor: 'var(--color-bg-card)',
+                border: '2px solid var(--color-accent)',
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{'\uD83C\uDF10'}</span>
+                <div>
+                  <h3
+                    className="pixel-text text-sm mb-1"
+                    style={{ color: 'var(--color-accent)' }}
+                  >
+                    ONLINE
+                  </h3>
+                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                    Each player on their own device. Share a room code.
+                  </p>
+                </div>
+              </div>
+            </button>
+            <button
+              onClick={() => { setMode('local'); setPhase('setup'); }}
+              className="pixel-card w-full p-6 rounded-lg text-left transition-all hover:scale-[1.02]"
+              style={{
+                backgroundColor: 'var(--color-bg-card)',
+                border: '2px solid var(--color-border)',
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{'\uD83D\uDCF1'}</span>
+                <div>
+                  <h3
+                    className="pixel-text text-sm mb-1"
+                    style={{ color: 'var(--color-accent)' }}
+                  >
+                    SAME DEVICE
+                  </h3>
+                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                    Share one device. Perfect for in-person play.
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p
+              className="pixel-text text-xs mb-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              HOW TO PLAY
+            </p>
+            <div
+              className="pixel-card rounded-lg p-4 text-left text-xs space-y-2"
+              style={{
+                backgroundColor: 'var(--color-bg-card)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <p>
+                <span style={{ color: 'var(--color-accent)' }}>1.</span> A spectrum appears
+                with two opposing concepts
+              </p>
+              <p>
+                <span style={{ color: 'var(--color-accent)' }}>2.</span> The psychic sees a
+                hidden target on the spectrum
+              </p>
+              <p>
+                <span style={{ color: 'var(--color-accent)' }}>3.</span> The psychic gives a
+                ONE-WORD clue
+              </p>
+              <p>
+                <span style={{ color: 'var(--color-accent)' }}>4.</span> Their team places a
+                guess on the spectrum
+              </p>
+              <p>
+                <span style={{ color: 'var(--color-accent)' }}>5.</span> Closer guess = more
+                points. First to {WINNING_SCORE} wins!
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ================================================================
+     SETUP SCREEN (Same Device mode)
      ================================================================ */
   if (phase === 'setup') {
     return (
@@ -431,13 +566,13 @@ export default function WavelengthPage() {
         style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
       >
         <div className="max-w-2xl mx-auto">
-          <Link
-            href="/games"
+          <button
+            onClick={() => setMode('select')}
             className="text-sm transition-colors hover:opacity-80 inline-block mb-6"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            &larr; Back to Games
-          </Link>
+            &larr; Back
+          </button>
 
           <div className="text-center mb-8">
             <h1
@@ -447,7 +582,7 @@ export default function WavelengthPage() {
               WAVELENGTH
             </h1>
             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              How well do you really know each other?
+              Same Device Mode
             </p>
           </div>
 
@@ -1037,7 +1172,7 @@ export default function WavelengthPage() {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <button onClick={resetGame} className="pixel-btn text-xs">
+              <button onClick={fullReset} className="pixel-btn text-xs">
                 NEW GAME
               </button>
               <Link
