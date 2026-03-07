@@ -289,6 +289,16 @@ const games: Game[] = [
   },
   // Solo deep games
   {
+    id: "alignment-problem",
+    title: "The Alignment Problem",
+    description: "Train an AI, watch it find loopholes",
+    icon: "\uD83E\uDD16",
+    path: "/games/alignment-problem",
+    category: "simulation",
+    isNew: true,
+    isDeep: true,
+  },
+  {
     id: "ecosystem",
     title: "Ecosystem Architect",
     description: "Design ecosystems, watch life emerge",
