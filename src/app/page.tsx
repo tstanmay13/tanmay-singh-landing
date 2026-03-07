@@ -293,6 +293,7 @@ function PixelBar({
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [contributions, setContributions] = useState<number | null>(null);
+  const [projectCount, setProjectCount] = useState<number | null>(null);
   const aboutRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -313,7 +314,18 @@ export default function Home() {
         setContributions(243);
       }
     };
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch("/api/portfolio/repos");
+        if (!response.ok) throw new Error("Failed to fetch repos");
+        const data = await response.json();
+        setProjectCount(data.repos?.length ?? null);
+      } catch {
+        setProjectCount(37);
+      }
+    };
     fetchContributions();
+    fetchProjects();
   }, []);
 
   const scrollToAbout = useCallback(() => {
@@ -322,7 +334,7 @@ export default function Home() {
 
   const heroStats: Stat[] = [
     { label: "YRS EXP", value: "3+", icon: ">" },
-    { label: "PROJECTS", value: "15+", icon: "#" },
+    { label: "PROJECTS", value: projectCount !== null ? `${projectCount}` : "...", icon: "#" },
     {
       label: "COMMITS",
       value: contributions !== null ? contributions.toLocaleString() : "...",
