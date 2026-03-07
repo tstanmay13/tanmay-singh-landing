@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // ============================================
 // Types
@@ -44,6 +46,20 @@ interface RoundState {
   spyGuess: string | null;
   roundWinners: string[]; // player IDs who scored this round
 }
+
+// Online multiplayer broadcast event types
+type SpyfallEvent =
+  | { type: 'phase_change'; phase: GamePhase; roundState: RoundState | null; players: Player[]; currentRound: number; timeLeft: number }
+  | { type: 'timer_sync'; timeLeft: number }
+  | { type: 'questioner_change'; questioner: number }
+  | { type: 'vote_called'; calledBy: string }
+  | { type: 'vote_cast'; voterId: string; votedForId: string }
+  | { type: 'accused_selected'; accusedId: string }
+  | { type: 'spy_guess'; guess: string }
+  | { type: 'player_joined'; player: Player }
+  | { type: 'player_left'; playerId: string }
+  | { type: 'settings_changed'; timerDuration: number; totalRounds: number }
+  | { type: 'score_update'; players: Player[] };
 
 // ============================================
 // Location Data (40+ dev-themed locations)
@@ -501,8 +517,129 @@ export default function SpyfallDevPage() {
   // Used locations tracking (to avoid repeats)
   const [usedLocations, setUsedLocations] = useState<Set<string>>(new Set());
 
+  // ============================================
+  // Online Mode State
+  // ============================================
+  const [onlinePhase, setOnlinePhase] = useState<'none' | 'name-entry' | 'create-or-join' | 'entering-code' | 'waiting-room'>('none');
+  const [myPlayerId, setMyPlayerId] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const isOnline = mode === 'room-code';
+
+  // Track whether this client is the host
+  const amIHost = isOnline && players.length > 0 && players.find(p => p.id === myPlayerId)?.isHost === true;
+
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // ============================================
+  // Supabase Realtime Channel Management
+  // ============================================
+
+  const broadcast = useCallback((event: SpyfallEvent) => {
+    channelRef.current?.send({
+      type: 'broadcast',
+      event: 'spyfall_event',
+      payload: event,
+    });
+  }, []);
+
+  const joinChannel = useCallback((code: string) => {
+    // Clean up existing channel
+    if (channelRef.current) {
+      channelRef.current.unsubscribe();
+      channelRef.current = null;
+    }
+
+    const channel = supabase.channel(`room:${code}`, {
+      config: { broadcast: { self: true } },
+    });
+
+    channel
+      .on('broadcast', { event: 'spyfall_event' }, ({ payload }) => {
+        const event = payload as SpyfallEvent;
+
+        switch (event.type) {
+          case 'player_joined': {
+            setPlayers(prev => {
+              if (prev.find(p => p.id === event.player.id)) return prev;
+              return [...prev, event.player];
+            });
+            break;
+          }
+          case 'player_left': {
+            setPlayers(prev => prev.filter(p => p.id !== event.playerId));
+            break;
+          }
+          case 'phase_change': {
+            setPhase(event.phase);
+            setRoundState(event.roundState);
+            setPlayers(event.players);
+            setCurrentRound(event.currentRound);
+            setTimeLeft(event.timeLeft);
+            if (event.phase === 'questioning') {
+              setTimerActive(true);
+            }
+            break;
+          }
+          case 'timer_sync': {
+            setTimeLeft(event.timeLeft);
+            break;
+          }
+          case 'questioner_change': {
+            setRoundState(prev => prev ? { ...prev, questioner: event.questioner } : prev);
+            break;
+          }
+          case 'vote_called': {
+            setTimerActive(false);
+            setRoundState(prev => prev ? { ...prev, calledBy: event.calledBy, votes: {}, accusedId: null } : prev);
+            setPhase('vote-called');
+            break;
+          }
+          case 'accused_selected': {
+            setRoundState(prev => prev ? { ...prev, accusedId: event.accusedId, votes: {} } : prev);
+            setPhase('voting');
+            break;
+          }
+          case 'vote_cast': {
+            setRoundState(prev => {
+              if (!prev) return prev;
+              return { ...prev, votes: { ...prev.votes, [event.voterId]: event.votedForId } };
+            });
+            break;
+          }
+          case 'spy_guess': {
+            // Host will handle the actual logic and broadcast a phase_change
+            break;
+          }
+          case 'settings_changed': {
+            setTimerDuration(event.timerDuration);
+            setTotalRounds(event.totalRounds);
+            break;
+          }
+          case 'score_update': {
+            setPlayers(event.players);
+            break;
+          }
+        }
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+  }, []);
+
+  // Cleanup channel on unmount
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+    };
   }, []);
 
   // Timer countdown
@@ -519,6 +656,92 @@ export default function SpyfallDevPage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
+
+  // Host syncs timer to other clients every 5 seconds
+  useEffect(() => {
+    if (!isOnline || !amIHost || !timerActive || timeLeft <= 0) return;
+    const syncInterval = setInterval(() => {
+      broadcast({ type: 'timer_sync', timeLeft });
+    }, 5000);
+    return () => clearInterval(syncInterval);
+  }, [isOnline, amIHost, timerActive, timeLeft, broadcast]);
+
+  // ============================================
+  // Online Room Management
+  // ============================================
+
+  const handleCreateRoom = useCallback(() => {
+    const name = displayName.trim();
+    if (!name) {
+      setOnlineError('Please enter a name');
+      return;
+    }
+
+    const code = generateRoomCode();
+    const hostPlayer: Player = {
+      id: crypto.randomUUID(),
+      name,
+      score: 0,
+      isHost: true,
+    };
+
+    setRoomCode(code);
+    setMyPlayerId(hostPlayer.id);
+    setPlayers([hostPlayer]);
+    setOnlinePhase('waiting-room');
+    setOnlineError(null);
+
+    // Join the realtime channel
+    joinChannel(code);
+
+    // Broadcast self-join (other clients joining later will get player list via player_joined)
+    // Note: We broadcast after a small delay to ensure channel is subscribed
+    setTimeout(() => {
+      channelRef.current?.send({
+        type: 'broadcast',
+        event: 'spyfall_event',
+        payload: { type: 'player_joined', player: hostPlayer } as SpyfallEvent,
+      });
+    }, 500);
+  }, [displayName, joinChannel]);
+
+  const handleJoinRoom = useCallback(() => {
+    const name = displayName.trim();
+    const code = joinCode.trim().toUpperCase();
+
+    if (!name) {
+      setOnlineError('Please enter a name');
+      return;
+    }
+    if (code.length < 4) {
+      setOnlineError('Please enter a valid room code');
+      return;
+    }
+
+    const joiningPlayer: Player = {
+      id: crypto.randomUUID(),
+      name,
+      score: 0,
+      isHost: false,
+    };
+
+    setRoomCode(code);
+    setMyPlayerId(joiningPlayer.id);
+    setOnlinePhase('waiting-room');
+    setOnlineError(null);
+
+    // Join the realtime channel
+    joinChannel(code);
+
+    // Broadcast join after channel subscription
+    setTimeout(() => {
+      channelRef.current?.send({
+        type: 'broadcast',
+        event: 'spyfall_event',
+        payload: { type: 'player_joined', player: joiningPlayer } as SpyfallEvent,
+      });
+    }, 500);
+  }, [displayName, joinCode, joinChannel]);
 
   // ============================================
   // Game Logic
@@ -552,7 +775,7 @@ export default function SpyfallDevPage() {
     const nonSpyIndices = players.map((_, i) => i).filter((i) => players[i].id !== spyId);
     const startQuestioner = nonSpyIndices[Math.floor(Math.random() * nonSpyIndices.length)];
 
-    setRoundState({
+    const newRoundState: RoundState = {
       location,
       spyId,
       playerRoles,
@@ -562,27 +785,54 @@ export default function SpyfallDevPage() {
       calledBy: null,
       spyGuess: null,
       roundWinners: [],
-    });
+    };
 
+    setRoundState(newRoundState);
     setRevealIndex(0);
     setRoleVisible(false);
     setPhase('role-reveal');
-  }, [players, usedLocations]);
+
+    if (isOnline) {
+      broadcast({
+        type: 'phase_change',
+        phase: 'role-reveal',
+        roundState: newRoundState,
+        players,
+        currentRound,
+        timeLeft: 0,
+      });
+    }
+  }, [players, usedLocations, isOnline, broadcast, currentRound]);
 
   const startQuestioning = useCallback(() => {
     setTimeLeft(timerDuration);
     setTimerActive(true);
     setPhase('questioning');
-  }, [timerDuration]);
+
+    if (isOnline && amIHost && roundState) {
+      broadcast({
+        type: 'phase_change',
+        phase: 'questioning',
+        roundState,
+        players,
+        currentRound,
+        timeLeft: timerDuration,
+      });
+    }
+  }, [timerDuration, isOnline, amIHost, broadcast, roundState, players, currentRound]);
 
   const nextQuestioner = useCallback(() => {
     if (!roundState) return;
+    const next = (roundState.questioner + 1) % players.length;
     setRoundState((prev) => {
       if (!prev) return prev;
-      const next = (prev.questioner + 1) % players.length;
       return { ...prev, questioner: next };
     });
-  }, [roundState, players.length]);
+
+    if (isOnline) {
+      broadcast({ type: 'questioner_change', questioner: next });
+    }
+  }, [roundState, players.length, isOnline, broadcast]);
 
   const callVote = useCallback(
     (callerId: string) => {
@@ -590,17 +840,25 @@ export default function SpyfallDevPage() {
       setTimerActive(false);
       setRoundState((prev) => (prev ? { ...prev, calledBy: callerId, votes: {}, accusedId: null } : prev));
       setPhase('vote-called');
+
+      if (isOnline) {
+        broadcast({ type: 'vote_called', calledBy: callerId });
+      }
     },
-    [roundState]
+    [roundState, isOnline, broadcast]
   );
 
   const selectAccused = useCallback(
     (accusedId: string) => {
       if (!roundState) return;
-      setRoundState((prev) => (prev ? { ...prev, accusedId: accusedId, votes: {} } : prev));
+      setRoundState((prev) => (prev ? { ...prev, accusedId, votes: {} } : prev));
       setPhase('voting');
+
+      if (isOnline) {
+        broadcast({ type: 'accused_selected', accusedId });
+      }
     },
-    [roundState]
+    [roundState, isOnline, broadcast]
   );
 
   const castVote = useCallback(
@@ -611,8 +869,12 @@ export default function SpyfallDevPage() {
         const newVotes = { ...prev.votes, [voterId]: votedForId };
         return { ...prev, votes: newVotes };
       });
+
+      if (isOnline) {
+        broadcast({ type: 'vote_cast', voterId, votedForId });
+      }
     },
-    [roundState]
+    [roundState, isOnline, broadcast]
   );
 
   const resolveVote = useCallback(() => {
@@ -629,24 +891,55 @@ export default function SpyfallDevPage() {
       if (accusedIsSpy) {
         // Spy caught! But spy gets a last guess
         setPhase('spy-guess');
+        if (isOnline) {
+          broadcast({
+            type: 'phase_change',
+            phase: 'spy-guess',
+            roundState,
+            players,
+            currentRound,
+            timeLeft,
+          });
+        }
       } else {
         // Wrong accusation - spy wins!
         const roundWinners = [roundState.spyId];
-        setPlayers((prev) =>
-          prev.map((p) =>
-            p.id === roundState.spyId ? { ...p, score: p.score + 4 } : p
-          )
+        const updatedPlayers = players.map((p) =>
+          p.id === roundState.spyId ? { ...p, score: p.score + 4 } : p
         );
-        setRoundState((prev) => (prev ? { ...prev, roundWinners } : prev));
+        setPlayers(updatedPlayers);
+        const updatedRoundState = { ...roundState, roundWinners };
+        setRoundState(updatedRoundState);
         setPhase('round-results');
+        if (isOnline) {
+          broadcast({
+            type: 'phase_change',
+            phase: 'round-results',
+            roundState: updatedRoundState,
+            players: updatedPlayers,
+            currentRound,
+            timeLeft,
+          });
+        }
       }
     } else {
       // No majority - resume questioning
-      setTimeLeft((prev) => Math.max(prev, 30)); // At least 30s
+      const newTimeLeft = Math.max(timeLeft, 30);
+      setTimeLeft(newTimeLeft);
       setTimerActive(true);
       setPhase('questioning');
+      if (isOnline) {
+        broadcast({
+          type: 'phase_change',
+          phase: 'questioning',
+          roundState,
+          players,
+          currentRound,
+          timeLeft: newTimeLeft,
+        });
+      }
     }
-  }, [roundState, players.length]);
+  }, [roundState, players, isOnline, broadcast, currentRound, timeLeft]);
 
   const handleSpyGuess = useCallback(
     (guessedLocation: string) => {
@@ -654,56 +947,89 @@ export default function SpyfallDevPage() {
       const correct = guessedLocation === roundState.location.location;
       const roundWinners: string[] = [];
 
+      let updatedPlayers = players;
+
       if (correct) {
         // Spy guessed correctly - spy wins
         roundWinners.push(roundState.spyId);
-        setPlayers((prev) =>
-          prev.map((p) =>
-            p.id === roundState.spyId ? { ...p, score: p.score + 4 } : p
-          )
+        updatedPlayers = players.map((p) =>
+          p.id === roundState.spyId ? { ...p, score: p.score + 4 } : p
         );
+        setPlayers(updatedPlayers);
       } else {
         // Spy caught and guessed wrong - voters win
         const votersWhoWereRight = Object.entries(roundState.votes)
           .filter(([, voted]) => voted === roundState.spyId)
           .map(([voterId]) => voterId);
         roundWinners.push(...votersWhoWereRight);
-        setPlayers((prev) =>
-          prev.map((p) =>
-            votersWhoWereRight.includes(p.id) ? { ...p, score: p.score + 2 } : p
-          )
+        updatedPlayers = players.map((p) =>
+          votersWhoWereRight.includes(p.id) ? { ...p, score: p.score + 2 } : p
         );
+        setPlayers(updatedPlayers);
       }
 
-      setRoundState((prev) =>
-        prev ? { ...prev, spyGuess: guessedLocation, roundWinners } : prev
-      );
+      const updatedRoundState = { ...roundState, spyGuess: guessedLocation, roundWinners };
+      setRoundState(updatedRoundState);
       setPhase('round-results');
+
+      if (isOnline) {
+        broadcast({
+          type: 'phase_change',
+          phase: 'round-results',
+          roundState: updatedRoundState,
+          players: updatedPlayers,
+          currentRound,
+          timeLeft,
+        });
+      }
     },
-    [roundState]
+    [roundState, players, isOnline, broadcast, currentRound, timeLeft]
   );
 
   const handleTimerExpired = useCallback(() => {
     if (!roundState) return;
-    // Timer expired - spy survives, spy wins
+    // Only host handles timer expiry in online mode to avoid duplicate processing
+    if (isOnline && !amIHost) return;
+
     const roundWinners = [roundState.spyId];
-    setPlayers((prev) =>
-      prev.map((p) =>
-        p.id === roundState.spyId ? { ...p, score: p.score + 4 } : p
-      )
+    const updatedPlayers = players.map((p) =>
+      p.id === roundState.spyId ? { ...p, score: p.score + 4 } : p
     );
-    setRoundState((prev) => (prev ? { ...prev, roundWinners } : prev));
+    setPlayers(updatedPlayers);
+    const updatedRoundState = { ...roundState, roundWinners };
+    setRoundState(updatedRoundState);
     setPhase('round-results');
-  }, [roundState]);
+
+    if (isOnline) {
+      broadcast({
+        type: 'phase_change',
+        phase: 'round-results',
+        roundState: updatedRoundState,
+        players: updatedPlayers,
+        currentRound,
+        timeLeft: 0,
+      });
+    }
+  }, [roundState, players, isOnline, amIHost, broadcast, currentRound]);
 
   const nextRound = useCallback(() => {
     if (currentRound >= totalRounds) {
       setPhase('game-over');
+      if (isOnline) {
+        broadcast({
+          type: 'phase_change',
+          phase: 'game-over',
+          roundState,
+          players,
+          currentRound,
+          timeLeft: 0,
+        });
+      }
     } else {
       setCurrentRound((prev) => prev + 1);
       startNewRound();
     }
-  }, [currentRound, totalRounds, startNewRound]);
+  }, [currentRound, totalRounds, startNewRound, isOnline, broadcast, roundState, players]);
 
   const resetGame = useCallback(() => {
     setPhase('menu');
@@ -714,10 +1040,19 @@ export default function SpyfallDevPage() {
     setUsedLocations(new Set());
     setTimerActive(false);
     setRoomCode('');
+    setOnlinePhase('none');
+    setMyPlayerId('');
+    setDisplayName('');
+    setJoinCode('');
+    setOnlineError(null);
+    if (channelRef.current) {
+      channelRef.current.unsubscribe();
+      channelRef.current = null;
+    }
   }, []);
 
   // ============================================
-  // Lobby Handlers
+  // Lobby Handlers (Pass the Phone)
   // ============================================
 
   const addPlayerSlot = useCallback(() => {
@@ -754,7 +1089,6 @@ export default function SpyfallDevPage() {
     setUsedLocations(new Set());
 
     // Immediately trigger round start after players are set
-    // We need to use the gamePlayers directly since state won't update yet
     const available = LOCATIONS.filter((l) => !usedLocations.has(l.location));
     const pool = available.length > 0 ? available : LOCATIONS;
     const location = pool[Math.floor(Math.random() * pool.length)];
@@ -795,6 +1129,65 @@ export default function SpyfallDevPage() {
     setRoleVisible(false);
     setPhase('role-reveal');
   }, [playerNames, usedLocations]);
+
+  // ============================================
+  // Online Mode: Host starts the game
+  // ============================================
+
+  const handleOnlineStartGame = useCallback(() => {
+    if (players.length < 4) return;
+
+    setCurrentRound(1);
+    setUsedLocations(new Set());
+
+    const available = LOCATIONS.filter((l) => !usedLocations.has(l.location));
+    const pool = available.length > 0 ? available : LOCATIONS;
+    const location = pool[Math.floor(Math.random() * pool.length)];
+
+    setUsedLocations(new Set([location.location]));
+
+    const spyIndex = Math.floor(Math.random() * players.length);
+    const spyId = players[spyIndex].id;
+
+    const shuffledRoles = shuffleArray(location.roles);
+    const playerRoles: Record<string, string> = {};
+    let roleIdx = 0;
+    players.forEach((p) => {
+      if (p.id === spyId) {
+        playerRoles[p.id] = 'THE SPY';
+      } else {
+        playerRoles[p.id] = shuffledRoles[roleIdx % shuffledRoles.length];
+        roleIdx++;
+      }
+    });
+
+    const nonSpyIndices = players.map((_, i) => i).filter((i) => players[i].id !== spyId);
+    const startQuestioner = nonSpyIndices[Math.floor(Math.random() * nonSpyIndices.length)];
+
+    const newRoundState: RoundState = {
+      location,
+      spyId,
+      playerRoles,
+      questioner: startQuestioner,
+      accusedId: null,
+      votes: {},
+      calledBy: null,
+      spyGuess: null,
+      roundWinners: [],
+    };
+
+    setRoundState(newRoundState);
+    setPhase('role-reveal');
+
+    broadcast({
+      type: 'phase_change',
+      phase: 'role-reveal',
+      roundState: newRoundState,
+      players,
+      currentRound: 1,
+      timeLeft: 0,
+    });
+  }, [players, usedLocations, broadcast]);
 
   // ============================================
   // Render
@@ -851,6 +1244,7 @@ export default function SpyfallDevPage() {
             <button
               onClick={() => {
                 setMode('room-code');
+                setOnlinePhase('name-entry');
                 setPhase('lobby');
               }}
               className="pixel-btn w-full py-4 text-sm"
@@ -888,8 +1282,438 @@ export default function SpyfallDevPage() {
     );
   }
 
-  // ---- LOBBY ----
-  if (phase === 'lobby') {
+  // ---- LOBBY (Online: Name Entry) ----
+  if (phase === 'lobby' && isOnline && onlinePhase === 'name-entry') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-md w-full">
+          <button
+            onClick={() => { setPhase('menu'); setOnlinePhase('none'); }}
+            className="text-sm transition-colors hover:opacity-80 mb-6 inline-block"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            &larr; Back
+          </button>
+
+          <div className="text-center mb-6">
+            <span className="text-4xl block mb-2">{'\ud83c\udf10'}</span>
+            <h2
+              className="pixel-text text-sm"
+              style={{ color: 'var(--color-purple)' }}
+            >
+              ONLINE MODE
+            </h2>
+          </div>
+
+          {/* Name input */}
+          <div className="mb-6">
+            <label className="pixel-text text-xs block mb-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}>
+              YOUR NAME
+            </label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Enter your name..."
+              maxLength={16}
+              className="w-full px-4 py-3 rounded-lg text-sm"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                color: 'var(--color-text)',
+                border: '2px solid var(--color-border)',
+                outline: 'none',
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && displayName.trim()) {
+                  setOnlinePhase('create-or-join');
+                }
+              }}
+            />
+          </div>
+
+          {onlineError && (
+            <p className="text-xs text-center mb-4" style={{ color: 'var(--color-red)' }}>
+              {onlineError}
+            </p>
+          )}
+
+          <button
+            onClick={() => {
+              if (!displayName.trim()) {
+                setOnlineError('Please enter a name');
+                return;
+              }
+              setOnlineError(null);
+              setOnlinePhase('create-or-join');
+            }}
+            className="pixel-btn w-full py-3 text-sm"
+          >
+            CONTINUE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- LOBBY (Online: Create or Join) ----
+  if (phase === 'lobby' && isOnline && onlinePhase === 'create-or-join') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-md w-full">
+          <button
+            onClick={() => setOnlinePhase('name-entry')}
+            className="text-sm transition-colors hover:opacity-80 mb-6 inline-block"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            &larr; Back
+          </button>
+
+          <div className="text-center mb-8">
+            <span className="text-4xl block mb-2">{'\ud83c\udf10'}</span>
+            <h2
+              className="pixel-text text-sm mb-1"
+              style={{ color: 'var(--color-purple)' }}
+            >
+              ONLINE MODE
+            </h2>
+            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Playing as <span style={{ color: 'var(--color-accent)' }}>{displayName.trim()}</span>
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleCreateRoom}
+              disabled={isSubmitting}
+              className="pixel-btn w-full py-4 text-sm"
+            >
+              CREATE ROOM
+            </button>
+            <button
+              onClick={() => setOnlinePhase('entering-code')}
+              className="w-full py-4 text-sm rounded border transition-colors"
+              style={{
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text)',
+                backgroundColor: 'var(--color-bg-card)',
+              }}
+            >
+              JOIN ROOM
+            </button>
+          </div>
+
+          {onlineError && (
+            <p className="text-xs text-center mt-4" style={{ color: 'var(--color-red)' }}>
+              {onlineError}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---- LOBBY (Online: Entering Code) ----
+  if (phase === 'lobby' && isOnline && onlinePhase === 'entering-code') {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-md w-full">
+          <button
+            onClick={() => setOnlinePhase('create-or-join')}
+            className="text-sm transition-colors hover:opacity-80 mb-6 inline-block"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            &larr; Back
+          </button>
+
+          <div className="text-center mb-6">
+            <h2
+              className="pixel-text text-sm mb-1"
+              style={{ color: 'var(--color-purple)' }}
+            >
+              JOIN ROOM
+            </h2>
+            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Enter the room code shared by the host
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+              placeholder="ROOM CODE"
+              maxLength={6}
+              className="w-full px-4 py-4 rounded-lg text-center pixel-text text-lg tracking-[0.3em]"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                color: 'var(--color-accent)',
+                border: '2px solid var(--color-border)',
+                outline: 'none',
+              }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleJoinRoom();
+              }}
+            />
+          </div>
+
+          {onlineError && (
+            <p className="text-xs text-center mb-4" style={{ color: 'var(--color-red)' }}>
+              {onlineError}
+            </p>
+          )}
+
+          <button
+            onClick={handleJoinRoom}
+            disabled={isSubmitting || joinCode.length < 4}
+            className="pixel-btn w-full py-3 text-sm"
+            style={{
+              opacity: joinCode.length >= 4 ? 1 : 0.4,
+            }}
+          >
+            JOIN
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---- LOBBY (Online: Waiting Room) ----
+  if (phase === 'lobby' && isOnline && onlinePhase === 'waiting-room') {
+    const canStart = players.length >= 4 && amIHost;
+
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center p-4"
+        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+      >
+        <div className="max-w-md w-full">
+          <button
+            onClick={resetGame}
+            className="text-sm transition-colors hover:opacity-80 mb-6 inline-block"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            &larr; Leave Room
+          </button>
+
+          <div className="text-center mb-6">
+            <span className="text-4xl block mb-2">{'\ud83d\udd75\ufe0f'}</span>
+            <h2
+              className="pixel-text text-sm mb-3"
+              style={{ color: 'var(--color-accent)' }}
+            >
+              SPYFALL LOBBY
+            </h2>
+
+            {/* Room Code Display */}
+            <div
+              className="pixel-card rounded-lg p-4 mb-2 inline-block"
+              style={{ backgroundColor: 'var(--color-bg-card)' }}
+            >
+              <label
+                className="pixel-text text-xs block mb-2"
+                style={{ color: 'var(--color-text-muted)', fontSize: '0.5rem' }}
+              >
+                ROOM CODE
+              </label>
+              <div
+                className="pixel-text text-2xl tracking-[0.4em] cursor-pointer"
+                style={{ color: 'var(--color-accent)' }}
+                onClick={() => {
+                  navigator.clipboard?.writeText(roomCode);
+                }}
+                title="Click to copy"
+              >
+                {roomCode}
+              </div>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                Tap to copy
+              </p>
+            </div>
+          </div>
+
+          {/* Player List */}
+          <div
+            className="pixel-card rounded-lg p-4 mb-4"
+            style={{ backgroundColor: 'var(--color-bg-card)' }}
+          >
+            <h3
+              className="pixel-text text-xs mb-3"
+              style={{ color: 'var(--color-orange)' }}
+            >
+              PLAYERS ({players.length}/10)
+            </h3>
+            <div className="space-y-2">
+              {players.map((player) => (
+                <div
+                  key={player.id}
+                  className="flex items-center justify-between p-2 rounded"
+                  style={{
+                    backgroundColor: player.id === myPlayerId ? 'var(--color-accent-glow)' : 'var(--color-bg-secondary)',
+                    border: player.id === myPlayerId ? '1px solid var(--color-accent)' : '1px solid transparent',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{'\ud83d\udc64'}</span>
+                    <span className="text-sm font-semibold">{player.name}</span>
+                    {player.id === myPlayerId && (
+                      <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>(you)</span>
+                    )}
+                  </div>
+                  {player.isHost && (
+                    <span
+                      className="pixel-text text-xs px-2 py-0.5 rounded"
+                      style={{
+                        backgroundColor: 'var(--color-accent-glow)',
+                        color: 'var(--color-accent)',
+                        fontSize: '0.5rem',
+                      }}
+                    >
+                      HOST
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            {players.length < 4 && (
+              <p className="text-xs text-center mt-3" style={{ color: 'var(--color-text-muted)' }}>
+                Waiting for players... ({players.length}/4 minimum)
+              </p>
+            )}
+          </div>
+
+          {/* Settings (host only) */}
+          {amIHost && (
+            <div
+              className="pixel-card rounded-lg p-4 mb-4"
+              style={{ backgroundColor: 'var(--color-bg-card)' }}
+            >
+              <h3
+                className="pixel-text text-xs mb-3"
+                style={{ color: 'var(--color-orange)' }}
+              >
+                SETTINGS
+              </h3>
+
+              {/* Timer */}
+              <div className="mb-4">
+                <label className="text-xs block mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                  Round Timer
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {TIMER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setTimerDuration(opt.value);
+                        broadcast({ type: 'settings_changed', timerDuration: opt.value, totalRounds });
+                      }}
+                      className="px-3 py-1.5 rounded border text-xs transition-all"
+                      style={{
+                        borderColor:
+                          timerDuration === opt.value ? 'var(--color-accent)' : 'var(--color-border)',
+                        backgroundColor:
+                          timerDuration === opt.value ? 'var(--color-accent-glow)' : 'transparent',
+                        color:
+                          timerDuration === opt.value ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rounds */}
+              <div>
+                <label className="text-xs block mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                  Number of Rounds
+                </label>
+                <div className="flex gap-2">
+                  {ROUNDS_OPTIONS.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => {
+                        setTotalRounds(r);
+                        broadcast({ type: 'settings_changed', timerDuration, totalRounds: r });
+                      }}
+                      className="w-10 h-10 rounded border text-sm transition-all"
+                      style={{
+                        borderColor:
+                          totalRounds === r ? 'var(--color-accent)' : 'var(--color-border)',
+                        backgroundColor:
+                          totalRounds === r ? 'var(--color-accent-glow)' : 'transparent',
+                        color:
+                          totalRounds === r ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                      }}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Non-host sees settings read-only */}
+          {!amIHost && (
+            <div
+              className="pixel-card rounded-lg p-4 mb-4"
+              style={{ backgroundColor: 'var(--color-bg-card)' }}
+            >
+              <h3
+                className="pixel-text text-xs mb-3"
+                style={{ color: 'var(--color-orange)' }}
+              >
+                SETTINGS
+              </h3>
+              <div className="flex justify-between text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                <span>Timer: {Math.floor(timerDuration / 60)} min</span>
+                <span>Rounds: {totalRounds}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Start / Waiting */}
+          {amIHost ? (
+            <button
+              onClick={handleOnlineStartGame}
+              disabled={!canStart}
+              className="pixel-btn w-full py-3 text-sm"
+              style={{
+                opacity: canStart ? 1 : 0.4,
+                cursor: canStart ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {canStart ? `START GAME (${players.length} players)` : `NEED ${4 - players.length} MORE PLAYER${4 - players.length === 1 ? '' : 'S'}`}
+            </button>
+          ) : (
+            <div className="text-center">
+              <p
+                className="pixel-text text-xs animate-pulse"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                WAITING FOR HOST TO START...
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---- LOBBY (Pass the Phone) ----
+  if (phase === 'lobby' && !isOnline) {
     const validNames = playerNames.map((n) => n.trim()).filter(Boolean);
     const canStart = validNames.length >= 4;
 
@@ -913,7 +1737,7 @@ export default function SpyfallDevPage() {
               className="pixel-text text-sm"
               style={{ color: 'var(--color-accent)' }}
             >
-              {mode === 'pass-the-phone' ? 'PASS THE PHONE' : 'ROOM CODE'} MODE
+              PASS THE PHONE MODE
             </h2>
           </div>
 
@@ -1055,8 +1879,150 @@ export default function SpyfallDevPage() {
     );
   }
 
-  // ---- ROLE REVEAL (Pass the Phone) ----
+  // ---- ROLE REVEAL ----
   if (phase === 'role-reveal' && roundState) {
+    // Online mode: each player sees their own role directly
+    if (isOnline) {
+      const myRole = roundState.playerRoles[myPlayerId];
+      const iAmSpy = myPlayerId === roundState.spyId;
+
+      return (
+        <div
+          className="min-h-screen flex items-center justify-center p-4"
+          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+        >
+          <div className="max-w-md w-full text-center">
+            {/* Round info */}
+            <div className="mb-4">
+              <span
+                className="pixel-text text-xs"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                ROUND {currentRound} OF {totalRounds}
+              </span>
+              <span
+                className="mono-text text-xs block mt-1"
+                style={{ color: 'var(--color-purple)' }}
+              >
+                Room: {roomCode}
+              </span>
+            </div>
+
+            {/* Role card */}
+            <div className="animate-scale-in">
+              <div
+                className="pixel-card rounded-lg p-8 mb-6 border-2"
+                style={{
+                  backgroundColor: iAmSpy ? 'rgba(239, 68, 68, 0.1)' : 'var(--color-bg-card)',
+                  borderColor: iAmSpy ? 'var(--color-red)' : 'var(--color-accent)',
+                  boxShadow: iAmSpy
+                    ? '0 0 30px rgba(239, 68, 68, 0.3), inset 0 0 30px rgba(239, 68, 68, 0.1)'
+                    : '0 0 20px var(--color-accent-glow)',
+                }}
+              >
+                {iAmSpy ? (
+                  <>
+                    <span className="text-6xl block mb-4">{'\ud83d\udd75\ufe0f'}</span>
+                    <h2
+                      className="pixel-text text-lg mb-2"
+                      style={{
+                        color: 'var(--color-red)',
+                        textShadow: '0 0 20px var(--color-red)',
+                      }}
+                    >
+                      YOU ARE
+                    </h2>
+                    <h1
+                      className="pixel-text text-xl mb-4"
+                      style={{
+                        color: 'var(--color-red)',
+                        textShadow: '0 0 30px var(--color-red)',
+                        animation: 'pulse 2s ease-in-out infinite',
+                      }}
+                    >
+                      THE SPY
+                    </h1>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                      You don&apos;t know the location.
+                      <br />
+                      Figure it out from the questions!
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-4xl block mb-3">{roundState.location.emoji}</span>
+                    <label
+                      className="text-xs block mb-1"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      LOCATION
+                    </label>
+                    <h2
+                      className="pixel-text text-sm mb-4"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      {roundState.location.location}
+                    </h2>
+                    <label
+                      className="text-xs block mb-1"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      YOUR ROLE
+                    </label>
+                    <h3
+                      className="pixel-text text-xs"
+                      style={{ color: 'var(--color-purple)' }}
+                    >
+                      {myRole}
+                    </h3>
+                  </>
+                )}
+              </div>
+
+              {/* Host starts the round */}
+              {amIHost ? (
+                <button
+                  onClick={startQuestioning}
+                  className="pixel-btn w-full py-3 text-sm"
+                >
+                  START ROUND
+                </button>
+              ) : (
+                <p
+                  className="pixel-text text-xs animate-pulse"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  WAITING FOR HOST TO START ROUND...
+                </p>
+              )}
+            </div>
+
+            {/* Player list */}
+            <div className="mt-6">
+              <p className="text-xs mb-2" style={{ color: 'var(--color-text-muted)' }}>
+                Players in this round:
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {players.map((p) => (
+                  <span
+                    key={p.id}
+                    className="text-xs px-2 py-1 rounded"
+                    style={{
+                      backgroundColor: p.id === myPlayerId ? 'var(--color-accent-glow)' : 'var(--color-bg-secondary)',
+                      color: p.id === myPlayerId ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {p.name}{p.id === myPlayerId ? ' (you)' : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Pass-the-phone mode: sequential reveal
     const currentPlayer = players[revealIndex];
     const role = roundState.playerRoles[currentPlayer.id];
     const isSpy = currentPlayer.id === roundState.spyId;
@@ -1278,6 +2244,7 @@ export default function SpyfallDevPage() {
               style={{ color: 'var(--color-accent)' }}
             >
               {questioner.name}
+              {isOnline && questioner.id === myPlayerId ? ' (you)' : ''}
             </span>
             <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>
               Ask any player a question to find the spy!
@@ -1298,19 +2265,21 @@ export default function SpyfallDevPage() {
 
           {/* Action Buttons */}
           <div className="flex gap-2 mb-6">
+            {(!isOnline || amIHost) && (
+              <button
+                onClick={nextQuestioner}
+                className="flex-1 py-3 rounded border text-sm transition-all"
+                style={{
+                  borderColor: 'var(--color-accent)',
+                  color: 'var(--color-accent)',
+                  backgroundColor: 'transparent',
+                }}
+              >
+                NEXT QUESTIONER &rarr;
+              </button>
+            )}
             <button
-              onClick={nextQuestioner}
-              className="flex-1 py-3 rounded border text-sm transition-all"
-              style={{
-                borderColor: 'var(--color-accent)',
-                color: 'var(--color-accent)',
-                backgroundColor: 'transparent',
-              }}
-            >
-              NEXT QUESTIONER &rarr;
-            </button>
-            <button
-              onClick={() => callVote(questioner.id)}
+              onClick={() => callVote(isOnline ? myPlayerId : questioner.id)}
               className="flex-1 py-3 rounded border text-sm font-bold transition-all"
               style={{
                 borderColor: 'var(--color-red)',
@@ -1365,31 +2334,60 @@ export default function SpyfallDevPage() {
             </p>
           </div>
 
-          <div className="space-y-2 mb-6">
-            {players.map((player) => (
-              <PlayerCard
-                key={player.id}
-                player={player}
-                onClick={() => selectAccused(player.id)}
-              />
-            ))}
-          </div>
+          {/* In online mode, only host (or the caller) selects the accused */}
+          {(!isOnline || amIHost) ? (
+            <div className="space-y-2 mb-6">
+              {players.map((player) => (
+                <PlayerCard
+                  key={player.id}
+                  player={player}
+                  onClick={() => selectAccused(player.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2 mb-6">
+              {players.map((player) => (
+                <PlayerCard
+                  key={player.id}
+                  player={player}
+                  disabled
+                />
+              ))}
+              <p className="text-xs text-center mt-2" style={{ color: 'var(--color-text-muted)' }}>
+                Host is selecting who to accuse...
+              </p>
+            </div>
+          )}
 
-          <button
-            onClick={() => {
-              // Cancel vote, resume
-              setTimeLeft((prev) => Math.max(prev, 30));
-              setTimerActive(true);
-              setPhase('questioning');
-            }}
-            className="w-full py-2 text-xs rounded border transition-all"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            CANCEL VOTE
-          </button>
+          {(!isOnline || amIHost) && (
+            <button
+              onClick={() => {
+                // Cancel vote, resume
+                const newTimeLeft = Math.max(timeLeft, 30);
+                setTimeLeft(newTimeLeft);
+                setTimerActive(true);
+                setPhase('questioning');
+                if (isOnline) {
+                  broadcast({
+                    type: 'phase_change',
+                    phase: 'questioning',
+                    roundState,
+                    players,
+                    currentRound,
+                    timeLeft: newTimeLeft,
+                  });
+                }
+              }}
+              className="w-full py-2 text-xs rounded border transition-all"
+              style={{
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              CANCEL VOTE
+            </button>
+          )}
         </div>
       </div>
     );
@@ -1406,6 +2404,10 @@ export default function SpyfallDevPage() {
       (v) => v !== roundState.accusedId
     ).length;
 
+    // In online mode, each player votes for themselves
+    const myVote = isOnline ? roundState.votes[myPlayerId] : undefined;
+    const iHaveVoted = isOnline && myVote !== undefined;
+
     return (
       <div
         className="min-h-screen flex items-center justify-center p-4"
@@ -1420,60 +2422,130 @@ export default function SpyfallDevPage() {
               IS {accused?.name.toUpperCase()} THE SPY?
             </h2>
             <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-              Pass the phone. Each player votes.
+              {isOnline ? 'Cast your vote!' : 'Pass the phone. Each player votes.'}
             </p>
           </div>
 
-          {/* Voting for each player */}
-          <div className="space-y-3 mb-6">
-            {players.map((player) => {
-              const hasVoted = roundState.votes[player.id] !== undefined;
-              const votedGuilty = roundState.votes[player.id] === roundState.accusedId;
-
-              return (
+          {isOnline ? (
+            // Online: player votes for themselves
+            <>
+              {!iHaveVoted ? (
+                <div className="space-y-3 mb-6">
+                  <button
+                    onClick={() => castVote(myPlayerId, roundState.accusedId!)}
+                    className="w-full py-4 rounded border-2 text-sm font-bold transition-all"
+                    style={{
+                      borderColor: 'var(--color-red)',
+                      color: 'var(--color-red)',
+                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    }}
+                  >
+                    GUILTY
+                  </button>
+                  <button
+                    onClick={() => castVote(myPlayerId, '')}
+                    className="w-full py-4 rounded border-2 text-sm font-bold transition-all"
+                    style={{
+                      borderColor: 'var(--color-accent)',
+                      color: 'var(--color-accent)',
+                      backgroundColor: 'var(--color-accent-glow)',
+                    }}
+                  >
+                    INNOCENT
+                  </button>
+                </div>
+              ) : (
                 <div
-                  key={player.id}
-                  className="pixel-card rounded-lg p-3"
+                  className="pixel-card rounded-lg p-6 mb-6 text-center"
                   style={{ backgroundColor: 'var(--color-bg-card)' }}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">{player.name}</span>
-                    {hasVoted ? (
+                  <p className="pixel-text text-sm mb-2" style={{
+                    color: myVote === roundState.accusedId ? 'var(--color-red)' : 'var(--color-accent)',
+                  }}>
+                    You voted: {myVote === roundState.accusedId ? 'GUILTY' : 'INNOCENT'}
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                    Waiting for others... ({Object.keys(roundState.votes).length}/{players.length})
+                  </p>
+                </div>
+              )}
+
+              {/* Vote progress */}
+              <div className="space-y-2 mb-4">
+                {players.map((player) => {
+                  const hasVoted = roundState.votes[player.id] !== undefined;
+                  return (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between p-2 rounded"
+                      style={{ backgroundColor: 'var(--color-bg-card)' }}
+                    >
+                      <span className="text-sm">
+                        {player.name}{player.id === myPlayerId ? ' (you)' : ''}
+                      </span>
                       <span
                         className="pixel-text text-xs"
-                        style={{ color: votedGuilty ? 'var(--color-red)' : 'var(--color-accent)' }}
+                        style={{ color: hasVoted ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
                       >
-                        {votedGuilty ? 'GUILTY' : 'INNOCENT'}
+                        {hasVoted ? 'VOTED' : '...'}
                       </span>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => castVote(player.id, roundState.accusedId!)}
-                          className="px-3 py-1 rounded border text-xs"
-                          style={{
-                            borderColor: 'var(--color-red)',
-                            color: 'var(--color-red)',
-                          }}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            // Pass the phone: each player votes in person
+            <div className="space-y-3 mb-6">
+              {players.map((player) => {
+                const hasVoted = roundState.votes[player.id] !== undefined;
+                const votedGuilty = roundState.votes[player.id] === roundState.accusedId;
+
+                return (
+                  <div
+                    key={player.id}
+                    className="pixel-card rounded-lg p-3"
+                    style={{ backgroundColor: 'var(--color-bg-card)' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold">{player.name}</span>
+                      {hasVoted ? (
+                        <span
+                          className="pixel-text text-xs"
+                          style={{ color: votedGuilty ? 'var(--color-red)' : 'var(--color-accent)' }}
                         >
-                          GUILTY
-                        </button>
-                        <button
-                          onClick={() => castVote(player.id, '')}
-                          className="px-3 py-1 rounded border text-xs"
-                          style={{
-                            borderColor: 'var(--color-accent)',
-                            color: 'var(--color-accent)',
-                          }}
-                        >
-                          INNOCENT
-                        </button>
-                      </div>
-                    )}
+                          {votedGuilty ? 'GUILTY' : 'INNOCENT'}
+                        </span>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => castVote(player.id, roundState.accusedId!)}
+                            className="px-3 py-1 rounded border text-xs"
+                            style={{
+                              borderColor: 'var(--color-red)',
+                              color: 'var(--color-red)',
+                            }}
+                          >
+                            GUILTY
+                          </button>
+                          <button
+                            onClick={() => castVote(player.id, '')}
+                            className="px-3 py-1 rounded border text-xs"
+                            style={{
+                              borderColor: 'var(--color-accent)',
+                              color: 'var(--color-accent)',
+                            }}
+                          >
+                            INNOCENT
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Vote Tally */}
           <div
@@ -1506,13 +2578,21 @@ export default function SpyfallDevPage() {
             </div>
           </div>
 
-          {allVoted && (
+          {allVoted && (!isOnline || amIHost) && (
             <button
               onClick={resolveVote}
               className="pixel-btn w-full py-3 text-sm animate-fade-in-up"
             >
               REVEAL RESULTS
             </button>
+          )}
+          {allVoted && isOnline && !amIHost && (
+            <p
+              className="text-xs text-center animate-pulse"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Waiting for host to reveal results...
+            </p>
           )}
         </div>
       </div>
@@ -1522,6 +2602,7 @@ export default function SpyfallDevPage() {
   // ---- SPY GUESS ----
   if (phase === 'spy-guess' && roundState) {
     const spy = players.find((p) => p.id === roundState.spyId);
+    const iAmTheSpy = isOnline && myPlayerId === roundState.spyId;
 
     return (
       <div
@@ -1544,24 +2625,38 @@ export default function SpyfallDevPage() {
               {spy?.name}
             </p>
             <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-              But the spy gets one last chance!
-              <br />
-              Guess the correct location to still win.
+              {isOnline && iAmTheSpy
+                ? 'You get one last chance! Guess the correct location to still win.'
+                : isOnline
+                  ? `${spy?.name} is guessing the location...`
+                  : 'But the spy gets one last chance! Guess the correct location to still win.'}
             </p>
           </div>
 
-          <div className="mb-4">
-            <h3
-              className="pixel-text text-xs mb-3 text-center"
-              style={{ color: 'var(--color-orange)' }}
-            >
-              CHOOSE THE LOCATION
-            </h3>
-            <LocationGrid
-              locations={LOCATIONS}
-              onGuess={handleSpyGuess}
-            />
-          </div>
+          {/* In online mode, only the spy can guess */}
+          {(!isOnline || iAmTheSpy) ? (
+            <div className="mb-4">
+              <h3
+                className="pixel-text text-xs mb-3 text-center"
+                style={{ color: 'var(--color-orange)' }}
+              >
+                CHOOSE THE LOCATION
+              </h3>
+              <LocationGrid
+                locations={LOCATIONS}
+                onGuess={handleSpyGuess}
+              />
+            </div>
+          ) : (
+            <div className="text-center">
+              <p
+                className="pixel-text text-xs animate-pulse"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                WAITING FOR SPY TO GUESS...
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1692,7 +2787,10 @@ export default function SpyfallDevPage() {
                         <span className="text-sm">
                           {i === 0 ? '\ud83e\udd47' : i === 1 ? '\ud83e\udd48' : i === 2 ? '\ud83e\udd49' : '\u2003'}
                         </span>
-                        <span className="text-sm">{player.name}</span>
+                        <span className="text-sm">
+                          {player.name}
+                          {isOnline && player.id === myPlayerId ? ' (you)' : ''}
+                        </span>
                         {wasSpy && (
                           <span
                             className="text-xs px-1.5 py-0.5 rounded"
@@ -1725,9 +2823,18 @@ export default function SpyfallDevPage() {
             </div>
           </div>
 
-          <button onClick={nextRound} className="pixel-btn w-full py-3 text-sm">
-            {currentRound >= totalRounds ? 'FINAL RESULTS' : `ROUND ${currentRound + 1} OF ${totalRounds}`}
-          </button>
+          {(!isOnline || amIHost) ? (
+            <button onClick={nextRound} className="pixel-btn w-full py-3 text-sm">
+              {currentRound >= totalRounds ? 'FINAL RESULTS' : `ROUND ${currentRound + 1} OF ${totalRounds}`}
+            </button>
+          ) : (
+            <p
+              className="pixel-text text-xs animate-pulse"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              WAITING FOR HOST...
+            </p>
+          )}
         </div>
       </div>
     );
@@ -1769,6 +2876,7 @@ export default function SpyfallDevPage() {
               }}
             >
               {winner.name}
+              {isOnline && winner.id === myPlayerId ? ' (you!)' : ''}
             </p>
             <p
               className="mono-text text-2xl font-bold mt-2"
@@ -1810,7 +2918,10 @@ export default function SpyfallDevPage() {
                             ? '\ud83e\udd49'
                             : `#${i + 1}`}
                     </span>
-                    <span className="text-sm font-semibold">{player.name}</span>
+                    <span className="text-sm font-semibold">
+                      {player.name}
+                      {isOnline && player.id === myPlayerId ? ' (you)' : ''}
+                    </span>
                   </div>
                   <span
                     className="mono-text text-lg font-bold"
