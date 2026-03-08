@@ -851,9 +851,24 @@ export default function Home() {
               ))}
             </div>
 
-            <Link href="/contact" className="pixel-btn inline-block">
-              START CONVERSATION
-            </Link>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/contact" className="pixel-btn inline-block">
+                START CONVERSATION
+              </Link>
+              <a
+                href="/resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pixel-btn inline-block"
+                style={{
+                  background: "transparent",
+                  color: "var(--color-accent)",
+                  border: "2px solid var(--color-accent)",
+                }}
+              >
+                VIEW RESUME
+              </a>
+            </div>
           </div>
         </ScrollReveal>
       </section>

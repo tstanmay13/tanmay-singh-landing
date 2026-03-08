@@ -5,12 +5,20 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "./ThemeProvider";
 
-const navLinks = [
+interface NavLink {
+  href: string;
+  label: string;
+  icon: string;
+  external?: boolean;
+}
+
+const navLinks: NavLink[] = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/games", label: "Games", icon: "🎮" },
   { href: "/learning", label: "Learn", icon: "📚" },
   { href: "/blog", label: "Blog", icon: "📝" },
   { href: "/portfolio", label: "Portfolio", icon: "💼" },
+  { href: "/resume.pdf", label: "Resume", icon: "📄", external: true },
   { href: "/contact", label: "Contact", icon: "💌" },
 ];
 
@@ -39,18 +47,31 @@ export default function PixelNav() {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href));
-            return (
+            const isActive = !link.external && (pathname === link.href ||
+              (link.href !== "/" && pathname.startsWith(link.href)));
+            const className = `px-4 py-2 text-sm pixel-text transition-all duration-200 border-2 ${
+              isActive
+                ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border)]"
+            }`;
+            return link.external ? (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-interactive
+                className={className}
+              >
+                <span className="mr-1.5">{link.icon}</span>
+                {link.label}
+              </a>
+            ) : (
               <Link
                 key={link.href}
                 href={link.href}
                 data-interactive
-                className={`px-4 py-2 text-sm pixel-text transition-all duration-200 border-2 ${
-                  isActive
-                    ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                    : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border)]"
-                }`}
+                className={className}
               >
                 <span className="mr-1.5">{link.icon}</span>
                 {link.label}
@@ -98,19 +119,33 @@ export default function PixelNav() {
       >
         <div className="px-4 pb-4 flex flex-col gap-1 pixel-nav-mobile">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href));
-            return (
+            const isActive = !link.external && (pathname === link.href ||
+              (link.href !== "/" && pathname.startsWith(link.href)));
+            const className = `px-4 py-3 text-sm pixel-text transition-all duration-200 border-2 ${
+              isActive
+                ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
+                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
+            }`;
+            return link.external ? (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-interactive
+                onClick={() => setMenuOpen(false)}
+                className={className}
+              >
+                <span className="mr-2">{link.icon}</span>
+                {link.label}
+              </a>
+            ) : (
               <Link
                 key={link.href}
                 href={link.href}
                 data-interactive
                 onClick={() => setMenuOpen(false)}
-                className={`px-4 py-3 text-sm pixel-text transition-all duration-200 border-2 ${
-                  isActive
-                    ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                    : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
-                }`}
+                className={className}
               >
                 <span className="mr-2">{link.icon}</span>
                 {link.label}
