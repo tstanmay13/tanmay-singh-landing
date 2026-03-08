@@ -189,10 +189,14 @@ export async function generateWeeklyContent(startDate: Date): Promise<{
     status: 'success',
   });
 
-  // 4. Parse the plan
+  // 4. Parse the plan (strip markdown code fences if present)
   let weeklyPlans: WeeklyPlan[];
   try {
-    weeklyPlans = JSON.parse(planText) as WeeklyPlan[];
+    const cleanedJson = planText
+      .replace(/^```(?:json)?\s*\n?/gm, '')
+      .replace(/\n?```\s*$/gm, '')
+      .trim();
+    weeklyPlans = JSON.parse(cleanedJson) as WeeklyPlan[];
   } catch {
     stats.errors.push('Failed to parse weekly plan JSON from Claude response');
     return stats;
@@ -437,10 +441,14 @@ export async function reviewLesson(lessonId: string): Promise<SafetyReviewResult
     status: 'success',
   });
 
-  // 5. Parse the review result
+  // 5. Parse the review result (strip markdown code fences if present)
   let result: SafetyReviewResult;
   try {
-    result = JSON.parse(reviewText) as SafetyReviewResult;
+    const cleanedReview = reviewText
+      .replace(/^```(?:json)?\s*\n?/gm, '')
+      .replace(/\n?```\s*$/gm, '')
+      .trim();
+    result = JSON.parse(cleanedReview) as SafetyReviewResult;
   } catch {
     // If parsing fails, reject by default for safety
     result = {
