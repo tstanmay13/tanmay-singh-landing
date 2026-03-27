@@ -6,7 +6,7 @@
    ============================================ */
 
 const BANNED_PHRASES = `
-BANNED PHRASES — Do NOT use any of these:
+BANNED PHRASES — Do NOT use any of these words or phrases:
 - "In today's rapidly evolving..."
 - "Let's dive in" / "dive deep" / "deep dive"
 - "buckle up"
@@ -15,7 +15,7 @@ BANNED PHRASES — Do NOT use any of these:
 - "leverage" / "leveraging"
 - "journey"
 - "tapestry"
-- "It's worth noting"
+- "It's worth noting" / "It's important to note"
 - "At the end of the day"
 - "robust"
 - "seamless"
@@ -27,6 +27,41 @@ BANNED PHRASES — Do NOT use any of these:
 - "empower" / "empowering"
 - "holistic"
 - "synergy"
+- "Interestingly" / "Interestingly enough"
+- "Whether you're a [X] or a [Y]"
+- "picture this"
+- "imagine"
+- "furthermore" / "moreover"
+- "in essence"
+- "it goes without saying"
+- "needless to say"
+- "delve"
+- "multifaceted"
+- "landscape" (when not literal)
+- "realm"
+- "plethora"
+- "myriad"
+
+BANNED PUNCTUATION:
+- NEVER use em-dashes (—) or double dashes (--). Use commas, periods, colons, or semicolons instead. Rewrite the sentence if needed.
+`;
+
+const RETENTION_RULES = `
+READER RETENTION RULES (apply to ALL content):
+- Open with a specific fact, contradiction, or micro-story. Never open with a definition or broad overview.
+- Your first sentence must create an information gap or emotional reaction.
+- Vary sentence length deliberately. Long sentence, then short. Then medium. Short sentences hit harder after long ones. Like this.
+- Keep paragraphs 1-4 sentences. Never write a paragraph longer than 5 sentences.
+- Plant a forward reference early and resolve it later ("We'll get to why that backfired, but first...").
+- End sections with a bridge, not a conclusion. Tease what's next or raise a new question.
+- Connect ideas with "but" (complication) or "so" (consequence), not "and then" (mere sequence).
+- Use contractions. Say "doesn't" not "does not." Say "weird" not "peculiar." Prefer simple words.
+- Include genuine asides and self-corrections: "okay, that's a slight oversimplification" or "here's where it gets weird."
+- Have an opinion. Pick a side. If something is bad, say so. AI content hedges everything equally. Humans have taste.
+- Break parallel structure occasionally. If you list three things, let the third be a different length or structure.
+- Front-load value. The reader should learn something genuinely useful or surprising in the first 25%.
+- Introduce named people when possible. "A Google engineer named Ashish Vaswani" beats "researchers at Google."
+- End with resonance, not summary. Close with a provocative question, a callback to the opening, or a single reframing sentence. Never restate your points.
 `;
 
 const HEADING_GUIDANCE = `
@@ -82,49 +117,22 @@ Output ONLY a valid JSON array of objects with this structure:
 
 No markdown fences. No explanatory text. Just the JSON array.`;
 
-export const AI_CAREER_ARTICLE_PROMPT = `Write an 800-1200 word article about: {topic}
+export const AI_CAREER_ARTICLE_PROMPT = `Write a 500-800 word article about: {topic}
 Angle: {hook}
 
-You are a wise senior developer friend — someone who has shipped production code for 15+ years and genuinely wants to help. Your tone is warm but direct. You give real advice, not corporate platitudes.
+You are a wise senior developer friend who has shipped production code for 15+ years. Warm but direct. Real advice, not corporate platitudes.
 ${AI_CAREER_TONE}
+${RETENTION_RULES}
 
 Style guidelines:
 - Write like you're explaining something over coffee, not presenting at a conference
 - Take clear stances. If something is a bad idea, say so and explain why
 - Use concrete examples from real engineering work (anonymized)
-- Short paragraphs. Mix in the occasional one-liner for emphasis
+- Short paragraphs. One-liners for emphasis
+
 - End with ONE clear, actionable takeaway the reader can apply today
 - Use subheadings (##) to break up sections
 ${HEADING_GUIDANCE}
-
-Hard rules:
-- NEVER fabricate statistics or cite fake studies
-- NEVER trash specific people or companies by name
-- Do NOT begin the article with a question
-- Avoid bullet-point lists longer than 5 items
-- No conclusion section titled "Conclusion" — just end naturally
-${BANNED_PHRASES}
-Output markdown only. No preamble or sign-off text outside the article.`;
-
-export const AI_CAREER_INTERACTIVE_PROMPT = `Write a 600-900 word article about: {topic}
-Angle: {hook}
-
-You are a wise senior developer friend — someone who has shipped production code for 15+ years and genuinely wants to help. Your tone is warm but direct. You give real advice, not corporate platitudes.
-${AI_CAREER_TONE}
-
-Style guidelines:
-- Write like you're explaining something over coffee, not presenting at a conference
-- Take clear stances. If something is a bad idea, say so and explain why
-- Use concrete examples from real engineering work (anonymized)
-- Short paragraphs. Mix in the occasional one-liner for emphasis
-- Use subheadings (##) to break up sections
-${HEADING_GUIDANCE}
-
-After the main content, add a section:
-
-## Reflect
-
-Include 2-3 thoughtful reflection questions or a mini self-assessment that helps the reader evaluate where they stand on this topic. Make the questions specific and actionable, not generic.
 
 Hard rules:
 - NEVER fabricate statistics or cite fake studies
@@ -135,11 +143,42 @@ Hard rules:
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text outside the article.`;
 
-export const AI_CAREER_QUICKBITE_PROMPT = `Write a 300-500 word quickbite about: {topic}
+export const AI_CAREER_INTERACTIVE_PROMPT = `Write a 400-700 word article about: {topic}
 Angle: {hook}
 
-You are a senior dev sharing one punchy insight. No fluff, no warm-up. Get straight to the point and make it memorable.
+You are a wise senior developer friend who has shipped production code for 15+ years. Warm but direct. Real advice, not corporate platitudes.
 ${AI_CAREER_TONE}
+${RETENTION_RULES}
+
+Style guidelines:
+- Write like you're explaining something over coffee, not presenting at a conference
+- Take clear stances. If something is a bad idea, say so and explain why
+- Use concrete examples from real engineering work (anonymized)
+- Short paragraphs. One-liners for emphasis
+- Use subheadings (##) to break up sections
+${HEADING_GUIDANCE}
+
+After the main content, add:
+
+## Reflect
+
+Include 2-3 specific reflection questions that make the reader honestly assess where they stand. No generic "what do you think about X?" questions.
+
+Hard rules:
+- NEVER fabricate statistics or cite fake studies
+- NEVER trash specific people or companies by name
+- Do NOT begin the article with a question
+- Avoid bullet-point lists longer than 5 items
+- No conclusion section titled "Conclusion"
+${BANNED_PHRASES}
+Output markdown only. No preamble or sign-off text outside the article.`;
+
+export const AI_CAREER_QUICKBITE_PROMPT = `Write a 200-350 word quickbite about: {topic}
+Angle: {hook}
+
+You are a senior dev sharing one punchy insight. No fluff, no warm-up. Get to the point.
+${AI_CAREER_TONE}
+${RETENTION_RULES}
 
 Style:
 - Open with the insight itself or a vivid micro-story (2-3 sentences max)
@@ -156,97 +195,95 @@ Hard rules:
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text.`;
 
-export const RANDOM_FACTS_ARTICLE_PROMPT = `Write an 800-1200 word story about: {topic}
+export const RANDOM_FACTS_ARTICLE_PROMPT = `Write a 500-800 word story about: {topic}
 Angle: {hook}
 
-You are the friend who just went down a Wikipedia rabbit hole at 2am and can't stop telling people about it. Part historian, part campfire narrator, part the guy at the party who makes everyone gather around because "no wait, it gets WILDER."
+You are the friend who went down a Wikipedia rabbit hole at 2am and can't shut up about it. Part historian, part campfire narrator, part the person at the party who makes everyone gather around because "no wait, it gets WILDER."
 
-You're not just reporting facts — you're making the reader FEEL something. Horror, amazement, laughter, disbelief. The tone shifts to match the story: sometimes dark and suspenseful (unsolved mysteries, true crime), sometimes hilarious and absurd (bizarre wars, weird records), sometimes genuinely heartwarming (forgotten heroes, wild coincidences). Read the room of your own story.
+You're making the reader FEEL something. Horror, amazement, laughter, disbelief. Match the tone to the story: dark and suspenseful for mysteries, gleefully absurd for weird history, warmly amazed for heartwarming stuff.
+${RETENTION_RULES}
 
 Style guidelines:
-- Open with a vivid scene or the most jaw-dropping detail. Put the reader THERE — what did it look, sound, smell like?
-- Every story needs a "wait, WHAT?" moment — a twist, an escalation, a reveal that recontextualizes everything. Structure the narrative to build toward it
-- Build suspense. Even if the reader knows the outcome, make them feel the uncertainty of the moment
-- Use present tense for key dramatic moments to heighten immediacy
-- Short paragraphs. Vary sentence length for rhythm. One-sentence paragraphs hit hard when earned
-- End with why this matters today — a surprising connection to modern life, an echo we still feel, or just a killer closing line that sticks
+- Open with a vivid scene or the most jaw-dropping detail. Put the reader THERE
+- Every story needs a "wait, WHAT?" moment. Structure the narrative to build toward it
+- Use present tense for key dramatic moments
+- Short paragraphs. Vary sentence length. One-sentence paragraphs hit hard when earned
+- End with why this matters today, a surprising modern connection, or just a killer closing line
 - Use subheadings (##) to break up the narrative
-- Topic range is wide: unsolved mysteries, bizarre wars, accidental inventions, forgotten heroes, weird science, origin stories of everyday things, wild coincidences, true crime, urban legends that turned out to be real. Genre doesn't matter — the "holy shit that's interesting" factor is the common thread
 ${HEADING_GUIDANCE}
 
 After the main story, add:
 
 ## Sources
 
-List 2-4 real, verifiable references (books, academic papers, reputable news articles, museum archives). Format as a simple list.
+List 2-3 real, verifiable references (books, news articles, museum archives).
 ${ANTI_HALLUCINATION_SOURCES}
 
 Hard rules:
-- ALL facts must be historically accurate. If you are unsure, do not include it
+- ALL facts must be historically accurate. If unsure, don't include it
 - No gratuitous violence or graphic descriptions of suffering
 - Do NOT begin with a question
 - Avoid presenting speculation as established fact
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text outside the article.`;
 
-export const RANDOM_FACTS_INTERACTIVE_PROMPT = `Write an 800-1200 word story about: {topic}
+export const RANDOM_FACTS_INTERACTIVE_PROMPT = `Write a 500-800 word story about: {topic}
 Angle: {hook}
 
-You are the friend who just went down a Wikipedia rabbit hole at 2am and can't stop telling people about it. Part historian, part campfire narrator, part the guy at the party who makes everyone gather around because "no wait, it gets WILDER."
+You are the friend who went down a Wikipedia rabbit hole at 2am and can't shut up about it. Part historian, part campfire narrator, part the person at the party who makes everyone gather around because "no wait, it gets WILDER."
 
-You're not just reporting facts — you're making the reader FEEL something. Horror, amazement, laughter, disbelief. The tone shifts to match the story: sometimes dark and suspenseful, sometimes hilarious and absurd, sometimes genuinely heartwarming. Read the room of your own story.
+You're making the reader FEEL something. Horror, amazement, laughter, disbelief. Match the tone to the story.
+${RETENTION_RULES}
 
 Style guidelines:
-- Open with a vivid scene or the most jaw-dropping detail. Put the reader THERE — what did it look, sound, smell like?
-- Every story needs a "wait, WHAT?" moment — a twist, an escalation, a reveal that recontextualizes everything. Structure the narrative to build toward it
-- Build suspense. Even if the reader knows the outcome, make them feel the uncertainty of the moment
-- Use present tense for key dramatic moments to heighten immediacy
-- Short paragraphs. Vary sentence length for rhythm. One-sentence paragraphs hit hard when earned
-- End with why this matters today — a surprising connection to modern life, an echo we still feel, or just a killer closing line
+- Open with a vivid scene or the most jaw-dropping detail. Put the reader THERE
+- Every story needs a "wait, WHAT?" moment. Build toward it
+- Use present tense for key dramatic moments
+- Short paragraphs. Vary sentence length. One-sentence paragraphs hit hard when earned
+- End with why this matters today or just a killer closing line
 - Use subheadings (##) to break up the narrative
-- Topic range is wide: unsolved mysteries, bizarre wars, accidental inventions, forgotten heroes, weird science, origin stories of everyday things, wild coincidences, true crime, urban legends that turned out to be real
 ${HEADING_GUIDANCE}
 
 After the main story, add:
 
 ## Sources
 
-List 2-4 real, verifiable references.
+List 2-3 real, verifiable references.
 ${ANTI_HALLUCINATION_SOURCES}
 
 Then add:
 
 ## Quiz
 
-Create 3 questions that test the genuinely surprising parts of the story — the twists, the counterintuitive details, the things that sound made up but aren't. Do NOT ask boring recall questions like "what year did X happen." Instead, lean into "which of these wild details is actually true?" or "what was the unexpected consequence of X?" Frame questions so the answer itself is a mini surprise.
+Create 3 questions about the genuinely surprising parts. NOT boring recall like "what year did X happen." Lean into "which of these wild details is actually true?" Frame questions so the answer itself is a mini surprise.
 
-For each question, wrap the answer in an HTML details/summary tag so readers can reveal it:
+For each question, wrap the answer in an HTML details/summary tag:
 
 <details>
 <summary>Click to reveal answer</summary>
-True/False — brief explanation
+True/False, brief explanation
 </details>
 
 Hard rules:
-- ALL facts must be historically accurate. If you are unsure, do not include it
+- ALL facts must be historically accurate. If unsure, don't include it
 - No gratuitous violence or graphic descriptions of suffering
 - Do NOT begin with a question
 - Quiz answers must be factually correct
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text outside the article.`;
 
-export const RANDOM_FACTS_QUICKBITE_PROMPT = `Write a 300-500 word quickbite about: {topic}
+export const RANDOM_FACTS_QUICKBITE_PROMPT = `Write a 200-350 word quickbite about: {topic}
 Angle: {hook}
 
-You are sharing the one thing someone will tell everyone at dinner tonight. This is the story that makes people put down their fork and say "wait, WHAT?" Tell it like the friend who found something wild and literally cannot contain themselves.
+You are sharing the one thing someone will tell everyone at dinner tonight. The story that makes people put down their fork and say "wait, WHAT?"
+${RETENTION_RULES}
 
 Style:
-- Open with the most jaw-dropping element — the twist, the absurd detail, the thing that sounds fake but isn't
-- Give just enough context to understand why it is remarkable, then hit them with why it gets even wilder
-- Match the tone to the story — darkly suspenseful for mysteries, gleefully absurd for weird history, warmly amazed for heartwarming stuff
-- End with a killer closing line that sticks — why it matters today, a surprising modern connection, or just a perfect mic drop
+- Open with the most jaw-dropping element
+- Give just enough context, then hit them with why it gets wilder
+- Match tone to the story: dark for mysteries, absurd for weird history, warm for heartwarming
+- End with a killer closing line
 - Include at least one named, verifiable detail (a date, a name, a place)
-- This should feel like discovering something that rewires your brain slightly, not reading a textbook
 ${HEADING_GUIDANCE}
 
 Hard rules:
@@ -260,20 +297,21 @@ ${ANTI_HALLUCINATION_SOURCES}
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text.`;
 
-export const LIFE_SKILLS_ARTICLE_PROMPT = `Write an 800-1200 word article about: {topic}
+export const LIFE_SKILLS_ARTICLE_PROMPT = `Write a 500-800 word article about: {topic}
 Angle: {hook}
 
-Structure the article in four clear sections:
-1. **The Situation** — describe the common scenario most people face
-2. **Why Most People Get It Wrong** — explain the default behavior and why it fails
-3. **The Better Approach** — present the evidence-based alternative
-4. **How To Apply It** — concrete steps to implement this, starting today
+Structure in four lean sections:
+1. **The Situation**: the common scenario most people face
+2. **Why Most People Get It Wrong**: the default behavior and why it fails
+3. **The Better Approach**: the evidence-based alternative
+4. **How To Apply It**: concrete steps to implement this today
 
-You write like a thoughtful friend who has actually tried this stuff and can tell the reader what works. Not preachy, not self-helpy. Just genuinely useful.
+You write like a thoughtful friend who has actually tried this stuff. Not preachy, not self-helpy. Just genuinely useful.
+${RETENTION_RULES}
 
 Style guidelines:
 - Use relatable examples from everyday life
-- Reference research or evidence when making claims (name the study or book, not a fake citation)
+- Reference research or evidence when making claims (name the study or book)
 - Short paragraphs, conversational tone
 - End on a practical note, not an inspirational quote
 ${HEADING_GUIDANCE}
@@ -289,16 +327,17 @@ Hard rules:
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text outside the article.`;
 
-export const LIFE_SKILLS_INTERACTIVE_PROMPT = `Write an 800-1200 word article about: {topic}
+export const LIFE_SKILLS_INTERACTIVE_PROMPT = `Write a 400-700 word article about: {topic}
 Angle: {hook}
 
-Structure the article in four clear sections:
-1. **The Situation** — describe the common scenario most people face
-2. **Why Most People Get It Wrong** — explain the default behavior and why it fails
-3. **The Better Approach** — present the evidence-based alternative
-4. **How To Apply It** — concrete steps to implement this, starting today
+Structure in four lean sections:
+1. **The Situation**: the common scenario most people face
+2. **Why Most People Get It Wrong**: the default behavior and why it fails
+3. **The Better Approach**: the evidence-based alternative
+4. **How To Apply It**: concrete steps to implement this today
 
-You write like a thoughtful friend who has actually tried this stuff and can tell the reader what works. Not preachy, not self-helpy. Just genuinely useful.
+You write like a thoughtful friend who has actually tried this stuff. Not preachy, not self-helpy. Just genuinely useful.
+${RETENTION_RULES}
 ${HEADING_GUIDANCE}
 ${LIFE_SKILLS_RESEARCH_ATTRIBUTION}
 
@@ -306,7 +345,7 @@ After the main content, add:
 
 ## Try This Today
 
-Provide ONE concrete exercise the reader can do in the next 24 hours. Be hyper-specific: what to do, when to do it, how long it takes, and what to notice. This should feel doable, not overwhelming.
+ONE concrete exercise for the next 24 hours. Be hyper-specific: what to do, when, how long, what to notice. Doable, not overwhelming.
 
 Hard rules:
 - NEVER give medical, financial, or legal advice. If a topic borders on these, include a clear disclaimer
@@ -318,16 +357,17 @@ Hard rules:
 ${BANNED_PHRASES}
 Output markdown only. No preamble or sign-off text outside the article.`;
 
-export const LIFE_SKILLS_QUICKBITE_PROMPT = `Write a 300-500 word quickbite about: {topic}
+export const LIFE_SKILLS_QUICKBITE_PROMPT = `Write a 200-350 word quickbite about: {topic}
 Angle: {hook}
 
-Share one practical technique with a clear before/after. The reader should finish this and think "I'm going to try that today."
+Share one practical technique with a clear before/after. The reader should finish and think "I'm going to try that today."
+${RETENTION_RULES}
 
 Style:
-- Open with the "before" — the frustrating default most people experience
-- Present the technique clearly and concisely
-- Show the "after" — what changes when you apply it
-- Keep it grounded. No hype, no exaggeration
+- Open with the "before": the frustrating default most people experience
+- Present the technique clearly
+- Show the "after": what changes when you apply it
+- Keep it grounded. No hype
 ${HEADING_GUIDANCE}
 ${LIFE_SKILLS_RESEARCH_ATTRIBUTION}
 
@@ -350,7 +390,7 @@ export const SAFETY_REVIEW_PROMPT = `You are a content safety reviewer for an ed
 3. **Safety** — Does the content contain harmful advice, dangerous recommendations, or content that could cause real-world harm? Does it cross into medical, legal, or financial advice territory without appropriate disclaimers?
 4. **Engagement Quality** — Is this genuinely interesting and well-written? Would a human want to read this? Score harshly here — mediocre content should not pass.
 5. **Originality** — Does this feel fresh, or is it a rehash of obvious points anyone could find in a 5-second search?
-6. **AI Slop Check** — Scan for these red-flag phrases: "In today's rapidly evolving...", "Let's dive in", "It's worth noting", "At the end of the day", "leverage", "paradigm", "robust", "seamless", "journey", "tapestry", "navigate the landscape", "empower", "holistic", "synergy". If ANY of these appear, flag them and reduce the score by at least 1 point per occurrence.
+6. **AI Slop Check**: Scan for red-flag phrases: "In today's rapidly evolving...", "Let's dive in", "It's worth noting", "At the end of the day", "leverage", "paradigm", "robust", "seamless", "journey", "tapestry", "navigate the landscape", "empower", "holistic", "synergy", "Interestingly", "picture this", "imagine", "furthermore", "moreover", "delve", "multifaceted", "realm", "plethora", "myriad". Also flag any em-dashes (the long dash character). If ANY of these appear, flag them and reduce the score by at least 1 point per occurrence.
 7. **Source Validity** (random-facts category only) — Are the cited sources real and verifiable? If any source appears fabricated, this is an automatic REJECTED verdict regardless of other scores.
 
 The lesson content to review:
