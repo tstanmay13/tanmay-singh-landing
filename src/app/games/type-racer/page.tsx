@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 type GameState = 'idle' | 'racing' | 'finished';
@@ -185,36 +185,11 @@ export default function TypeRacerPage() {
   if (!mounted) return null;
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      onClick={() => { if (gameState === 'racing') inputRef.current?.focus(); }}
-    >
-      <div className="max-w-3xl w-full mx-auto px-4 py-6 md:py-10 flex-1 flex flex-col">
-        {/* Header */}
-        <Link
-          href="/games"
-          className="inline-block mb-6 text-sm pixel-text"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          &lt; BACK TO GAMES
-        </Link>
-
-        <div className="text-center mb-6">
-          <h1
-            className="pixel-text text-xl md:text-2xl mb-2"
-            style={{ color: 'var(--color-accent)' }}
-          >
-            TYPE RACER
-          </h1>
-          <p
-            className="pixel-text text-xs"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            RETRO EDITION
-          </p>
-        </div>
-
+    <ArcadeCabinet title="TYPE RACER" subtitle="Speed typing with pixel car">
+      <div
+        className="max-w-3xl w-full mx-auto flex flex-col"
+        onClick={() => { if (gameState === 'racing') inputRef.current?.focus(); }}
+      >
         {/* Personal Best */}
         {personalBest > 0 && (
           <div className="text-center mb-4">
@@ -584,6 +559,6 @@ export default function TypeRacerPage() {
           </div>
         )}
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

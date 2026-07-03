@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import ArcadeCabinet from "@/components/ArcadeCabinet";
 import { useGamePlay } from "@/components/GamePlayCounter";
-import Link from "next/link";
 
 // --- Constants ---
 const CANVAS_W = 400;
@@ -500,67 +500,33 @@ export default function FlappyPixelPage() {
 
   if (!mounted) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--color-bg)" }}
-      >
-        <p
-          className="pixel-text text-sm animate-flicker"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          LOADING...
-        </p>
-      </div>
+      <ArcadeCabinet title="FLAPPY PIXEL" subtitle="Pixel-art flappy bird">
+        <div className="flex items-center justify-center py-16">
+          <p
+            className="pixel-text text-sm animate-flicker"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            LOADING...
+          </p>
+        </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div
-      className="min-h-screen relative"
-      style={{ background: "var(--color-bg)" }}
-    >
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Header */}
-        <header className="pt-8 pb-4 px-4 text-center w-full max-w-lg">
-          <Link
-            href="/games"
-            className="pixel-text text-xs inline-block mb-6 transition-colors duration-200"
-            style={{ color: "var(--color-text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--color-accent)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--color-text-secondary)")
-            }
-          >
-            &lt; BACK TO GAMES
-          </Link>
-
-          <h1
-            className="pixel-text text-2xl sm:text-3xl mb-2"
-            style={{
-              color: "var(--color-accent)",
-              textShadow: `
-                0 0 10px var(--color-accent-glow),
-                0 0 30px var(--color-accent-glow)
-              `,
-            }}
-          >
-            FLAPPY PIXEL
-          </h1>
-          <p
-            className="pixel-text text-[10px] mb-4"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            {gameState === "idle"
-              ? "TAP / SPACE / CLICK TO PLAY"
-              : gameState === "playing"
-              ? `SCORE: ${score}`
-              : `GAME OVER - SCORE: ${score}`}
-          </p>
-        </header>
+    <ArcadeCabinet title="FLAPPY PIXEL" subtitle="Pixel-art flappy bird">
+      <div className="flex flex-col items-center">
+        {/* Status HUD */}
+        <p
+          className="pixel-text text-[10px] mb-4 text-center"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          {gameState === "idle"
+            ? "TAP / SPACE / CLICK TO PLAY"
+            : gameState === "playing"
+            ? `SCORE: ${score}`
+            : `GAME OVER - SCORE: ${score}`}
+        </p>
 
         {/* Canvas container */}
         <div
@@ -590,7 +556,7 @@ export default function FlappyPixelPage() {
         </div>
 
         {/* Info below canvas */}
-        <div className="mt-6 mb-12 px-4 text-center max-w-lg">
+        <div className="mt-6 px-4 text-center max-w-lg">
           <div className="flex justify-center gap-8 mb-4">
             <div>
               <p
@@ -650,6 +616,6 @@ export default function FlappyPixelPage() {
           </div>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

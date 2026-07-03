@@ -236,17 +236,16 @@ export default function BreakoutPage() {
 
   if (!mounted) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: 'var(--color-bg)' }}
-      >
-        <p
-          className="pixel-text text-sm animate-flicker"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          LOADING...
-        </p>
-      </div>
+      <ArcadeCabinet title="BREAKOUT REMIX">
+        <div className="flex items-center justify-center py-16">
+          <p
+            className="pixel-text text-sm animate-flicker"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            LOADING...
+          </p>
+        </div>
+      </ArcadeCabinet>
     );
   }
 

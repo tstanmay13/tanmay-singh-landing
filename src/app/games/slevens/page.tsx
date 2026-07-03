@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 type GameState = 'ready' | 'rolling' | 'result';
@@ -139,14 +139,23 @@ export default function SlevensGamePage() {
     };
 
     return (
-      <div className="w-24 h-24 bg-[#1A1A1A] rounded-2xl shadow-lg flex items-center justify-center border-4 border-[#FFB347]">
+      <div
+        className="w-24 h-24 flex items-center justify-center border-4"
+        style={{
+          background: 'var(--color-bg-secondary)',
+          borderColor: 'var(--color-accent)',
+        }}
+      >
         <div className="grid grid-cols-3 gap-2 p-3">
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className={`w-3 h-3 rounded-full ${
-                patterns[value].includes(i) ? 'bg-[#FFB347]' : 'bg-transparent'
-              }`}
+              className="w-3 h-3 rounded-full"
+              style={{
+                background: patterns[value].includes(i)
+                  ? 'var(--color-accent)'
+                  : 'transparent',
+              }}
             />
           ))}
         </div>
@@ -159,100 +168,91 @@ export default function SlevensGamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F0] p-5 md:p-10">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href="/games"
-          className="inline-block mb-6 text-[#B8A082] hover:text-[#FFB347] transition-colors"
+    <ArcadeCabinet title="SLEVENS" subtitle="Shake to roll — dice drinking game">
+      <div className="flex flex-col items-center gap-6">
+        {/* Enable Shake Button */}
+        {!shakeEnabled && (
+          <div
+            className="pixel-border p-8 text-center max-w-md"
+            style={{ background: 'var(--color-bg-secondary)' }}
+          >
+            <div className="text-6xl mb-4">📱</div>
+            <h2
+              className="pixel-text text-xs md:text-sm mb-4"
+              style={{ color: 'var(--color-text)' }}
+            >
+              ENABLE SHAKE TO ROLL
+            </h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+              Tap the button below to enable shake detection.
+            </p>
+            <button onClick={enableShake} className="pixel-btn">
+              Enable Shake Detection
+            </button>
+          </div>
+        )}
+
+        {/* Dice Display */}
+        <div
+          className="pixel-border p-8"
+          style={{ background: 'var(--color-bg-secondary)' }}
         >
-          ← Back to Games
-        </Link>
-
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5F0] mb-2">
-            🎲 Slevens
-          </h1>
-          <p className="text-xl text-[#B8A082]">
-            Shake your phone to roll the dice!
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center gap-6">
-          {/* Enable Shake Button */}
-          {!shakeEnabled && (
-            <div className="bg-[#1A1A1A] border border-[#2A2520] rounded-2xl p-8 text-center max-w-md">
-              <div className="text-6xl mb-4">📱</div>
-              <h2 className="text-2xl font-bold text-[#F5F5F0] mb-4">
-                Enable Shake to Roll
-              </h2>
-              <p className="text-[#B8A082] mb-6">
-                Tap the button below to enable shake detection.
-              </p>
-              <button
-                onClick={enableShake}
-                className="px-8 py-4 bg-[#FFB347] text-[#0D0D0D] rounded-full font-semibold hover:bg-[#FFB347]/80 transition-colors text-lg"
-              >
-                Enable Shake Detection
-              </button>
+          <div className="flex gap-6 justify-center mb-6">
+            <div className={gameState === 'rolling' ? 'animate-bounce' : ''}>
+              <DiceFace value={dice1} />
             </div>
-          )}
-
-          {/* Dice Display */}
-          <div className="bg-[#1A1A1A] border border-[#2A2520] rounded-2xl p-8">
-            <div className="flex gap-6 justify-center mb-6">
-              <div className={gameState === 'rolling' ? 'animate-bounce' : ''}>
-                <DiceFace value={dice1} />
-              </div>
-              <div className={gameState === 'rolling' ? 'animate-bounce' : ''}>
-                <DiceFace value={dice2} />
-              </div>
-            </div>
-
-            <div className="text-center min-h-[60px]">
-              {gameState === 'ready' && (
-                <div>
-                  <p className="text-2xl font-bold text-[#F5F5F0] mb-2">
-                    {shakeDetected ? '📳 Shake Detected!' : shakeEnabled ? '🤳 Shake to Roll' : '👆 Enable shake first'}
-                  </p>
-                  <p className="text-sm text-[#B8A082]">
-                    {shakeEnabled ? 'Give your phone a good shake!' : 'Or use manual roll below'}
-                  </p>
-                </div>
-              )}
-
-              {gameState === 'rolling' && (
-                <p className="text-2xl font-bold text-[#FFB347] animate-pulse">
-                  🎲 Rolling...
-                </p>
-              )}
-
-              {gameState === 'result' && (
-                <div>
-                  <p className="text-2xl font-bold text-[#FFB347] mb-4">
-                    {message}
-                  </p>
-                  <button
-                    onClick={nextTurn}
-                    className="px-6 py-3 bg-[#FFB347] text-[#0D0D0D] rounded-full font-semibold hover:bg-[#FFB347]/80 transition-colors"
-                  >
-                    Next Turn →
-                  </button>
-                </div>
-              )}
+            <div className={gameState === 'rolling' ? 'animate-bounce' : ''}>
+              <DiceFace value={dice2} />
             </div>
           </div>
 
-          {/* Manual Roll (for desktop) */}
-          {shakeEnabled && gameState === 'ready' && (
-            <button
-              onClick={manualRoll}
-              className="px-6 py-3 bg-[#1A1A1A] border border-[#FFB347]/50 text-[#FFB347] rounded-full font-semibold hover:border-[#FFB347] transition-colors"
-            >
-              Or click to roll 🎲
-            </button>
-          )}
+          <div className="text-center min-h-[60px]">
+            {gameState === 'ready' && (
+              <div>
+                <p
+                  className="pixel-text text-xs md:text-sm mb-3"
+                  style={{ color: 'var(--color-text)' }}
+                >
+                  {shakeDetected ? '📳 Shake Detected!' : shakeEnabled ? '🤳 Shake to Roll' : '👆 Enable shake first'}
+                </p>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  {shakeEnabled ? 'Give your phone a good shake!' : 'Or use manual roll below'}
+                </p>
+              </div>
+            )}
+
+            {gameState === 'rolling' && (
+              <p
+                className="pixel-text text-xs md:text-sm animate-pulse"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                🎲 Rolling...
+              </p>
+            )}
+
+            {gameState === 'result' && (
+              <div>
+                <p
+                  className="pixel-text text-xs md:text-sm mb-4 leading-relaxed"
+                  style={{ color: 'var(--color-accent)' }}
+                >
+                  {message}
+                </p>
+                <button onClick={nextTurn} className="pixel-btn">
+                  Next Turn →
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Manual Roll (for desktop) */}
+        {shakeEnabled && gameState === 'ready' && (
+          <button onClick={manualRoll} className="pixel-btn">
+            Or click to roll 🎲
+          </button>
+        )}
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
