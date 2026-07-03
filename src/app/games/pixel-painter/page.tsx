@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import GamePlayCounter from '@/components/GamePlayCounter';
 
 // --- Types ---
@@ -336,52 +336,22 @@ export default function PixelPainterPage() {
 
   if (!mounted) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: 'var(--color-bg)' }}
-      >
-        <p className="pixel-text" style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>
+      <ArcadeCabinet title="PIXEL ART PAINTER" subtitle="Create pixel art masterpieces">
+        <p
+          className="pixel-text text-center text-[0.75rem] py-8"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           Loading...
         </p>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div
-      className="min-h-screen p-4 md:p-8"
-      style={{ background: 'var(--color-bg)' }}
-    >
+    <ArcadeCabinet title="PIXEL ART PAINTER" subtitle="Create pixel art masterpieces">
       <div className="max-w-2xl mx-auto">
-        {/* Back link */}
-        <Link
-          href="/games"
-          className="inline-block mb-6 pixel-text transition-colors"
-          style={{
-            color: 'var(--color-text-secondary)',
-            fontSize: '0.65rem',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-accent)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
-        >
-          &lt;- Back to Games
-        </Link>
-
-        {/* Title */}
         <div className="text-center mb-6">
-          <h1
-            className="pixel-text text-lg md:text-2xl mb-2"
-            style={{ color: 'var(--color-accent)' }}
-          >
-            Pixel Painter
-          </h1>
-          <div className="mb-2"><GamePlayCounter slug="pixel-painter" onPlay /></div>
-          <p
-            className="text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            Create pixel art. Click and drag to paint.
-          </p>
+          <GamePlayCounter slug="pixel-painter" onPlay />
         </div>
 
         {/* Toolbar */}
@@ -777,6 +747,6 @@ export default function PixelPainterPage() {
           </p>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

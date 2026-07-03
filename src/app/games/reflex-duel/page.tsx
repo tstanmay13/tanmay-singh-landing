@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 type GamePhase = 'ready' | 'waiting' | 'draw' | 'result' | 'cheated';
@@ -130,37 +130,28 @@ export default function ReflexDuelPage() {
           : 'border-[var(--color-border)]';
 
   return (
-    <div
-      className={`min-h-screen ${bgColor} transition-colors duration-200 flex flex-col`}
-    >
-      {/* Header */}
-      <div className="p-4 md:p-6 flex justify-between items-center">
-        <Link
-          href="/games"
-          className="pixel-text text-[0.65rem] md:text-xs"
-          style={{ color: 'var(--color-accent)' }}
-        >
-          {'<'} BACK TO GAMES
-        </Link>
-        {personalBest !== null && (
+    <ArcadeCabinet title="REFLEX DUEL" subtitle="Cowboy reaction time test">
+      {/* Personal best HUD */}
+      {personalBest !== null && (
+        <div className="flex justify-end mb-4">
           <div
-            className="pixel-text text-[0.55rem] md:text-[0.65rem]"
+            className="pixel-text text-[0.625rem] md:text-[0.65rem]"
             style={{ color: 'var(--color-orange)' }}
           >
             BEST: {personalBest}ms
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Game Area */}
       <div
-        className={`flex-1 flex items-center justify-center p-4 cursor-pointer select-none`}
+        className="flex items-center justify-center cursor-pointer select-none"
         onClick={
           phase === 'result' || phase === 'cheated' ? undefined : handleScreenClick
         }
       >
         <div
-          className={`w-full max-w-2xl border-4 ${borderColor} transition-colors duration-200 relative`}
+          className={`w-full max-w-2xl border-4 ${bgColor} ${borderColor} transition-colors duration-200 relative`}
           style={{
             boxShadow:
               phase === 'draw'
@@ -381,6 +372,6 @@ export default function ReflexDuelPage() {
           </div>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

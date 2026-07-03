@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ============================================
@@ -707,25 +707,8 @@ export default function DejaVuPage() {
   // ============================================
   if (gameState.screen === 'intro') {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <Link
-          href="/games"
-          className="absolute top-4 left-4 text-sm transition-colors hover:opacity-80"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          &larr; Back to Games
-        </Link>
-
-        <div className="text-center max-w-lg animate-fade-in-up">
-          <h1
-            className="pixel-text text-xl md:text-3xl mb-6"
-            style={{ color: 'var(--color-accent)', textShadow: '0 0 20px var(--color-accent-glow)' }}
-          >
-            DEJA VU
-          </h1>
+      <ArcadeCabinet title="DEJA VU" subtitle="Escape a room that keeps resetting" wide>
+        <div className="text-center max-w-lg mx-auto animate-fade-in-up">
           <div
             className="pixel-card rounded-lg p-6 md:p-8 mb-6"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
@@ -751,7 +734,7 @@ export default function DejaVuPage() {
             ENTER THE ROOM
           </button>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -760,8 +743,9 @@ export default function DejaVuPage() {
   // ============================================
   if (gameState.screen === 'transition') {
     return (
+      <ArcadeCabinet title="DEJA VU" subtitle="Escape a room that keeps resetting" wide>
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="min-h-[60vh] flex items-center justify-center"
         style={{
           backgroundColor: flashIntensity > 0.5 ? 'white' : 'var(--color-bg)',
           transition: 'background-color 0.1s',
@@ -793,6 +777,7 @@ export default function DejaVuPage() {
           }
         `}</style>
       </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -874,11 +859,8 @@ export default function DejaVuPage() {
     const ending = endings[gameState.endingReached || 'normal'];
 
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <div className="max-w-2xl w-full animate-fade-in-up">
+      <ArcadeCabinet title="DEJA VU" subtitle="Escape a room that keeps resetting" wide>
+        <div className="max-w-2xl w-full mx-auto animate-fade-in-up">
           <div className="text-center mb-8">
             <h1
               className="pixel-text text-xl md:text-3xl mb-2"
@@ -920,9 +902,6 @@ export default function DejaVuPage() {
             <button onClick={resetGame} className="pixel-btn text-sm">
               PLAY AGAIN
             </button>
-            <Link href="/games" className="pixel-btn text-sm">
-              BACK TO GAMES
-            </Link>
           </div>
         </div>
 
@@ -932,7 +911,7 @@ export default function DejaVuPage() {
             to { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -943,10 +922,11 @@ export default function DejaVuPage() {
   const roomObjects = Object.keys(OBJECT_LABELS);
 
   return (
+    <ArcadeCabinet title="DEJA VU" subtitle="Escape a room that keeps resetting" wide>
     <div
-      className="min-h-screen flex flex-col"
+      className="flex flex-col"
       style={{
-        backgroundColor: gameState.lightOn ? 'var(--color-bg)' : '#050508',
+        backgroundColor: gameState.lightOn ? 'transparent' : '#050508',
         color: 'var(--color-text)',
         transition: 'background-color 0.3s',
       }}
@@ -959,23 +939,7 @@ export default function DejaVuPage() {
           borderColor: 'var(--color-border)',
         }}
       >
-        <div className="max-w-6xl mx-auto px-3 py-2 flex items-center justify-between">
-          <Link
-            href="/games"
-            className="text-xs transition-colors hover:opacity-80"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Games
-          </Link>
-          <h1
-            className="pixel-text text-[10px] md:text-xs"
-            style={{
-              color: 'var(--color-accent)',
-              textShadow: loopGlitchLevel > 0.5 ? `${Math.random() * 4 - 2}px 0 var(--color-red)` : 'none',
-            }}
-          >
-            DEJA VU
-          </h1>
+        <div className="max-w-6xl mx-auto px-3 py-2 flex items-center justify-end">
           <div className="flex items-center gap-3">
             {gameState.currentLoop >= 3 && (
               <span
@@ -1230,5 +1194,6 @@ export default function DejaVuPage() {
         }
       `}</style>
     </div>
+    </ArcadeCabinet>
   );
 }

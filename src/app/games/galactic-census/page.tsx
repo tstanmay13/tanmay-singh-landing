@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useCallback } from 'react';
 
 // ============================================================
@@ -865,21 +865,10 @@ export default function GalacticCensusPage() {
   // ============================================================
   if (screen === 'menu') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="GALACTIC CENSUS" subtitle="Survey alien civilizations across the galaxy" wide>
         <div className="max-w-2xl mx-auto text-center">
-          <Link
-            href="/games"
-            className="inline-block mb-8 text-sm transition-colors hover:opacity-80"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
           <div className="pixel-card rounded-lg p-6 md:p-10" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <div className="text-6xl mb-4">🛸</div>
-            <h1 className="pixel-text text-lg md:text-2xl mb-4" style={{ color: 'var(--color-accent)' }}>
-              GALACTIC CENSUS
-            </h1>
             <p className="text-sm md:text-base mb-2" style={{ color: 'var(--color-text-secondary)' }}>
               You are a census taker for the Intergalactic Bureau of Statistics.
             </p>
@@ -919,7 +908,7 @@ export default function GalacticCensusPage() {
             <p>Intergalactic Bureau of Statistics &middot; Est. Year 2,847</p>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -930,7 +919,7 @@ export default function GalacticCensusPage() {
     const filteredPlanets = filterRegion === 'all' ? PLANETS : PLANETS.filter((p) => p.region === filterRegion);
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="GALACTIC CENSUS" subtitle="Survey alien civilizations across the galaxy" wide>
         {/* Header */}
         <div
           className="sticky top-0 z-50 border-b backdrop-blur-md"
@@ -1061,7 +1050,7 @@ export default function GalacticCensusPage() {
             })}
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1070,7 +1059,7 @@ export default function GalacticCensusPage() {
   // ============================================================
   if (screen === 'planet' && selectedPlanet) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="GALACTIC CENSUS" subtitle="Survey alien civilizations across the galaxy" wide>
         {/* Header */}
         <div
           className="sticky top-0 z-50 border-b backdrop-blur-md"
@@ -1204,7 +1193,7 @@ export default function GalacticCensusPage() {
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1215,7 +1204,7 @@ export default function GalacticCensusPage() {
     const totalQ = selectedPlanet.questions.length;
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="GALACTIC CENSUS" subtitle="Survey alien civilizations across the galaxy" wide>
         <div className="max-w-2xl mx-auto">
           <div className="pixel-card rounded-lg p-6 md:p-8" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <div className="text-center mb-6">
@@ -1293,16 +1282,18 @@ export default function GalacticCensusPage() {
             Your best score for this planet is saved. You can retry for a higher rating.
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   // Fallback — go to menu
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
-      <button onClick={() => setScreen('menu')} className="pixel-btn">
-        Return to Menu
-      </button>
-    </div>
+    <ArcadeCabinet title="GALACTIC CENSUS" subtitle="Survey alien civilizations across the galaxy" wide>
+      <div className="flex items-center justify-center py-12">
+        <button onClick={() => setScreen('menu')} className="pixel-btn">
+          Return to Menu
+        </button>
+      </div>
+    </ArcadeCabinet>
   );
 }

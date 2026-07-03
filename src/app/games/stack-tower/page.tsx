@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import ArcadeCabinet from "@/components/ArcadeCabinet";
 import { useGamePlay } from "@/components/GamePlayCounter";
-import Link from "next/link";
 
 // --- Constants ---
 const CANVAS_WIDTH = 400;
@@ -387,58 +387,22 @@ export default function StackTowerPage() {
 
   if (!mounted) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--color-bg)" }}
-      >
-        <p
-          className="pixel-text text-sm animate-flicker"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          LOADING...
-        </p>
-      </div>
+      <ArcadeCabinet title="STACK TOWER" subtitle="Stack blocks, don't miss!">
+        <div className="flex items-center justify-center py-16">
+          <p
+            className="pixel-text text-sm animate-flicker"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            LOADING...
+          </p>
+        </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div
-      className="min-h-screen relative"
-      style={{ background: "var(--color-bg)" }}
-    >
-      {/* Grid background */}
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10 flex flex-col items-center px-4 py-8">
-        {/* Back link */}
-        <Link
-          href="/games"
-          className="pixel-text text-xs mb-6 transition-colors duration-200 self-start max-w-[500px] mx-auto w-full"
-          style={{ color: "var(--color-text-secondary)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.color = "var(--color-accent)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = "var(--color-text-secondary)")
-          }
-        >
-          &lt; BACK TO GAMES
-        </Link>
-
-        {/* Title */}
-        <h1
-          className="pixel-text text-2xl sm:text-3xl mb-2 text-center"
-          style={{
-            color: "var(--color-accent)",
-            textShadow: `
-              0 0 10px var(--color-accent-glow),
-              0 0 30px var(--color-accent-glow)
-            `,
-          }}
-        >
-          STACK TOWER
-        </h1>
-
+    <ArcadeCabinet title="STACK TOWER" subtitle="Stack blocks, don't miss!">
+      <div className="flex flex-col items-center">
         {/* Score display */}
         <div className="flex items-center gap-6 mb-4">
           <div className="text-center">
@@ -603,6 +567,6 @@ export default function StackTowerPage() {
           </ul>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

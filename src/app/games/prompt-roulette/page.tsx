@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import GamePlayCounter from '@/components/GamePlayCounter';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -324,6 +324,14 @@ function pickPrompts(count: number, category?: PromptCategory, used?: Set<string
    ================================================================ */
 
 export default function PromptRoulettePage() {
+  return (
+    <ArcadeCabinet title="PROMPT ROULETTE" subtitle="Write the funniest answer, everyone votes">
+      <PromptRouletteGame />
+    </ArcadeCabinet>
+  );
+}
+
+function PromptRouletteGame() {
   const [mounted, setMounted] = useState(false);
 
   // Setup state
@@ -1269,40 +1277,22 @@ export default function PromptRoulettePage() {
 
   /* ── Header ── */
   const Header = () => (
-    <div
-      className="sticky top-0 z-40 border-b backdrop-blur-md"
-      style={{
-        backgroundColor: 'color-mix(in srgb, var(--color-bg-secondary) 90%, transparent)',
-        borderColor: 'var(--color-border)',
-      }}
-    >
-      <div className="max-w-4xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Link
-            href="/games"
-            className="text-sm transition-colors hover:opacity-80"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back
-          </Link>
-          <h1 className="pixel-text text-xs md:text-sm" style={{ color: 'var(--color-pink)' }}>
-            PROMPT ROULETTE
-          </h1>
-          <GamePlayCounter slug="prompt-roulette" onPlay />
-        </div>
-        {phase !== 'setup' && phase !== 'final-results' && (
-          <div className="flex items-center justify-between mt-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            <span>
-              {currentPrompt?.category === 'mega'
-                ? 'MEGA ROUND'
-                : `Round ${currentRound}/${TOTAL_ROUNDS}`}
-            </span>
-            <span>
-              Prompt {currentPromptIndex + 1}/{roundPrompts.length}
-            </span>
-          </div>
-        )}
+    <div className="mb-4">
+      <div className="flex items-center justify-end">
+        <GamePlayCounter slug="prompt-roulette" onPlay />
       </div>
+      {phase !== 'setup' && phase !== 'final-results' && (
+        <div className="flex items-center justify-between mt-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <span>
+            {currentPrompt?.category === 'mega'
+              ? 'MEGA ROUND'
+              : `Round ${currentRound}/${TOTAL_ROUNDS}`}
+          </span>
+          <span>
+            Prompt {currentPromptIndex + 1}/{roundPrompts.length}
+          </span>
+        </div>
+      )}
     </div>
   );
 
@@ -1312,21 +1302,12 @@ export default function PromptRoulettePage() {
 
   if (phase === 'setup') {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-8">
           {/* Title */}
           <div className="text-center mb-8">
-            <div className="text-5xl md:text-6xl mb-4">{'\u{1F3B0}'}</div>
-            <h2
-              className="pixel-text text-lg md:text-xl mb-2"
-              style={{ color: 'var(--color-pink)' }}
-            >
-              PROMPT ROULETTE
-            </h2>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Write the funniest answer. Everyone votes. Chaos ensues.
-            </p>
+            <div className="text-5xl md:text-6xl">{'\u{1F3B0}'}</div>
           </div>
 
           {/* Mode Selection */}
@@ -1671,7 +1652,7 @@ export default function PromptRoulettePage() {
     const isMega = currentPrompt?.category === 'mega';
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-6">
           {/* Category Badge */}
@@ -1880,7 +1861,7 @@ export default function PromptRoulettePage() {
     const displayAnswers = isOnline ? onlineAnswers : answers;
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-6">
           {/* Prompt reminder */}
@@ -1940,7 +1921,7 @@ export default function PromptRoulettePage() {
     // Online voting: each player votes on their own device
     if (isOnline) {
       return (
-        <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+        <div>
           <Header />
           <div className="max-w-xl mx-auto px-4 py-6">
             <div className="text-center mb-4">
@@ -2016,7 +1997,7 @@ export default function PromptRoulettePage() {
     const voter = players[currentVotingPlayer];
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-6">
           <div className="text-center mb-4">
@@ -2090,7 +2071,7 @@ export default function PromptRoulettePage() {
       const onlineSorted = [...onlinePlayers].sort((a, b) => b.score - a.score);
 
       return (
-        <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+        <div>
           <Header />
           <div className="max-w-xl mx-auto px-4 py-6">
             <div className="text-center mb-6">
@@ -2211,7 +2192,7 @@ export default function PromptRoulettePage() {
     const maxVotes = Math.max(...answers.map((a) => a.votes), 1);
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-6">
           <div className="text-center mb-6">
@@ -2335,7 +2316,7 @@ export default function PromptRoulettePage() {
     };
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <Header />
         <div className="max-w-xl mx-auto px-4 py-8">
           <div className="text-center mb-8 animate-scale-in">
@@ -2389,7 +2370,7 @@ export default function PromptRoulettePage() {
 
   if (phase === 'mega-intro') {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div className="flex items-center justify-center py-8">
         <div className={`text-center px-4 ${megaIntroVisible ? 'animate-scale-in' : ''}`}>
           <div className="text-6xl md:text-8xl mb-6">{'\u{1F525}'}</div>
           <h2
@@ -2482,7 +2463,7 @@ export default function PromptRoulettePage() {
     const third = isOnline ? onlineSorted[2] : sortedPlayers[2];
 
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <ConfettiEffect />
         <Header />
         <div className="max-w-xl mx-auto px-4 py-8">
@@ -2605,13 +2586,6 @@ export default function PromptRoulettePage() {
             >
               PLAY AGAIN
             </button>
-            <Link
-              href="/games"
-              className="pixel-btn text-sm px-6 py-3 inline-block"
-              style={{ borderColor: 'var(--color-text-muted)', color: 'var(--color-text-muted)' }}
-            >
-              MORE GAMES
-            </Link>
           </div>
         </div>
       </div>

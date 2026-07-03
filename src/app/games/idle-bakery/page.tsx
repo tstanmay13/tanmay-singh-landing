@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useReducer, useCallback, useRef } from "react";
+import ArcadeCabinet from "@/components/ArcadeCabinet";
 import GamePlayCounter from "@/components/GamePlayCounter";
 
 // ============================================
@@ -362,48 +362,23 @@ export default function IdleBakeryPage() {
 
   if (!mounted) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--color-bg)" }}
-      >
-        <p className="pixel-text text-sm" style={{ color: "var(--color-text-muted)" }}>
+      <ArcadeCabinet title="IDLE BAKERY" subtitle="Build your bakery empire">
+        <p
+          className="pixel-text text-sm text-center py-8"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           LOADING BAKERY...
         </p>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div className="min-h-screen relative" style={{ background: "var(--color-bg)" }}>
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10 max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="text-center mb-6">
-          <Link
-            href="/games"
-            className="pixel-text text-xs inline-block mb-6 transition-colors duration-200"
-            style={{ color: "var(--color-text-secondary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-accent)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
-          >
-            &lt; BACK TO GAMES
-          </Link>
-
-          <h1
-            className="pixel-text text-2xl sm:text-3xl mb-2"
-            style={{
-              color: "var(--color-orange)",
-              textShadow: "0 0 10px rgba(245, 158, 11, 0.3), 0 0 30px rgba(245, 158, 11, 0.15)",
-            }}
-          >
-            IDLE BAKERY
-          </h1>
-          <p className="pixel-text text-[10px]" style={{ color: "var(--color-text-muted)" }}>
-            BAKE - SELL - UPGRADE
-          </p>
-          <div className="mt-2"><GamePlayCounter slug="idle-bakery" onPlay /></div>
-        </header>
+    <ArcadeCabinet title="IDLE BAKERY" subtitle="Build your bakery empire">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-6">
+          <GamePlayCounter slug="idle-bakery" onPlay />
+        </div>
 
         {/* Resources Bar */}
         <div
@@ -762,7 +737,7 @@ export default function IdleBakeryPage() {
           </button>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
 

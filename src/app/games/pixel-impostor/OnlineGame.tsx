@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { WORD_CATEGORIES, getRandomPair } from './words';
@@ -535,10 +534,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
   if (inLobby) {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <button
             onClick={onBack}
@@ -562,10 +558,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
   if (phase === 'category-select') {
     if (!isHost) {
       return (
-        <div
-          className="min-h-screen p-4 md:p-8 flex items-center justify-center"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="text-4xl mb-4 animate-pixel-bounce">{'\u23F3'}</div>
             <p className="pixel-text text-sm mb-2" style={{ color: 'var(--color-accent)' }}>
@@ -585,10 +578,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     }
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <h2
             className="pixel-text text-lg md:text-xl text-center mb-2"
@@ -684,10 +674,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
   if (phase === 'role-reveal' && roundData) {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[80vh]">
           <p
             className="pixel-text text-xs mb-2"
@@ -798,10 +785,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     const allCluesDone = roundData.currentTurnIndex >= roundData.turnOrder.length;
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <p
             className="pixel-text text-xs text-center mb-2"
@@ -916,10 +900,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
   if (phase === 'discussion' && roundData) {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <p
             className="pixel-text text-xs text-center mb-2"
@@ -1015,10 +996,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     const hasVoted = !!myVote;
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <p
             className="pixel-text text-xs text-center mb-2"
@@ -1123,10 +1101,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     const impostorPlayer = onlinePlayers.find((p) => p.id === roundData.impostorPlayerId);
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <p
             className="pixel-text text-xs text-center mb-4"
@@ -1246,10 +1221,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
     if (isImpostorMe) {
       return (
-        <div
-          className="min-h-screen p-4 md:p-8"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div>
           <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[80vh]">
             <div className="text-5xl mb-4">{'\uD83D\uDE08'}</div>
             <h2
@@ -1317,10 +1289,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
     // Other players wait
     return (
-      <div
-        className="min-h-screen p-4 md:p-8 flex items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-pixel-bounce">{'\uD83D\uDE08'}</div>
           <h2 className="pixel-text text-sm mb-2" style={{ color: 'var(--color-red)' }}>
@@ -1341,10 +1310,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     const caught = getMostVotedId() === roundData.impostorPlayerId;
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <p
             className="pixel-text text-xs text-center mb-2"
@@ -1473,10 +1439,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     const winner = sortedByScore[0];
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[80vh]">
           <div className="text-6xl mb-4 animate-pixel-bounce">{'\uD83C\uDFC6'}</div>
           <h2
@@ -1557,17 +1520,6 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
             >
               PLAY AGAIN
             </button>
-            <Link
-              href="/games"
-              className="pixel-btn px-6 py-3 text-sm rounded-lg inline-flex items-center"
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              ARCADE
-            </Link>
           </div>
         </div>
       </div>
@@ -1756,12 +1708,6 @@ function ImpostorLobby({ onGameStart, onPlayerIdKnown }: ImpostorLobbyProps) {
 
         <div className="text-center mb-6">
           <span className="text-2xl">{'\uD83D\uDD75\uFE0F'}</span>
-          <h3
-            className="pixel-text text-xs mt-2"
-            style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
-          >
-            PIXEL IMPOSTOR
-          </h3>
           <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
             {players.length}/{room?.max_players ?? 10} players
           </p>
@@ -1773,7 +1719,7 @@ function ImpostorLobby({ onGameStart, onPlayerIdKnown }: ImpostorLobbyProps) {
         >
           <h4
             className="pixel-text text-xs mb-3"
-            style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+            style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
           >
             PLAYERS
           </h4>
@@ -1897,7 +1843,7 @@ function ImpostorLobby({ onGameStart, onPlayerIdKnown }: ImpostorLobbyProps) {
         <div>
           <label
             className="pixel-text text-xs block mb-2"
-            style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+            style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
           >
             YOUR NAME
           </label>
@@ -1922,7 +1868,7 @@ function ImpostorLobby({ onGameStart, onPlayerIdKnown }: ImpostorLobbyProps) {
           <div>
             <label
               className="pixel-text text-xs block mb-2"
-              style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+              style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
             >
               ROOM CODE
             </label>

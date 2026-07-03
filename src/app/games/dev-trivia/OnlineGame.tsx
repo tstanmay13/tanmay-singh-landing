@@ -643,7 +643,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
   if (inLobby) {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-4xl mx-auto">
           <button
             onClick={onBack}
@@ -677,7 +677,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
   if (!roundData) {
     return (
-      <div className="min-h-screen p-4 md:p-8 flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div className="flex items-center justify-center">
         <div className="text-center">
           <div className="pixel-text text-sm mb-4" style={{ color: 'var(--color-accent)' }}>
             SYNCING GAME...
@@ -696,7 +696,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
   const usedSet = new Set(roundData.usedQuestionIndices);
 
   return (
-    <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+    <div>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">

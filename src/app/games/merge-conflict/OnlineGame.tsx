@@ -685,10 +685,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
       return (
         <div style={{ maxWidth: '28rem', margin: '0 auto', padding: '1.5rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h2 className="pixel-text" style={{ fontSize: '0.85rem', color: 'var(--color-accent)' }}>
-              MERGE CONFLICT
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
               Online Mode &middot; 2-8 players
             </p>
           </div>
@@ -748,7 +745,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
-              <label className="pixel-text" style={{ fontSize: '0.5rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
+              <label className="pixel-text" style={{ fontSize: '0.625rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
                 YOUR NAME
               </label>
               <input
@@ -772,7 +769,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
             {lobbyPhase === 'join' && (
               <div>
-                <label className="pixel-text" style={{ fontSize: '0.5rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
+                <label className="pixel-text" style={{ fontSize: '0.625rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
                   ROOM CODE
                 </label>
                 <input
@@ -833,16 +830,13 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h3 className="pixel-text" style={{ fontSize: '0.6rem', color: 'var(--color-text-secondary)' }}>
-            MERGE CONFLICT
-          </h3>
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
             {lobbyPlayers.length}/{room?.max_players ?? 8} players
           </p>
         </div>
 
         <div className="pixel-card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
-          <h4 className="pixel-text" style={{ fontSize: '0.5rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem' }}>
+          <h4 className="pixel-text" style={{ fontSize: '0.625rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem' }}>
             PLAYERS
           </h4>
           <PlayerList

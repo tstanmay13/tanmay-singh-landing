@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
@@ -463,16 +463,7 @@ export default function MazeRunnerPage() {
 
   // Overlay screens
   const renderMenu = () => (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6 px-4 text-center">
-      <h1
-        className="pixel-text text-3xl sm:text-4xl md:text-5xl"
-        style={{
-          color: 'var(--color-accent)',
-          textShadow: '0 0 20px var(--color-accent-glow), 0 0 40px var(--color-accent-glow)',
-        }}
-      >
-        MAZE RUNNER
-      </h1>
+    <div className="flex flex-col items-center justify-center py-10 gap-6 px-4 text-center">
       <p className="pixel-text text-[10px] sm:text-xs" style={{ color: 'var(--color-text-muted)' }}>
         NAVIGATE 5 PROCEDURALLY GENERATED MAZES
       </p>
@@ -496,7 +487,7 @@ export default function MazeRunnerPage() {
   const renderLevelComplete = () => {
     const lastTime = levelTimes[levelTimes.length - 1] ?? 0;
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-5 px-4 text-center">
+      <div className="flex flex-col items-center justify-center py-10 gap-5 px-4 text-center">
         <h2
           className="pixel-text text-2xl sm:text-3xl"
           style={{ color: 'var(--color-accent)' }}
@@ -523,7 +514,7 @@ export default function MazeRunnerPage() {
     const total = levelTimes.reduce((a, b) => a + b, 0);
     const isNewBest = bestTotal !== null && total <= bestTotal;
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-5 px-4 text-center">
+      <div className="flex flex-col items-center justify-center py-10 gap-5 px-4 text-center">
         <h2
           className="pixel-text text-2xl sm:text-3xl animate-glow-pulse"
           style={{ color: 'var(--color-accent)' }}
@@ -576,9 +567,6 @@ export default function MazeRunnerPage() {
           <button onClick={startGame} className="pixel-btn text-[10px]">
             PLAY AGAIN
           </button>
-          <Link href="/games" className="pixel-btn inline-block text-[10px]">
-            BACK TO ARCADE
-          </Link>
         </div>
       </div>
     );
@@ -652,34 +640,11 @@ export default function MazeRunnerPage() {
   );
 
   return (
-    <div className="min-h-screen relative" style={{ background: 'var(--color-bg)' }}>
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10 px-4 py-6 sm:py-10">
-        {/* Back link */}
-        {phase !== 'game-over' && (
-          <div className="max-w-2xl mx-auto mb-4">
-            <Link
-              href="/games"
-              className="pixel-text text-[10px] sm:text-xs transition-colors duration-200"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = 'var(--color-accent)')
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = 'var(--color-text-secondary)')
-              }
-            >
-              &lt; BACK TO ARCADE
-            </Link>
-          </div>
-        )}
-
-        {phase === 'menu' && renderMenu()}
-        {phase === 'playing' && renderPlaying()}
-        {phase === 'level-complete' && renderLevelComplete()}
-        {phase === 'game-over' && renderGameOver()}
-      </div>
-    </div>
+    <ArcadeCabinet title="MAZE RUNNER" subtitle="Navigate through fog of war">
+      {phase === 'menu' && renderMenu()}
+      {phase === 'playing' && renderPlaying()}
+      {phase === 'level-complete' && renderLevelComplete()}
+      {phase === 'game-over' && renderGameOver()}
+    </ArcadeCabinet>
   );
 }

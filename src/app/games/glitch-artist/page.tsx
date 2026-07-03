@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 
 // ─── Types ──────────────────────────────────────────────────────
 interface Point {
@@ -83,6 +83,14 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 // ─── Main Component ─────────────────────────────────────────────
 export default function GlitchArtistPage() {
+  return (
+    <ArcadeCabinet title="GLITCH ARTIST" subtitle="Everyone draws, one player fakes it">
+      <GlitchArtistGame />
+    </ArcadeCabinet>
+  );
+}
+
+function GlitchArtistGame() {
   const [mounted, setMounted] = useState(false);
 
   // Game state
@@ -496,10 +504,7 @@ export default function GlitchArtistPage() {
   // ─── Pass the phone overlay ─────────────────────────────────
   if (showPassScreen) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center p-4 py-12">
         <div className="text-center max-w-sm w-full">
           <div
             className="pixel-card rounded-lg p-8"
@@ -526,26 +531,7 @@ export default function GlitchArtistPage() {
   // ─── SETUP PHASE ──────────────────────────────────────────
   if (phase === 'setup') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <div className="max-w-lg mx-auto">
-          <Link
-            href="/games"
-            className="inline-flex items-center gap-2 text-sm mb-6 transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Arcade
-          </Link>
-
-          <h1 className="pixel-text text-xl md:text-2xl mb-2" style={{ color: 'var(--color-accent)' }}>
-            GLITCH ARTIST
-          </h1>
-          <p className="text-sm mb-8" style={{ color: 'var(--color-text-secondary)' }}>
-            Everyone draws. One fakes it. Spot the fraud.
-          </p>
-
+      <div className="max-w-lg mx-auto">
           {/* How to play */}
           <div
             className="pixel-card rounded-lg p-4 mb-6"
@@ -639,7 +625,6 @@ export default function GlitchArtistPage() {
           >
             START GAME
           </button>
-        </div>
       </div>
     );
   }
@@ -648,10 +633,7 @@ export default function GlitchArtistPage() {
   if (phase === 'peek') {
     const isGlitch = currentPeekIndex === glitchIndex;
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center p-4 py-12">
         <div className="text-center max-w-sm w-full">
           <div
             className="pixel-card rounded-lg p-6"
@@ -712,10 +694,7 @@ export default function GlitchArtistPage() {
     const drawerActualIndex = drawOrder[currentDrawerIndex];
     const drawerPlayer = players[drawerActualIndex];
     return (
-      <div
-        className="min-h-screen p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="p-2">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -800,10 +779,7 @@ export default function GlitchArtistPage() {
   // ─── GALLERY PHASE ────────────────────────────────────────
   if (phase === 'gallery') {
     return (
-      <div
-        className="min-h-screen p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="p-2">
         <div className="max-w-lg mx-auto text-center">
           <h2 className="pixel-text text-lg mb-2" style={{ color: 'var(--color-accent)' }}>
             THE MASTERPIECE
@@ -848,10 +824,7 @@ export default function GlitchArtistPage() {
   // ─── VOTE PHASE ───────────────────────────────────────────
   if (phase === 'vote') {
     return (
-      <div
-        className="min-h-screen p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="p-2">
         <div className="max-w-lg mx-auto text-center">
           <p className="pixel-text text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
             VOTE - {players[votingPlayerIndex].name}
@@ -901,10 +874,7 @@ export default function GlitchArtistPage() {
     const caught = glitchVotes > players.length / 2;
 
     return (
-      <div
-        className="min-h-screen p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="p-2">
         <div className="max-w-lg mx-auto text-center">
           <h2 className="pixel-text text-lg mb-2" style={{ color: 'var(--color-accent)' }}>
             THE REVEAL
@@ -1051,10 +1021,7 @@ export default function GlitchArtistPage() {
       .sort((a, b) => b.total - a.total);
 
     return (
-      <div
-        className="min-h-screen p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="p-2">
         <div className="max-w-lg mx-auto text-center">
           <h2 className="pixel-text text-lg mb-2" style={{ color: 'var(--color-accent)' }}>
             SCOREBOARD

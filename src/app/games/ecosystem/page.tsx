@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // ============================================
@@ -790,16 +790,9 @@ export default function EcosystemArchitectPage() {
   // ============================================
   if (screen === 'menu') {
     return (
-      <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-        <Link href="/games" className="absolute top-4 left-4 pixel-text text-xs hover:underline" style={{ color: 'var(--color-accent)' }}>
-          &lt; BACK TO ARCADE
-        </Link>
-
-        <div className="text-center max-w-2xl animate-fade-in-up">
+      <ArcadeCabinet title="ECOSYSTEM ARCHITECT" subtitle="Design ecosystems, watch life emerge" wide>
+        <div className="text-center max-w-2xl mx-auto animate-fade-in-up">
           <div className="text-5xl md:text-6xl mb-6">🌍</div>
-          <h1 className="pixel-text text-xl md:text-3xl mb-4" style={{ color: 'var(--color-accent)' }}>
-            ECOSYSTEM ARCHITECT
-          </h1>
           <p className="text-sm md:text-base mb-8 leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
             Design ecosystems by placing organisms into a simulated world.
             Watch population dynamics emerge as predators hunt prey, plants compete
@@ -853,7 +846,7 @@ export default function EcosystemArchitectPage() {
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -862,16 +855,16 @@ export default function EcosystemArchitectPage() {
   // ============================================
   if (screen === 'mode-select') {
     return (
-      <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="ECOSYSTEM ARCHITECT" subtitle="Design ecosystems, watch life emerge" wide>
         <button
           onClick={() => setScreen('menu')}
-          className="absolute top-4 left-4 pixel-text text-xs hover:underline"
+          className="pixel-text text-xs hover:underline mb-6 inline-block"
           style={{ color: 'var(--color-accent)' }}
         >
           &lt; BACK
         </button>
 
-        <div className="text-center max-w-xl animate-fade-in-up">
+        <div className="text-center max-w-xl mx-auto animate-fade-in-up">
           <h2 className="pixel-text text-lg md:text-xl mb-2" style={{ color: 'var(--color-accent)' }}>
             SELECT BIOME
           </h2>
@@ -897,7 +890,7 @@ export default function EcosystemArchitectPage() {
             ))}
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -906,8 +899,8 @@ export default function EcosystemArchitectPage() {
   // ============================================
   if (screen === 'results' && challengeResult) {
     return (
-      <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-        <div className="text-center max-w-md animate-fade-in-up">
+      <ArcadeCabinet title="ECOSYSTEM ARCHITECT" subtitle="Design ecosystems, watch life emerge" wide>
+        <div className="text-center max-w-md mx-auto animate-fade-in-up">
           <div className="text-5xl mb-4">{challengeResult.passed ? '🏆' : '💀'}</div>
           <h2 className="pixel-text text-lg md:text-xl mb-2" style={{ color: challengeResult.passed ? 'var(--color-accent)' : 'var(--color-red)' }}>
             {challengeResult.passed ? 'ECOSYSTEM STABLE!' : 'ECOSYSTEM COLLAPSED!'}
@@ -957,7 +950,7 @@ export default function EcosystemArchitectPage() {
             </button>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -968,7 +961,8 @@ export default function EcosystemArchitectPage() {
   const selectedDef = ORGANISM_DEFS.find(d => d.id === selectedOrganism);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+    <ArcadeCabinet title="ECOSYSTEM ARCHITECT" subtitle="Design ecosystems, watch life emerge" wide>
+      <div className="flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-wrap gap-2" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-bg-secondary)' }}>
         <button
@@ -1191,6 +1185,7 @@ export default function EcosystemArchitectPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ArcadeCabinet>
   );
 }

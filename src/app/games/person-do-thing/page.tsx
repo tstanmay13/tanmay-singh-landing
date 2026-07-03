@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 
 // ─── The 34 allowed words ───────────────────────────────────────
 const ALLOWED_WORDS = [
@@ -267,6 +267,14 @@ function getWordsForDifficulty(difficulty: Difficulty): TargetWord[] {
 
 // ─── Component ──────────────────────────────────────────────────
 export default function PersonDoThingPage() {
+  return (
+    <ArcadeCabinet title="PERSON DO THING" subtitle="Describe anything with only 34 words">
+      <PersonDoThingGame />
+    </ArcadeCabinet>
+  );
+}
+
+function PersonDoThingGame() {
   const [mounted, setMounted] = useState(false);
 
   // Game state
@@ -406,31 +414,7 @@ export default function PersonDoThingPage() {
     };
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <div className="max-w-lg mx-auto">
-          <Link
-            href="/games"
-            className="text-sm transition-colors hover:opacity-80 inline-block mb-6"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
-          <div className="text-center mb-8">
-            <h1
-              className="pixel-text text-lg md:text-xl mb-2"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              PERSON DO THING
-            </h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Describe anything. Use only 34 words.
-            </p>
-          </div>
-
+      <div className="max-w-lg mx-auto">
           <div
             className="pixel-card rounded-lg p-6 mb-4"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
@@ -518,7 +502,6 @@ export default function PersonDoThingPage() {
               <li>6. Pass the phone to the next player</li>
             </ol>
           </div>
-        </div>
       </div>
     );
   }
@@ -527,10 +510,7 @@ export default function PersonDoThingPage() {
   if (phase === 'pass') {
     const currentPlayer = players[currentPlayerIndex];
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center p-4 py-12">
         <div className="text-center max-w-sm w-full">
           <div
             className="pixel-text text-xs mb-1"
@@ -590,10 +570,7 @@ export default function PersonDoThingPage() {
   // ─── Describe Phase: Active Player's Turn ─────────────────────
   if (phase === 'describe') {
     return (
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex flex-col min-h-[70vh]">
         {/* Header */}
         <div
           className="px-4 py-3 border-b shrink-0"
@@ -721,10 +698,7 @@ export default function PersonDoThingPage() {
     const isCorrect = lastTurnResult.guessedCorrectly;
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center p-4 py-12">
         <div className="text-center max-w-sm w-full">
           <div
             className="text-6xl mb-4"
@@ -803,21 +777,17 @@ export default function PersonDoThingPage() {
     const topScore = sorted[0]?.score || 0;
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto">
           <div className="text-center mb-8">
             <div className="text-5xl mb-4" style={{ lineHeight: 1.4 }}>
               &#127942;
             </div>
-            <h1
+            <h2
               className="pixel-text text-lg md:text-xl mb-2"
               style={{ color: 'var(--color-accent)' }}
             >
               GAME OVER
-            </h1>
+            </h2>
             <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
               {ROUNDS_PER_PLAYER} rounds &middot; {difficulty.toUpperCase()} mode
             </p>
@@ -916,18 +886,7 @@ export default function PersonDoThingPage() {
             <button onClick={resetGame} className="pixel-btn text-sm px-6">
               NEW GAME
             </button>
-            <Link
-              href="/games"
-              className="pixel-btn text-sm px-6 inline-flex items-center"
-              style={{
-                borderColor: 'var(--color-text-secondary)',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              ARCADE
-            </Link>
           </div>
-        </div>
       </div>
     );
   }

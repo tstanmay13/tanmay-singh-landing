@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // ============================================================
@@ -539,6 +539,14 @@ const CHALLENGES_PER_GAME = 15;
 // ============================================================
 
 export default function RetroReflexDuelPage() {
+  return (
+    <ArcadeCabinet title="RETRO REFLEX DUEL" subtitle="Rapid-fire micro-challenges">
+      <RetroReflexDuelGame />
+    </ArcadeCabinet>
+  );
+}
+
+function RetroReflexDuelGame() {
   const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>('menu');
   const [gameMode, setGameMode] = useState<GameMode>('pass');
@@ -2005,20 +2013,9 @@ export default function RetroReflexDuelPage() {
   // MENU
   if (phase === 'menu') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-        <div className="max-w-lg mx-auto text-center">
-          <Link href="/games" className="text-sm transition-colors hover:opacity-80 inline-block mb-8" style={{ color: 'var(--color-text-secondary)' }}>
-            &larr; Back to Games
-          </Link>
-
+      <div className="max-w-lg mx-auto text-center">
           <div className="mb-8">
             <span className="text-6xl block mb-4">⚡</span>
-            <h1 className="pixel-text text-lg md:text-2xl mb-2" style={{ color: 'var(--color-accent)' }}>
-              RETRO REFLEX DUEL
-            </h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Rapid-fire micro-challenges. Fastest fingers win.
-            </p>
           </div>
 
           <div className="space-y-4">
@@ -2046,7 +2043,6 @@ export default function RetroReflexDuelPage() {
               <p>• 32 unique challenge types</p>
             </div>
           </div>
-        </div>
       </div>
     );
   }
@@ -2054,8 +2050,7 @@ export default function RetroReflexDuelPage() {
   // SETUP
   if (phase === 'setup') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-        <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto">
           <button
             className="text-sm mb-6 transition-colors hover:opacity-80"
             style={{ color: 'var(--color-text-secondary)' }}
@@ -2097,7 +2092,6 @@ export default function RetroReflexDuelPage() {
           <button className="pixel-btn w-full py-4" onClick={startGame}>
             START GAME
           </button>
-        </div>
       </div>
     );
   }
@@ -2105,7 +2099,7 @@ export default function RetroReflexDuelPage() {
   // COUNTDOWN
   if (phase === 'countdown') {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <div className="flex items-center justify-center py-16">
         <div className="text-center">
           <p className="pixel-text text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
             Challenge {currentChallengeIdx + 1}/{CHALLENGES_PER_GAME}
@@ -2134,7 +2128,7 @@ export default function RetroReflexDuelPage() {
   if (phase === 'pass-ready') {
     const player = players[currentPlayerIdx];
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <div className="flex items-center justify-center p-4 py-16">
         <div className="text-center">
           <span className="text-5xl block mb-4">📱</span>
           <p className="pixel-text text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
@@ -2160,7 +2154,7 @@ export default function RetroReflexDuelPage() {
   // CHALLENGE (pass-the-phone mode)
   if (phase === 'challenge' && gameMode === 'pass' && challengeState) {
     return (
-      <div className="min-h-screen p-4" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div className="p-2">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-4">
             <span className="pixel-text text-xs" style={{ color: PLAYER_COLORS[currentPlayerIdx % PLAYER_COLORS.length] }}>
@@ -2190,7 +2184,7 @@ export default function RetroReflexDuelPage() {
   // CHALLENGE (split-screen mode)
   if (phase === 'challenge' && gameMode === 'split' && splitStates[0] && splitStates[1]) {
     return (
-      <div className="min-h-screen flex flex-col md:flex-row" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div className="flex flex-col md:flex-row min-h-[60vh]">
         {[0, 1].map((pIdx) => {
           const pState = splitStates[pIdx as 0 | 1]!;
           const done = splitDone[pIdx as 0 | 1];
@@ -2243,7 +2237,7 @@ export default function RetroReflexDuelPage() {
     const winner = winnerId !== null ? players[winnerId!] : null;
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div className="flex items-center justify-center p-4 py-8">
         <div className="max-w-md w-full text-center">
           <p className="pixel-text text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>
             Challenge {currentChallengeIdx + 1}/{CHALLENGES_PER_GAME}: {lastResult?.label}
@@ -2323,10 +2317,9 @@ export default function RetroReflexDuelPage() {
     const podiumEmojis = ['🥇', '🥈', '🥉'];
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-        <div className="max-w-lg mx-auto text-center">
+      <div className="max-w-lg mx-auto text-center">
           <span className="text-6xl block mb-2 animate-pixel-bounce">🏆</span>
-          <h1 className="pixel-text text-lg mb-1" style={{ color: 'var(--color-accent)' }}>GAME OVER!</h1>
+          <h2 className="pixel-text text-lg mb-1" style={{ color: 'var(--color-accent)' }}>GAME OVER!</h2>
           <p className="text-xs mb-8" style={{ color: 'var(--color-text-secondary)' }}>Final Results</p>
 
           {/* Podium */}
@@ -2391,11 +2384,6 @@ export default function RetroReflexDuelPage() {
               NEW GAME
             </button>
           </div>
-
-          <Link href="/games" className="text-xs mt-6 inline-block transition-colors hover:opacity-80" style={{ color: 'var(--color-text-muted)' }}>
-            &larr; Back to Games
-          </Link>
-        </div>
       </div>
     );
   }

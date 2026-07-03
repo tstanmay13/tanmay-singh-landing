@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import OnlineGame from './OnlineGame';
 
 /* ================================================================
@@ -216,6 +216,17 @@ const CATEGORY_EMOJI: Record<string, string> = {
    ================================================================ */
 
 export default function WavelengthPage() {
+  return (
+    <ArcadeCabinet
+      title="WAVELENGTH"
+      subtitle="Guess where the clue falls on the spectrum"
+    >
+      <WavelengthGame />
+    </ArcadeCabinet>
+  );
+}
+
+function WavelengthGame() {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<'select' | 'local' | 'online'>('select');
 
@@ -440,31 +451,8 @@ export default function WavelengthPage() {
      ================================================================ */
   if (mode === 'select') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
-          <Link
-            href="/games"
-            className="inline-flex items-center gap-2 text-sm mb-6 hover:opacity-80 transition-opacity"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            {'\u2190'} Back to Arcade
-          </Link>
-
-          <div className="text-center mb-8">
-            <h1
-              className="pixel-text text-xl md:text-2xl mb-2"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              WAVELENGTH
-            </h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              How well do you really know each other?
-            </p>
-          </div>
-
           <div className="space-y-4">
             <button
               onClick={() => setMode('online')}
@@ -561,10 +549,7 @@ export default function WavelengthPage() {
      ================================================================ */
   if (phase === 'setup') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => setMode('select')}
@@ -574,17 +559,12 @@ export default function WavelengthPage() {
             &larr; Back
           </button>
 
-          <div className="text-center mb-8">
-            <h1
-              className="pixel-text text-lg md:text-2xl mb-2"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              WAVELENGTH
-            </h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Same Device Mode
-            </p>
-          </div>
+          <p
+            className="pixel-text text-[0.625rem] text-center mb-6"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            SAME DEVICE MODE
+          </p>
 
           {/* How to Play */}
           <div
@@ -867,19 +847,8 @@ export default function WavelengthPage() {
      ================================================================ */
   if (phase === 'psychic-view') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
-          <Link
-            href="/games"
-            className="text-sm transition-colors hover:opacity-80 inline-block mb-4"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
           {scoreboard}
 
           <div
@@ -973,19 +942,8 @@ export default function WavelengthPage() {
     const guessers = teamPlayers.filter((p) => p.id !== psychic?.id);
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
-          <Link
-            href="/games"
-            className="text-sm transition-colors hover:opacity-80 inline-block mb-4"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
           {scoreboard}
 
           <div
@@ -1048,19 +1006,8 @@ export default function WavelengthPage() {
         : 'var(--color-red)';
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
-          <Link
-            href="/games"
-            className="text-sm transition-colors hover:opacity-80 inline-block mb-4"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
           {scoreboard}
 
           {spectrumBar(false)}
@@ -1107,10 +1054,7 @@ export default function WavelengthPage() {
     const winnerScore = winner === 1 ? team1.score : team2.score;
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8 flex items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center">
         <div className="max-w-lg w-full text-center">
           <div className="animate-scale-in">
             <p
@@ -1175,16 +1119,6 @@ export default function WavelengthPage() {
               <button onClick={fullReset} className="pixel-btn text-xs">
                 NEW GAME
               </button>
-              <Link
-                href="/games"
-                className="pixel-btn text-xs"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                BACK TO ARCADE
-              </Link>
             </div>
           </div>
         </div>

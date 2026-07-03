@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 // --- Types ---
@@ -490,29 +490,10 @@ export default function PixelPerfectorPage() {
 
   if (phase === 'idle') {
     return (
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ background: 'var(--color-bg)' }}
-      >
-        <div className="p-4 md:p-6">
-          <Link
-            href="/games"
-            className="pixel-text text-[0.65rem] transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &lt; back to games
-          </Link>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center px-4 pb-10">
+      <ArcadeCabinet title="PIXEL PERFECTOR" subtitle="Memorize and recreate pixel art">
+        <div className="flex flex-col items-center justify-center px-4 py-10">
           <div className="text-center mb-8 animate-fade-in-up">
             <div className="text-6xl mb-4">🎨</div>
-            <h1
-              className="pixel-text text-xl md:text-2xl mb-3"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              Pixel Perfector
-            </h1>
             <p
               className="text-sm md:text-base max-w-md"
               style={{ color: 'var(--color-text-secondary)' }}
@@ -553,7 +534,7 @@ export default function PixelPerfectorPage() {
             </p>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -563,21 +544,8 @@ export default function PixelPerfectorPage() {
       : 0;
 
     return (
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ background: 'var(--color-bg)' }}
-      >
-        <div className="p-4 md:p-6">
-          <Link
-            href="/games"
-            className="pixel-text text-[0.65rem] transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &lt; back to games
-          </Link>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center px-4 pb-10">
+      <ArcadeCabinet title="PIXEL PERFECTOR" subtitle="Memorize and recreate pixel art">
+        <div className="flex flex-col items-center justify-center px-4 py-10">
           <div className="text-center mb-6 animate-fade-in-up">
             <div className="text-6xl mb-4">
               {finalAvg >= 90 ? '🏆' : finalAvg >= 70 ? '🌟' : finalAvg >= 50 ? '👍' : '🤔'}
@@ -632,48 +600,33 @@ export default function PixelPerfectorPage() {
             <button onClick={startGame} className="pixel-btn text-xs">
               Play Again
             </button>
-            <Link href="/games" className="pixel-btn text-xs">
-              Back to Games
-            </Link>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   // --- Active game phases (preview, drawing, scoring) ---
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--color-bg)' }}
-    >
+    <ArcadeCabinet title="PIXEL PERFECTOR" subtitle="Memorize and recreate pixel art">
       {/* Header bar */}
       <div
-        className="flex items-center justify-between px-4 py-3"
+        className="flex items-center justify-end gap-4 px-4 py-3 mb-2"
         style={{ borderBottom: '2px solid var(--color-border)' }}
       >
-        <Link
-          href="/games"
-          className="pixel-text text-[0.55rem] transition-colors"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          &lt; exit
-        </Link>
-        <div className="flex items-center gap-4">
-          <span className="pixel-text text-[0.55rem]" style={{ color: 'var(--color-text-muted)' }}>
-            Lv {level}/{TOTAL_LEVELS}
+        <span className="pixel-text text-[0.625rem]" style={{ color: 'var(--color-text-muted)' }}>
+          Lv {level}/{TOTAL_LEVELS}
+        </span>
+        {results.length > 0 && (
+          <span className="pixel-text text-[0.625rem]" style={{ color: 'var(--color-accent)' }}>
+            Avg: {totalScore}%
           </span>
-          {results.length > 0 && (
-            <span className="pixel-text text-[0.55rem]" style={{ color: 'var(--color-accent)' }}>
-              Avg: {totalScore}%
-            </span>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 gap-4">
+      <div className="flex flex-col items-center justify-center px-4 py-6 gap-4">
         {/* Pattern name */}
         {phase === 'preview' && currentPattern && (
           <div className="text-center animate-fade-in-up">
@@ -788,6 +741,6 @@ export default function PixelPerfectorPage() {
           </div>
         )}
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

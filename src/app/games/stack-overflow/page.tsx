@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import GamePlayCounter from '@/components/GamePlayCounter';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -976,10 +976,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   // Online: writing phase
   if (onlinePhase === 'online-writing') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <span className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
@@ -1068,10 +1065,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   // Online: waiting for all fakes
   if (onlinePhase === 'online-waiting-for-fakes') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="text-center max-w-md">
           <div className="text-4xl mb-6">{'\u270D\uFE0F'}</div>
           <p className="pixel-text text-sm mb-4" style={{ color: 'var(--color-accent)' }}>
@@ -1101,10 +1095,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   // Online: voting phase
   if (onlinePhase === 'online-voting') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <span className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
@@ -1175,10 +1166,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   // Online: waiting for all votes
   if (onlinePhase === 'online-waiting-for-votes') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="text-center max-w-md">
           <div className="text-4xl mb-6">{'\u{1F5F3}\uFE0F'}</div>
           <p className="pixel-text text-sm mb-4" style={{ color: 'var(--color-blue)' }}>
@@ -1208,10 +1196,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   // Online: reveal phase
   if (onlinePhase === 'online-reveal') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-6">
             <span className="pixel-text text-xs" style={{ color: 'var(--color-text-secondary)' }}>
@@ -1331,10 +1316,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   // Online: round summary
   if (onlinePhase === 'online-round-summary') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <p className="pixel-text text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
@@ -1402,10 +1384,7 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
   if (onlinePhase === 'online-final-results') {
     const winner = sortedOnlinePlayers[0];
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="pixel-text text-xl md:text-2xl mb-2" style={{ color: 'var(--color-orange)' }}>
@@ -1514,13 +1493,6 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
             >
               BACK TO MENU
             </button>
-            <Link
-              href="/games"
-              className="block text-center py-2 text-xs hover:opacity-80"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              &larr; Back to Arcade
-            </Link>
           </div>
         </div>
       </div>
@@ -1535,6 +1507,14 @@ function OnlineStackOverflow({ onBack }: { onBack: () => void }) {
    ================================================================ */
 
 export default function StackOverflowPage() {
+  return (
+    <ArcadeCabinet title="STACK OVERFLOW" subtitle="Real tech facts vs convincing lies">
+      <StackOverflowGame />
+    </ArcadeCabinet>
+  );
+}
+
+function StackOverflowGame() {
   const [mounted, setMounted] = useState(false);
 
   // Setup
@@ -1835,37 +1815,11 @@ export default function StackOverflowPage() {
   /* ── SETUP ── */
   if (phase === 'setup') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <Link
-              href="/games"
-              className="pixel-text text-xs hover:opacity-80 transition-opacity"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              &larr; BACK
-            </Link>
+          <div className="flex items-center justify-end mb-8">
             <GamePlayCounter slug="stack-overflow" />
-          </div>
-
-          {/* Title */}
-          <div className="text-center mb-8">
-            <h1
-              className="pixel-text text-lg md:text-2xl mb-2"
-              style={{ color: 'var(--color-orange)' }}
-            >
-              STACK OVERFLOW
-            </h1>
-            <p
-              className="pixel-text text-xs"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              Real tech facts vs. convincing lies
-            </p>
           </div>
 
           {/* Mode selection */}
@@ -2022,10 +1976,7 @@ export default function StackOverflowPage() {
   /* ── PASS THE PHONE SCREEN ── */
   if (phase === 'pass-phone') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-6">{currentWriter?.avatar}</div>
           <p
@@ -2061,10 +2012,7 @@ export default function StackOverflowPage() {
   /* ── WRITING PHASE ── */
   if (phase === 'writing') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           {/* Round indicator */}
           <div className="flex items-center justify-between mb-6">
@@ -2213,10 +2161,7 @@ export default function StackOverflowPage() {
   /* ── VOTE PASS SCREEN ── */
   if (phase === 'vote-pass') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-6">{currentVoter?.avatar}</div>
           <p
@@ -2252,10 +2197,7 @@ export default function StackOverflowPage() {
   /* ── VOTING PHASE ── */
   if (phase === 'voting') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -2372,10 +2314,7 @@ export default function StackOverflowPage() {
   /* ── REVEAL PHASE ── */
   if (phase === 'reveal') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-6">
             <span
@@ -2515,10 +2454,7 @@ export default function StackOverflowPage() {
   /* ── ROUND SUMMARY ── */
   if (phase === 'round-summary') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <p
@@ -2602,10 +2538,7 @@ export default function StackOverflowPage() {
   if (phase === 'final-results') {
     const winner = sortedPlayers[0];
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h2
@@ -2790,13 +2723,6 @@ export default function StackOverflowPage() {
             >
               NEW GAME (CHANGE PLAYERS)
             </button>
-            <Link
-              href="/games"
-              className="block text-center py-2 text-xs hover:opacity-80"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              &larr; Back to Arcade
-            </Link>
           </div>
         </div>
       </div>

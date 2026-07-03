@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -493,6 +493,14 @@ function LocationGrid({
 // ============================================
 
 export default function SpyfallDevPage() {
+  return (
+    <ArcadeCabinet title="SPYFALL: DEV EDITION" subtitle="Everyone knows the location... except the spy">
+      <SpyfallDevGame />
+    </ArcadeCabinet>
+  );
+}
+
+function SpyfallDevGame() {
   const [mounted, setMounted] = useState(false);
 
   // Game setup
@@ -1198,36 +1206,10 @@ export default function SpyfallDevPage() {
   // ---- MENU ----
   if (phase === 'menu') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full text-center">
-          <Link
-            href="/games"
-            className="text-sm transition-colors hover:opacity-80 inline-block mb-8"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
           <div className="mb-8">
-            <span className="text-6xl block mb-4">{'\ud83d\udd75\ufe0f'}</span>
-            <h1
-              className="pixel-text text-base md:text-lg mb-2"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              SPYFALL
-            </h1>
-            <h2
-              className="pixel-text text-xs mb-4"
-              style={{ color: 'var(--color-purple)' }}
-            >
-              DEV EDITION
-            </h2>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              You all know where you work. Except the spy.
-            </p>
+            <span className="text-6xl block">{'\ud83d\udd75\ufe0f'}</span>
           </div>
 
           {/* Mode Selection */}
@@ -1285,10 +1267,7 @@ export default function SpyfallDevPage() {
   // ---- LOBBY (Online: Name Entry) ----
   if (phase === 'lobby' && isOnline && onlinePhase === 'name-entry') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <button
             onClick={() => { setPhase('menu'); setOnlinePhase('none'); }}
@@ -1361,10 +1340,7 @@ export default function SpyfallDevPage() {
   // ---- LOBBY (Online: Create or Join) ----
   if (phase === 'lobby' && isOnline && onlinePhase === 'create-or-join') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <button
             onClick={() => setOnlinePhase('name-entry')}
@@ -1421,10 +1397,7 @@ export default function SpyfallDevPage() {
   // ---- LOBBY (Online: Entering Code) ----
   if (phase === 'lobby' && isOnline && onlinePhase === 'entering-code') {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <button
             onClick={() => setOnlinePhase('create-or-join')}
@@ -1493,10 +1466,7 @@ export default function SpyfallDevPage() {
     const canStart = players.length >= 4 && amIHost;
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <button
             onClick={resetGame}
@@ -1718,10 +1688,7 @@ export default function SpyfallDevPage() {
     const canStart = validNames.length >= 4;
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <button
             onClick={() => setPhase('menu')}
@@ -1887,10 +1854,7 @@ export default function SpyfallDevPage() {
       const iAmSpy = myPlayerId === roundState.spyId;
 
       return (
-        <div
-          className="min-h-screen flex items-center justify-center p-4"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div className="flex items-center justify-center py-8">
           <div className="max-w-md w-full text-center">
             {/* Round info */}
             <div className="mb-4">
@@ -2029,10 +1993,7 @@ export default function SpyfallDevPage() {
     const isLastPlayer = revealIndex >= players.length - 1;
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full text-center">
           {/* Round info */}
           <div className="mb-4">
@@ -2200,10 +2161,7 @@ export default function SpyfallDevPage() {
     const questioner = players[roundState.questioner];
 
     return (
-      <div
-        className="min-h-screen"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         {/* Header */}
         <div
           className="sticky top-0 z-50 border-b backdrop-blur-md px-4 py-3"
@@ -2316,10 +2274,7 @@ export default function SpyfallDevPage() {
     const caller = players.find((p) => p.id === roundState.calledBy);
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <div className="text-center mb-6 animate-scale-in">
             <span className="text-5xl block mb-3">{'\ud83d\udea8'}</span>
@@ -2409,10 +2364,7 @@ export default function SpyfallDevPage() {
     const iHaveVoted = isOnline && myVote !== undefined;
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <div className="text-center mb-6">
             <h2
@@ -2605,10 +2557,7 @@ export default function SpyfallDevPage() {
     const iAmTheSpy = isOnline && myPlayerId === roundState.spyId;
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full">
           <div className="text-center mb-6 animate-scale-in">
             <span className="text-5xl block mb-3">{'\ud83d\udd75\ufe0f'}</span>
@@ -2694,10 +2643,7 @@ export default function SpyfallDevPage() {
     }
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full text-center">
           <div className="animate-scale-in">
             <span className="text-6xl block mb-4">
@@ -2846,10 +2792,7 @@ export default function SpyfallDevPage() {
     const winner = sorted[0];
 
     return (
-      <div
-        className="min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center py-8">
         <div className="max-w-md w-full text-center">
           <div className="animate-scale-in mb-8">
             <span className="text-6xl block mb-4">{'\ud83c\udfc6'}</span>
@@ -2938,13 +2881,6 @@ export default function SpyfallDevPage() {
             <button onClick={resetGame} className="pixel-btn w-full py-3 text-sm">
               PLAY AGAIN
             </button>
-            <Link
-              href="/games"
-              className="block text-center text-sm py-2"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              &larr; Back to Games
-            </Link>
           </div>
         </div>
       </div>
