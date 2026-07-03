@@ -52,6 +52,8 @@ export function useGameRoom(
   const channelRef = useRef<RealtimeChannel | null>(null);
   const optionsRef = useRef(options);
   optionsRef.current = options;
+  const reconnectAttemptRef = useRef(0);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch initial room data
   const fetchRoom = useCallback(async () => {
@@ -73,15 +75,33 @@ export function useGameRoom(
     }
   }, [roomCode, playerId]);
 
-  // Subscribe to realtime events
+  // Subscribe to realtime events. On transient failures we tear the channel
+  // down and resubscribe with exponential backoff (1s -> 16s cap), refetching
+  // room state on reconnect so missed broadcasts can't leave us desynced.
   useEffect(() => {
-    fetchRoom();
+    let disposed = false;
+    let channel: RealtimeChannel;
 
-    const channel = supabase.channel(`room:${roomCode}`, {
-      config: { broadcast: { self: true } },
-    });
+    const connect = () => {
+      fetchRoom();
 
-    channel
+      channel = supabase.channel(`room:${roomCode}`, {
+        config: { broadcast: { self: true } },
+      });
+
+      const scheduleReconnect = () => {
+        if (disposed || reconnectTimerRef.current) return;
+        const attempt = reconnectAttemptRef.current++;
+        const delay = Math.min(1000 * 2 ** attempt, 16000);
+        reconnectTimerRef.current = setTimeout(() => {
+          reconnectTimerRef.current = null;
+          if (disposed) return;
+          supabase.removeChannel(channel);
+          connect();
+        }, delay);
+      };
+
+      channel
       .on('broadcast', { event: 'room_event' }, ({ payload }) => {
         const event = payload as RealtimeEvent;
 
@@ -164,25 +184,36 @@ export function useGameRoom(
             break;
         }
       })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setConnectionStatus('connected');
-        } else if (status === 'CHANNEL_ERROR') {
-          setConnectionStatus('error');
-        } else if (status === 'TIMED_OUT') {
-          setConnectionStatus('disconnected');
-        }
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            reconnectAttemptRef.current = 0;
+            setConnectionStatus('connected');
+          } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+            setConnectionStatus('error');
+            scheduleReconnect();
+          } else if (status === 'TIMED_OUT') {
+            setConnectionStatus('disconnected');
+            scheduleReconnect();
+          }
+        });
+
+      // Track presence
+      channel.track({
+        player_id: playerId,
+        online_at: new Date().toISOString(),
       });
 
-    // Track presence
-    channel.track({
-      player_id: playerId,
-      online_at: new Date().toISOString(),
-    });
+      channelRef.current = channel;
+    };
 
-    channelRef.current = channel;
+    connect();
 
     return () => {
+      disposed = true;
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
       channel.unsubscribe();
       channelRef.current = null;
     };

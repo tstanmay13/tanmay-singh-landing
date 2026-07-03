@@ -296,11 +296,11 @@ export default function Home() {
     aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Real numbers only — see github.com/tstanmay13 and radiordle.org.
+  // Real numbers only — see /games, radiordle.org, github.com/tstanmay13.
   const heroStats: Stat[] = [
-    { label: "MERGED PRS / YR", value: "400+", icon: ">" },
-    { label: "SDK LANGUAGES", value: "6", icon: "#" },
+    { label: "GAMES IN THE ARCADE", value: "33", icon: "#" },
     { label: "DAILY PLAYERS", value: "1K+", icon: "*" },
+    { label: "MERGED PRS / YR", value: "400+", icon: ">" },
   ];
 
   if (!mounted) {
@@ -362,20 +362,20 @@ export default function Home() {
           <span style={{ color: "var(--color-accent)" }}>SINGH</span>
         </h1>
 
-        {/* Positioning line — say the real thing, once */}
+        {/* Subtitle with typing effect */}
         <p
-          className="mono-text text-base sm:text-lg md:text-xl text-center mb-3 max-w-2xl"
+          className="mono-text text-lg sm:text-xl md:text-2xl text-center mb-10"
           style={{ color: "var(--color-text-secondary)" }}
         >
           <span style={{ color: "var(--color-accent)" }}>&gt;</span>{" "}
-          Senior software engineer. I build SDK generators and agent tooling
-          at Fern (acquired by Postman).
-        </p>
-        <p
-          className="mono-text text-sm sm:text-base text-center mb-10"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Before that: passkeys and auth at Amazon Identity.
+          <TypingText
+            texts={[
+              "Senior Software Engineer",
+              "Game Builder",
+              "SDK Generator Author",
+              "Agent Tooling Nerd",
+            ]}
+          />
         </p>
 
         {/* Stats bar */}
