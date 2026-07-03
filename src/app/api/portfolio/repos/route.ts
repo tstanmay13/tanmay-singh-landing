@@ -70,9 +70,20 @@ export async function GET() {
     const rawRepos: GitHubRepo[] = await response.json();
 
     const BLOCKED_REPOS = ["tanmay-irika-austin-demo"];
+    // Coursework/scratch repos read as junk on a portfolio page.
+    const JUNK_PATTERNS = /^(homework|hw)\d*|helloworld|hello-world|-final$|^test-|^commerce/i;
 
     const repos: RepoData[] = rawRepos
-      .filter((repo) => !repo.fork && !repo.archived && !BLOCKED_REPOS.includes(repo.name))
+      .filter(
+        (repo) =>
+          !repo.fork &&
+          !repo.archived &&
+          !repo.private && // lock icons on a portfolio help no one
+          !BLOCKED_REPOS.includes(repo.name) &&
+          !JUNK_PATTERNS.test(repo.name) &&
+          // A repo earns a card by having a description; write one on GitHub to surface it here.
+          repo.description !== null
+      )
       .map((repo) => ({
         name: repo.name,
         description: repo.description,

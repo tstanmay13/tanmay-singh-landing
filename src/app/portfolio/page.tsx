@@ -36,6 +36,52 @@ interface CommitData {
 
 const PINNED_REPOS = ["tanmay-singh-landing"];
 
+// Hand-curated flagships. These don't depend on the GitHub API and lead
+// with the work that matters — not star counts.
+interface FeaturedProject {
+  title: string;
+  description: string;
+  tech: string[];
+  links: { label: string; href: string }[];
+}
+
+const FEATURED: FeaturedProject[] = [
+  {
+    title: "Fern Replay",
+    description:
+      "Git-native 3-way merge engine that preserves hand-edits to generated SDKs across regenerations. Sole-authored at Fern; in production for ElevenLabs and Auth0.",
+    tech: ["TypeScript", "git internals", "diff3"],
+    links: [{ label: "npm", href: "https://www.npmjs.com/package/@fern-api/replay" }],
+  },
+  {
+    title: "Radwordle",
+    description:
+      "Daily Radiohead word game with 1,000+ daily players. 55-test Playwright suite; ISR caching cut serverless invocations ~87x.",
+    tech: ["Next.js", "Supabase", "Playwright"],
+    links: [{ label: "Play", href: "https://radiordle.org" }],
+  },
+  {
+    title: "debrief + product-view",
+    description:
+      "Two published Claude Code plugins: an end-of-session recall ritual grounded in the testing effect, and a lens that reframes agent output in user-experience terms.",
+    tech: ["Claude Code", "plugin marketplace"],
+    links: [
+      { label: "debrief", href: "https://github.com/tstanmay13/debrief" },
+      { label: "product-view", href: "https://github.com/tstanmay13/product-view" },
+    ],
+  },
+  {
+    title: "This site",
+    description:
+      "Portfolio + 33-game retro arcade with realtime multiplayer (lobbies, room codes, presence) over Supabase channels.",
+    tech: ["Next.js", "React 19", "Supabase Realtime"],
+    links: [
+      { label: "GitHub", href: "https://github.com/tstanmay13/tanmay-singh-landing" },
+      { label: "Arcade", href: "/games" },
+    ],
+  },
+];
+
 type SortOption = "stars" | "updated" | "name";
 
 const SORT_OPTIONS: { label: string; value: SortOption }[] = [
@@ -172,45 +218,53 @@ function LanguageDot({ language }: { language: string }) {
   );
 }
 
-function StatsBar({ repos }: { repos: RepoData[] }) {
-  const totalStars = repos.reduce((sum, r) => sum + r.stars, 0);
-
-  const langCount: Record<string, number> = {};
-  for (const r of repos) {
-    if (r.language) {
-      langCount[r.language] = (langCount[r.language] || 0) + 1;
-    }
-  }
-  const topLanguage =
-    Object.entries(langCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "N/A";
-
-  const stats = [
-    { label: "Repos", value: repos.length },
-    { label: "Stars", value: totalStars },
-    { label: "Top Lang", value: topLanguage },
-  ];
-
+function FeaturedCard({ project }: { project: FeaturedProject }) {
   return (
-    <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="pixel-card rounded-lg px-4 py-5 text-center"
-        >
-          <p
-            className="pixel-text text-lg md:text-2xl mb-1"
-            style={{ color: "var(--color-accent)" }}
+    <div className="pixel-card pixel-border-accent rounded-lg p-6 h-full flex flex-col">
+      <h3
+        className="pixel-text text-xs md:text-sm mb-3"
+        style={{ color: "var(--color-text)" }}
+      >
+        {project.title}
+      </h3>
+      <p
+        className="text-sm leading-relaxed mb-4 flex-grow"
+        style={{ color: "var(--color-text-secondary)" }}
+      >
+        {project.description}
+      </p>
+      <div className="flex flex-wrap gap-1.5 mb-4">
+        {project.tech.map((t) => (
+          <span
+            key={t}
+            className="mono-text text-[10px] px-2 py-0.5 rounded-sm"
+            style={{
+              color: "var(--color-text-secondary)",
+              backgroundColor: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+            }}
           >
-            {stat.value}
-          </p>
-          <p
-            className="pixel-text text-[8px] md:text-[10px]"
-            style={{ color: "var(--color-text-secondary)" }}
+            {t}
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-3 mt-auto">
+        {project.links.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            target={link.href.startsWith("http") ? "_blank" : undefined}
+            rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+            className="pixel-text text-[10px] px-3 py-2 border-2 transition-all duration-200"
+            style={{
+              borderColor: "var(--color-accent)",
+              color: "var(--color-accent)",
+            }}
           >
-            {stat.label}
-          </p>
-        </div>
-      ))}
+            {link.label}
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
@@ -489,11 +543,6 @@ export default function PortfolioPage() {
     return Array.from(langs).sort();
   }, [repos]);
 
-  const pinnedRepos = useMemo(
-    () => repos.filter((r) => PINNED_REPOS.includes(r.name)),
-    [repos]
-  );
-
   const filteredAndSorted = useMemo(() => {
     let result = repos.filter((r) => !PINNED_REPOS.includes(r.name));
 
@@ -566,12 +615,8 @@ export default function PortfolioPage() {
         <ScrollReveal delay={100}>
           <header className="text-center mb-12 md:mb-16">
             <h1
-              className="pixel-text text-3xl md:text-5xl mb-4 animate-flicker"
-              style={{
-                color: "var(--color-accent)",
-                textShadow:
-                  "0 0 20px var(--color-accent-glow), 0 0 40px var(--color-accent-glow)",
-              }}
+              className="pixel-text text-3xl md:text-5xl mb-4"
+              style={{ color: "var(--color-accent)" }}
             >
               PORTFOLIO
             </h1>
@@ -579,7 +624,7 @@ export default function PortfolioPage() {
               className="text-lg md:text-xl"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              Projects &amp; Creations
+              The work I&apos;d want you to read first, then the live GitHub feed.
             </p>
             <div
               className="mx-auto mt-6 h-[2px] w-24"
@@ -590,13 +635,6 @@ export default function PortfolioPage() {
             />
           </header>
         </ScrollReveal>
-
-        {/* Stats Bar */}
-        {!reposLoading && repos.length > 0 && (
-          <ScrollReveal delay={150}>
-            <StatsBar repos={repos} />
-          </ScrollReveal>
-        )}
 
         {/* Fallback notice */}
         {reposFallback && !reposLoading && (
@@ -613,24 +651,22 @@ export default function PortfolioPage() {
           </div>
         )}
 
-        {/* Pinned / Featured */}
-        {!reposLoading && pinnedRepos.length > 0 && (
-          <ScrollReveal delay={200}>
-            <section className="mb-10">
-              <h2
-                className="pixel-text text-xs mb-5"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                {"// PINNED"}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {pinnedRepos.map((repo) => (
-                  <RepoCard key={repo.name} repo={repo} featured />
-                ))}
-              </div>
-            </section>
-          </ScrollReveal>
-        )}
+        {/* Featured — hand-curated, no API dependency */}
+        <ScrollReveal delay={200}>
+          <section className="mb-10">
+            <h2
+              className="pixel-text text-xs mb-5"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {"// FEATURED"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {FEATURED.map((project) => (
+                <FeaturedCard key={project.title} project={project} />
+              ))}
+            </div>
+          </section>
+        </ScrollReveal>
 
         {/* Filters + Sort */}
         <ScrollReveal delay={250}>
@@ -713,12 +749,23 @@ export default function PortfolioPage() {
 
         {/* Projects Grid */}
         <section className="mb-16">
-          <h2
-            className="pixel-text text-xs mb-5"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            {"// ALL PROJECTS"}
-          </h2>
+          <div className="flex items-baseline justify-between mb-5">
+            <h2
+              className="pixel-text text-xs"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {"// FROM GITHUB"}
+            </h2>
+            <a
+              href="https://github.com/tstanmay13?tab=repositories"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pixel-text text-[10px] hover:underline"
+              style={{ color: "var(--color-accent)" }}
+            >
+              EVERYTHING ELSE &rarr;
+            </a>
+          </div>
 
           {reposLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
