@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
 
 @theme inline {
   --font-pixel: 'Press Start 2P', monospace;
@@ -20,8 +20,8 @@
   --color-border: #2a2a3a;
   --color-border-hover: #3a3a4f;
   --color-text: #e8e8f0;
-  --color-text-secondary: #8888a0;
-  --color-text-muted: #555570;
+  --color-text-secondary: #9a9ab2;
+  --color-text-muted: #7d7d98;
   --color-accent: #00ff88;
   --color-accent-secondary: #00cc6a;
   --color-accent-glow: rgba(0, 255, 136, 0.15);
@@ -50,8 +50,8 @@
   --color-border: #d0d0e0;
   --color-border-hover: #b0b0c8;
   --color-text: #1a1a2e;
-  --color-text-secondary: #555580;
-  --color-text-muted: #8888a0;
+  --color-text-secondary: #4d4d78;
+  --color-text-muted: #6b6b88;
   --color-accent: #00aa55;
   --color-accent-secondary: #008844;
   --color-accent-glow: rgba(0, 170, 85, 0.12);
@@ -462,6 +462,29 @@ body {
 .reveal-scale.revealed {
   opacity: 1;
   transform: scale(1);
+}
+
+/* Accessibility + no-JS resilience: never hide content when the user
+   prefers reduced motion (also disables the decorative animations). */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-left,
+  .reveal-scale {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .animate-fade-in-up,
+  .animate-pixel-bounce,
+  .animate-glow-pulse,
+  .animate-flicker,
+  .animate-float,
+  .animate-spin-slow,
+  .animate-scale-in,
+  .animate-slide-in-left {
+    animation: none !important;
+  }
 }
 
 /* ============================================

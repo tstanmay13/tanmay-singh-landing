@@ -215,7 +215,7 @@ const games: Game[] = [
     path: "/games/person-do-thing",
     category: "multiplayer",
     isNew: true,
-    playerCount: "3-8 players",
+    playerCount: "3-8 players · one device",
   },
   {
     id: "prompt-roulette",
@@ -275,7 +275,7 @@ const games: Game[] = [
     path: "/games/glitch-artist",
     category: "multiplayer",
     isNew: true,
-    playerCount: "4-8 players",
+    playerCount: "4-8 players · one device",
   },
   {
     id: "retro-reflex",
@@ -285,7 +285,7 @@ const games: Game[] = [
     path: "/games/retro-reflex",
     category: "multiplayer",
     isNew: true,
-    playerCount: "2-4 players",
+    playerCount: "2-4 players · one device",
   },
   // Solo deep games
   {

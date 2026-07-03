@@ -323,9 +323,22 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const lobbyChannelRef = useRef<RealtimeChannel | null>(null);
 
+  // Latest-value refs so channel handlers (registered once per channel) never
+  // act on stale closures. Handlers accumulating per render was the root of
+  // the double-reveal / double-score bug.
+  const isHostRef = useRef(isHost);
+  isHostRef.current = isHost;
+  const roundDataRef = useRef(roundData);
+  roundDataRef.current = roundData;
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  const handleBroadcastEventRef = useRef<(event: BroadcastEvent) => void>(() => {});
+  const setupGameChannelRef = useRef<(roomCode: string) => void>(() => {});
+  const broadcastRef = useRef<(event: BroadcastEvent) => void>(() => {});
+
   // ─── Lobby channel for player join/leave ──────────────────────────────────
 
-  const setupLobbyChannel = useCallback((roomCode: string) => {
+  const setupLobbyChannel = useCallback((roomCode: string, onSubscribed?: () => void) => {
     if (lobbyChannelRef.current) {
       lobbyChannelRef.current.unsubscribe();
     }
@@ -333,6 +346,8 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     const channel = supabase.channel(`room:${roomCode}`, {
       config: { broadcast: { self: true } },
     });
+
+    let announced = false;
 
     channel
       .on('broadcast', { event: 'room_event' }, ({ payload }) => {
@@ -351,11 +366,27 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
           );
         } else if (payload.type === 'player_kicked') {
           setOnlinePlayers((prev) => prev.filter((p) => p.id !== payload.player_id));
+        } else if (payload.type === 'game_started') {
+          // Host transitions locally in handleStartGame; everyone else
+          // transitions here, off the single lobby handler.
+          if (!isHostRef.current) {
+            const state = payload.state as { teams: Record<string, 1 | 2>; roomCode: string };
+            setInLobby(false);
+            setupGameChannelRef.current(state.roomCode);
+            setPhase('category-select');
+          }
         }
       })
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') setConnectionStatus('connected');
-        else if (status === 'CHANNEL_ERROR') setConnectionStatus('error');
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+          // Announce join only once the channel is actually live — a fixed
+          // timeout used to race the subscription and drop the event.
+          if (!announced) {
+            announced = true;
+            onSubscribed?.();
+          }
+        } else if (status === 'CHANNEL_ERROR') setConnectionStatus('error');
         else if (status === 'TIMED_OUT') setConnectionStatus('disconnected');
       });
 
@@ -375,12 +406,13 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
     channel
       .on('broadcast', { event: 'wavelength_event' }, ({ payload }) => {
-        handleBroadcastEvent(payload as BroadcastEvent);
+        handleBroadcastEventRef.current(payload as BroadcastEvent);
       })
       .subscribe();
 
     channelRef.current = channel;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+  setupGameChannelRef.current = setupGameChannel;
 
   // Cleanup on unmount
   useEffect(() => {
@@ -435,13 +467,32 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
         }
         break;
 
-      case 'guess_locked':
+      case 'guess_locked': {
         setRoundData((prev) => {
           if (!prev) return prev;
           return { ...prev, guessPosition: event.position };
         });
         setLocalGuessPosition(event.position);
+        // The host computes and reveals — one path for everyone (including
+        // the host's own lock, which arrives here via self-broadcast). The
+        // phase guard makes a second lock in the same round a no-op.
+        const current = roundDataRef.current;
+        if (isHostRef.current && current && phaseRef.current === 'team-guess') {
+          const score = calculateScore(current.targetPosition, event.position);
+          setTimeout(() => {
+            broadcastRef.current({
+              type: 'reveal',
+              targetPosition: current.targetPosition,
+              score,
+              team1Score: current.team1Score + (current.currentTeam === 1 ? score : 0),
+              team2Score: current.team2Score + (current.currentTeam === 2 ? score : 0),
+            });
+          }, 800);
+          // Guard against a second guess_locked landing before the reveal.
+          phaseRef.current = 'reveal';
+        }
         break;
+      }
 
       case 'reveal':
         setRoundData((prev) => {
@@ -467,6 +518,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
         break;
     }
   }, [isDragging]);
+  handleBroadcastEventRef.current = handleBroadcastEvent;
 
   // ─── Broadcast helper ──────────────────────────────────────────────────────
 
@@ -477,6 +529,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
       payload: event,
     });
   }, []);
+  broadcastRef.current = broadcast;
 
   // Broadcast new round data to all players. The target position is included
   // in the data but only the psychic's UI displays it (enforced in rendering).
@@ -569,16 +622,14 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
       setMyPlayerId(data.player.id);
       setIsHost(data.player.is_host);
       setOnlinePlayers(data.players);
-      setupLobbyChannel(data.room.code);
-
-      // Broadcast that we joined
-      setTimeout(() => {
+      // Announce the join only after the channel is subscribed.
+      setupLobbyChannel(data.room.code, () => {
         lobbyChannelRef.current?.send({
           type: 'broadcast',
           event: 'room_event',
           payload: { type: 'player_joined', player: data.player },
         });
-      }, 500);
+      });
 
       setLobbyPhase('waiting');
     } catch (err) {
@@ -629,26 +680,8 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     });
   }, [isHost, room, onlinePlayers, setupGameChannel]);
 
-  // Listen for game_started in lobby
-  useEffect(() => {
-    if (!lobbyChannelRef.current || !inLobby) return;
-
-    const handler = ({ payload }: { payload: Record<string, unknown> }) => {
-      if (payload.type === 'game_started' && !isHost) {
-        const state = payload.state as { teams: Record<string, 1 | 2>; roomCode: string };
-        setInLobby(false);
-        setupGameChannel(state.roomCode);
-        setPhase('category-select');
-      }
-    };
-
-    // The lobby channel already has the listener from setupLobbyChannel,
-    // but we need to re-subscribe to catch game_started specifically.
-    // Since supabase channels support multiple on() handlers, let's add one.
-    lobbyChannelRef.current.on('broadcast', { event: 'room_event' }, handler);
-
-    // Can't easily remove just this handler, but cleanup is on unmount anyway
-  }, [inLobby, isHost, setupGameChannel]);
+  // game_started is handled inside setupLobbyChannel's single handler —
+  // registering per-render handlers here used to stack duplicates.
 
   // ─── Category Selection ───────────────────────────────────────────────────
 
@@ -829,61 +862,10 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     if (myPlayerId === roundData.psychicPlayerId) return;
 
     broadcast({ type: 'guess_locked', position: localGuessPosition });
-
-    // If host, also compute and reveal
-    if (isHost) {
-      setTimeout(() => {
-        const score = calculateScore(roundData.targetPosition, localGuessPosition);
-        const newTeam1Score = roundData.team1Score + (roundData.currentTeam === 1 ? score : 0);
-        const newTeam2Score = roundData.team2Score + (roundData.currentTeam === 2 ? score : 0);
-
-        broadcast({
-          type: 'reveal',
-          targetPosition: roundData.targetPosition,
-          score,
-          team1Score: newTeam1Score,
-          team2Score: newTeam2Score,
-        });
-      }, 800);
-    }
+    // The reveal is driven by the host's single guess_locked handler in
+    // handleBroadcastEvent (the host receives its own lock via self-broadcast),
+    // so there is exactly one reveal path for every lock.
   };
-
-  // Non-host guess lock: host detects and reveals
-  useEffect(() => {
-    if (phase === 'team-guess' && roundData && isHost) {
-      // Listen for guess_locked from broadcast -- handled in handleBroadcastEvent
-    }
-  }, [phase, roundData, isHost]);
-
-  // Handle guess_locked when host receives it from a non-host player
-  const handleGuessLockedAsHost = useCallback((position: number) => {
-    if (!roundData || !isHost) return;
-
-    const score = calculateScore(roundData.targetPosition, position);
-    const newTeam1Score = roundData.team1Score + (roundData.currentTeam === 1 ? score : 0);
-    const newTeam2Score = roundData.team2Score + (roundData.currentTeam === 2 ? score : 0);
-
-    broadcast({
-      type: 'reveal',
-      targetPosition: roundData.targetPosition,
-      score,
-      team1Score: newTeam1Score,
-      team2Score: newTeam2Score,
-    });
-  }, [roundData, isHost, broadcast]);
-
-  // Override broadcast handler to detect guess_locked for host
-  useEffect(() => {
-    if (!channelRef.current || !isHost) return;
-
-    const handler = ({ payload }: { payload: Record<string, unknown> }) => {
-      if (payload.type === 'guess_locked' && isHost) {
-        handleGuessLockedAsHost(payload.position as number);
-      }
-    };
-
-    channelRef.current.on('broadcast', { event: 'wavelength_event' }, handler);
-  }, [isHost, handleGuessLockedAsHost]);
 
   // ─── Next Round / Game Over ───────────────────────────────────────────────
 
