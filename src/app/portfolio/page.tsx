@@ -88,14 +88,11 @@ const FEATURED: FeaturedProject[] = [
     links: [{ label: "GitHub", href: "https://github.com/tstanmay13/claude-code-search-" }],
   },
   {
-    title: "This site",
+    title: "Agent Tracking Portal",
     description:
-      "Portfolio + 33-game retro arcade with realtime multiplayer (lobbies, room codes, presence) over Supabase channels.",
-    tech: ["Next.js", "React 19", "Supabase Realtime"],
-    links: [
-      { label: "GitHub", href: "https://github.com/tstanmay13/tanmay-singh-landing" },
-      { label: "Arcade", href: "/games" },
-    ],
+      "One dashboard for every AI agent working for you: normalizes Claude Code, Devin, and Slack sessions through a single zod-typed contract with idempotent dedup. Answers one question: which agents need me right now? 82 tests.",
+    tech: ["TypeScript", "Fastify", "SQLite", "SSE"],
+    links: [{ label: "GitHub", href: "https://github.com/tstanmay13/agent-tracking-portal" }],
   },
 ];
 
