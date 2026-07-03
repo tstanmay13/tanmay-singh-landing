@@ -23,11 +23,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Dark is the brand; first-time visitors get it regardless of OS
+    // preference. Light mode remains a deliberate toggle (persisted).
     const saved = localStorage.getItem("theme") as Theme | null;
     if (saved) {
       setTheme(saved);
-    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      setTheme("light");
     }
     setMounted(true);
   }, []);
