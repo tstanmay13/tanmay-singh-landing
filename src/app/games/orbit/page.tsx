@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
+import ArcadeCabinet from "@/components/ArcadeCabinet";
 import GamePlayCounter from "@/components/GamePlayCounter";
 
 // ---------------------------------------------------------------------------
@@ -638,62 +638,24 @@ export default function OrbitPage() {
 
   if (!mounted) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--color-bg)" }}
-      >
-        <p className="pixel-text text-sm" style={{ color: "var(--color-text-muted)" }}>
+      <ArcadeCabinet title="ORBIT" subtitle="N-body gravity simulator" wide>
+        <p
+          className="pixel-text text-sm text-center py-8"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           LOADING...
         </p>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div className="min-h-screen relative" style={{ background: "var(--color-bg)" }}>
-      {/* Grid background */}
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
+    <ArcadeCabinet title="ORBIT" subtitle="N-body gravity simulator" wide>
+      <div className="text-center mb-4">
+        <GamePlayCounter slug="orbit" onPlay />
+      </div>
 
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="pt-8 pb-4 px-4 text-center">
-          <Link
-            href="/games"
-            className="pixel-text text-xs inline-block mb-6 transition-colors duration-200"
-            style={{ color: "var(--color-text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--color-accent)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--color-text-secondary)")
-            }
-          >
-            &lt; BACK TO GAMES
-          </Link>
-
-          <h1
-            className="pixel-text text-3xl sm:text-4xl md:text-5xl mb-2"
-            style={{
-              color: "var(--color-accent)",
-              textShadow: `
-                0 0 10px var(--color-accent-glow),
-                0 0 30px var(--color-accent-glow)
-              `,
-            }}
-          >
-            ORBIT
-          </h1>
-          <p
-            className="pixel-text text-[10px] sm:text-xs mb-1"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            N-BODY GRAVITY SIMULATOR
-          </p>
-          <div className="mt-2"><GamePlayCounter slug="orbit" onPlay /></div>
-        </header>
-
-        {/* Main content */}
-        <main className="max-w-5xl mx-auto px-4 pb-8">
+      <main className="max-w-5xl mx-auto">
           {/* Info bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <p
@@ -851,8 +813,7 @@ export default function OrbitPage() {
               </li>
             </ul>
           </div>
-        </main>
-      </div>
-    </div>
+      </main>
+    </ArcadeCabinet>
   );
 }

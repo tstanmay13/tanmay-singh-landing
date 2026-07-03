@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import GamePlayCounter from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
@@ -692,23 +692,15 @@ export default function PerfectShapePage() {
     const totalRating = getRating(total);
 
     return (
-      <div className="min-h-screen p-5 md:p-10" style={{ background: 'var(--color-bg)' }}>
+      <ArcadeCabinet title="DRAW PERFECT SHAPE" subtitle="How steady is your hand?">
         <div className="max-w-lg mx-auto">
-          <Link
-            href="/games"
-            className="inline-block mb-6 transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Back to Games
-          </Link>
-
           <div className="text-center mb-8 animate-fade-in-up">
-            <h1
+            <h2
               className="pixel-text text-2xl md:text-3xl mb-4"
               style={{ color: 'var(--color-text)' }}
             >
               Results
-            </h1>
+            </h2>
             <div
               className="text-7xl md:text-8xl font-bold pixel-text mb-2"
               style={{ color: totalRating.color }}
@@ -768,28 +760,20 @@ export default function PerfectShapePage() {
             </button>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div className="min-h-screen p-5 md:p-10" style={{ background: 'var(--color-bg)' }}>
+    <ArcadeCabinet title="DRAW PERFECT SHAPE" subtitle="How steady is your hand?">
       <div className="max-w-lg mx-auto">
-        <Link
-          href="/games"
-          className="inline-block mb-6 transition-colors"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          &larr; Back to Games
-        </Link>
-
-        {/* Title */}
-        <h1
+        {/* Current shape prompt */}
+        <h2
           className="pixel-text text-center text-lg md:text-xl mb-6"
           style={{ color: 'var(--color-text)' }}
         >
           Draw a Perfect {currentShape.label}
-        </h1>
+        </h2>
         <div className="text-center mb-4"><GamePlayCounter slug="perfect-shape" onPlay /></div>
 
         {/* Progress dots */}
@@ -879,6 +863,6 @@ export default function PerfectShapePage() {
           </p>
         )}
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
