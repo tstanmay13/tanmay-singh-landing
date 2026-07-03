@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // --- TYPES ---
@@ -608,61 +608,30 @@ export default function AlignmentProblemPage() {
 
   if (!mounted) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'var(--color-bg)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <p style={{ fontFamily: 'var(--font-pixel)', color: 'var(--color-text-muted)', fontSize: '0.7rem' }}>
-          LOADING...
-        </p>
-      </div>
+      <ArcadeCabinet title="THE ALIGNMENT PROBLEM" subtitle="Train an AI, watch it find loopholes" wide>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 0' }}>
+          <p style={{ fontFamily: 'var(--font-pixel)', color: 'var(--color-text-muted)', fontSize: '0.7rem' }}>
+            LOADING...
+          </p>
+        </div>
+      </ArcadeCabinet>
     );
   }
 
   // --- MENU SCREEN ---
   if (screen === 'menu') {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '2rem 1rem' }}>
+      <ArcadeCabinet title="THE ALIGNMENT PROBLEM" subtitle="Train an AI, watch it find loopholes" wide>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
-          <Link
-            href="/games"
-            style={{
-              fontFamily: 'var(--font-pixel)',
-              fontSize: '0.6rem',
-              color: 'var(--color-text-muted)',
-              textDecoration: 'none',
-              display: 'inline-block',
-              marginBottom: '2rem',
-            }}
-          >
-            {'<'} BACK TO ARCADE
-          </Link>
-
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>&#x1F916;</div>
-            <h1
-              style={{
-                fontFamily: 'var(--font-pixel)',
-                fontSize: 'clamp(0.9rem, 3vw, 1.3rem)',
-                color: 'var(--color-red)',
-                marginBottom: '0.5rem',
-                lineHeight: 1.6,
-              }}
-            >
-              THE ALIGNMENT PROBLEM
-            </h1>
             <p
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '0.85rem',
                 color: 'var(--color-text-secondary)',
                 maxWidth: 500,
-                margin: '0 auto 1.5rem',
+                margin: '0 auto',
                 lineHeight: 1.6,
               }}
             >
@@ -748,14 +717,14 @@ export default function AlignmentProblemPage() {
             BEGIN EXPERIMENT
           </button>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   // --- PERSONALITY SELECT ---
   if (screen === 'personality') {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '2rem 1rem' }}>
+      <ArcadeCabinet title="THE ALIGNMENT PROBLEM" subtitle="Train an AI, watch it find loopholes" wide>
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
           <button
             onClick={() => setScreen('menu')}
@@ -835,7 +804,7 @@ export default function AlignmentProblemPage() {
             ))}
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -844,7 +813,7 @@ export default function AlignmentProblemPage() {
     const won = danger < 100;
     const finalScore = won ? rounds.length : roundsSurvived;
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '2rem 1rem' }}>
+      <ArcadeCabinet title="THE ALIGNMENT PROBLEM" subtitle="Train an AI, watch it find loopholes" wide>
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>{won ? '\uD83C\uDF89' : '\uD83D\uDCA5'}</div>
           <h1
@@ -956,30 +925,15 @@ export default function AlignmentProblemPage() {
             >
               NEW AI
             </button>
-            <Link
-              href="/games"
-              style={{
-                padding: '0.75rem 1.5rem',
-                fontFamily: 'var(--font-pixel)',
-                fontSize: '0.6rem',
-                background: 'var(--color-bg-card)',
-                color: 'var(--color-text-muted)',
-                border: '2px solid var(--color-border)',
-                textDecoration: 'none',
-                display: 'inline-block',
-              }}
-            >
-              ARCADE
-            </Link>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   // --- PLAYING SCREEN ---
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', padding: '1rem' }}>
+    <ArcadeCabinet title="THE ALIGNMENT PROBLEM" subtitle="Train an AI, watch it find loopholes" wide>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         {/* Header bar */}
         <div
@@ -1294,7 +1248,7 @@ export default function AlignmentProblemPage() {
           }
         `}</style>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
 

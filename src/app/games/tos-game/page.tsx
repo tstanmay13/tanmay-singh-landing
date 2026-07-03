@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ============================================================
@@ -645,20 +645,10 @@ export default function TOSGamePage() {
   // ============================================================
   if (screen === 'menu') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="TERMS OF SERVICE" subtitle="Find the absurd clauses in legal text">
         <div className="max-w-2xl mx-auto">
-          <Link href="/games" className="text-sm transition-colors hover:opacity-80 inline-block mb-6" style={{ color: 'var(--color-text-secondary)' }}>
-            &larr; Back to Games
-          </Link>
-
           <div className="pixel-card rounded-lg p-6 md:p-8 text-center" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <div className="text-5xl mb-4">{'\uD83D\uDCDC'}</div>
-            <h1 className="pixel-text text-lg md:text-2xl mb-3" style={{ color: 'var(--color-accent)' }}>
-              THE TERMS OF SERVICE
-            </h1>
-            <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
-              Nobody reads the fine print. But you should.
-            </p>
 
             <div className="pixel-card rounded-lg p-4 mb-6 text-left text-sm space-y-2" style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-secondary)' }}>
               <p><strong style={{ color: 'var(--color-text)' }}>HOW TO PLAY:</strong></p>
@@ -692,7 +682,7 @@ export default function TOSGamePage() {
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -701,7 +691,7 @@ export default function TOSGamePage() {
   // ============================================================
   if (screen === 'levels') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="TERMS OF SERVICE" subtitle="Find the absurd clauses in legal text">
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => setScreen('menu')}
@@ -762,7 +752,7 @@ export default function TOSGamePage() {
             })}
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -776,7 +766,7 @@ export default function TOSGamePage() {
     const timerColor = timerPct > 50 ? 'var(--color-accent)' : timerPct > 25 ? 'var(--color-orange)' : 'var(--color-red)';
 
     return (
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="TERMS OF SERVICE" subtitle="Find the absurd clauses in legal text">
         {/* Top bar */}
         <div
           className="sticky top-0 z-50 border-b backdrop-blur-md"
@@ -935,7 +925,7 @@ export default function TOSGamePage() {
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -959,7 +949,7 @@ export default function TOSGamePage() {
     const hasNext = nextIdx < TOS_LEVELS.length;
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="TERMS OF SERVICE" subtitle="Find the absurd clauses in legal text">
         <div className="max-w-2xl mx-auto">
           <div className="pixel-card rounded-lg p-6 md:p-8 text-center" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <div className="text-4xl mb-2">{gradeEmoji}</div>
@@ -1038,7 +1028,7 @@ export default function TOSGamePage() {
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1051,7 +1041,7 @@ export default function TOSGamePage() {
     const completionPct = Math.round((saveData.levelsCompleted.length / TOS_LEVELS.length) * 100);
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <ArcadeCabinet title="TERMS OF SERVICE" subtitle="Find the absurd clauses in legal text">
         <div className="max-w-2xl mx-auto">
           <div className="pixel-card rounded-lg p-6 md:p-8 text-center" style={{ backgroundColor: 'var(--color-bg-card)' }}>
             <div className="text-5xl mb-3">{'\uD83D\uDCDC'}</div>
@@ -1118,13 +1108,10 @@ export default function TOSGamePage() {
               <button className="pixel-btn" onClick={() => setScreen('levels')}>
                 PLAY MORE
               </button>
-              <Link href="/games" className="pixel-btn inline-block text-center" style={{ backgroundColor: 'var(--color-bg-secondary)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)' }}>
-                BACK TO ARCADE
-              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 

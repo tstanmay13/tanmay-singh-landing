@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ============================================
@@ -1059,26 +1059,9 @@ export default function CodeReviewPage() {
   // ============================================
   if (screen === 'menu') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <Link
-          href="/games"
-          className="absolute top-4 left-4 text-sm transition-colors hover:opacity-80"
-          style={{ color: 'var(--color-text-secondary)' }}
-        >
-          &larr; Back to Games
-        </Link>
-
-        <div className="max-w-2xl w-full text-center">
+      <ArcadeCabinet title="CODE REVIEW FROM HELL" subtitle="Satisfy impossible review comments" wide>
+        <div className="max-w-2xl w-full mx-auto text-center">
           <div className="text-6xl mb-4">{'\ud83d\udd25'}</div>
-          <h1 className="pixel-text text-lg md:text-2xl mb-2" style={{ color: 'var(--color-red)' }}>
-            CODE REVIEW
-          </h1>
-          <h2 className="pixel-text text-sm md:text-lg mb-6" style={{ color: 'var(--color-orange)' }}>
-            FROM HELL
-          </h2>
 
           <div
             className="pixel-card rounded-lg p-6 mb-6 text-left"
@@ -1150,7 +1133,7 @@ export default function CodeReviewPage() {
             </div>
           )}
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1159,10 +1142,7 @@ export default function CodeReviewPage() {
   // ============================================
   if (screen === 'style-guide') {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <ArcadeCabinet title="CODE REVIEW FROM HELL" subtitle="Satisfy impossible review comments" wide>
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => setScreen('menu')}
@@ -1196,7 +1176,7 @@ export default function CodeReviewPage() {
             ))}
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1214,11 +1194,8 @@ export default function CodeReviewPage() {
       'Ctrl+Z Your Career';
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
-        <div className="max-w-2xl w-full text-center">
+      <ArcadeCabinet title="CODE REVIEW FROM HELL" subtitle="Satisfy impossible review comments" wide>
+        <div className="max-w-2xl w-full mx-auto text-center">
           <div className="text-6xl mb-4">{currentLevel >= 50 ? '\ud83c\udfc6' : '\ud83d\udcad'}</div>
           <h1 className="pixel-text text-lg md:text-xl mb-2" style={{ color: 'var(--color-red)' }}>
             PR CLOSED
@@ -1291,7 +1268,7 @@ export default function CodeReviewPage() {
             </button>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1300,10 +1277,8 @@ export default function CodeReviewPage() {
   // ============================================
   const currentTier = activeComments.length > 0 ? activeComments[activeComments.length - 1].tier : 1;
   return (
-    <div
-      className="h-screen flex flex-col overflow-hidden"
-      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-    >
+    <ArcadeCabinet title="CODE REVIEW FROM HELL" subtitle="Satisfy impossible review comments" wide>
+    <div className="h-[70vh] min-h-[420px] flex flex-col overflow-hidden">
       {/* Achievement Popup */}
       {showAchievement && (
         <div
@@ -1333,25 +1308,12 @@ export default function CodeReviewPage() {
 
       {/* Top Bar */}
       <div
-        className="flex items-center justify-between px-3 py-2 border-b shrink-0"
+        className="flex items-center justify-end px-3 py-2 border-b shrink-0"
         style={{
           backgroundColor: 'var(--color-bg-secondary)',
           borderColor: 'var(--color-border)',
         }}
       >
-        <div className="flex items-center gap-3">
-          <Link
-            href="/games"
-            className="text-xs transition-colors hover:opacity-80"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            &larr; Exit
-          </Link>
-          <span className="pixel-text text-[9px]" style={{ color: 'var(--color-red)' }}>
-            CODE REVIEW FROM HELL
-          </span>
-        </div>
-
         <div className="flex items-center gap-3">
           {/* Build Status */}
           <div
@@ -1647,5 +1609,6 @@ export default function CodeReviewPage() {
         </div>
       </div>
     </div>
+    </ArcadeCabinet>
   );
 }

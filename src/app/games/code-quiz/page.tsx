@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
+import ArcadeCabinet from "@/components/ArcadeCabinet";
 import { useGamePlay } from "@/components/GamePlayCounter";
 
 // ---------------------------------------------------------------------------
@@ -1134,41 +1134,14 @@ export default function CodeQuizPage() {
     }));
 
     return (
-      <div
-        className="min-h-screen relative flex flex-col items-center justify-center px-4"
-        style={{ background: "var(--color-bg)" }}
-      >
-        <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-        <div className="relative z-10 text-center max-w-lg w-full">
-          <Link
-            href="/games"
-            className="pixel-text text-xs inline-block mb-10 transition-colors duration-200"
-            style={{ color: "var(--color-text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = "var(--color-accent)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--color-text-secondary)")
-            }
-          >
-            &lt; BACK TO GAMES
-          </Link>
-
+      <ArcadeCabinet title="CODE QUIZ" subtitle="150+ questions across 8 tech categories">
+        <div className="text-center max-w-lg w-full mx-auto">
           <div className="text-5xl mb-6" style={{ color: "var(--color-accent)" }}>{"{ }"}</div>
-
-          <h1
-            className="pixel-text text-2xl sm:text-3xl mb-3"
-            style={{ color: "var(--color-accent)" }}
-          >
-            CODE QUIZ
-          </h1>
 
           <p
             className="mono-text text-sm mb-8 leading-relaxed"
             style={{ color: "var(--color-text-secondary)" }}
           >
-            {ALL_QUESTIONS.length}+ questions across {Object.keys(CATEGORY_INFO).length - 1} categories.
             Identify the language, framework, tool, or pattern from code snippets.
           </p>
 
@@ -1268,7 +1241,7 @@ export default function CodeQuizPage() {
             START QUIZ
           </button>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1282,13 +1255,8 @@ export default function CodeQuizPage() {
     const isNewBest = pb === score && score > 0;
 
     return (
-      <div
-        className="min-h-screen relative px-4 py-10"
-        style={{ background: "var(--color-bg)" }}
-      >
-        <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-        <div className="relative z-10 max-w-2xl mx-auto">
+      <ArcadeCabinet title="CODE QUIZ" subtitle="150+ questions across 8 tech categories">
+        <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
             <p
               className="pixel-text text-xs mb-2"
@@ -1414,12 +1382,9 @@ export default function CodeQuizPage() {
             >
               CHANGE SETTINGS
             </button>
-            <Link href="/games" className="pixel-btn inline-block text-xs px-6 py-3">
-              BACK TO GAMES
-            </Link>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -1433,13 +1398,8 @@ export default function CodeQuizPage() {
         : "var(--color-red)";
 
   return (
-    <div
-      className="min-h-screen relative px-4 py-6"
-      style={{ background: "var(--color-bg)" }}
-    >
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10 max-w-2xl mx-auto">
+    <ArcadeCabinet title="CODE QUIZ" subtitle="150+ questions across 8 tech categories">
+      <div className="max-w-2xl mx-auto">
         {/* Timer bar */}
         <div
           className="w-full h-2 mb-6 overflow-hidden"
@@ -1599,6 +1559,6 @@ export default function CodeQuizPage() {
           })}
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
