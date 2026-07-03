@@ -28,17 +28,17 @@ export default function PixelNav() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 pixel-nav">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
         {/* Logo */}
         <Link
           href="/"
           className="flex items-center gap-2 group"
           data-interactive
         >
-          <span className="text-2xl pixel-text font-bold text-[var(--color-accent)] group-hover:animate-pixel-bounce">
+          <span className="text-xl pixel-text font-bold text-[var(--color-accent)] group-hover:animate-pixel-bounce">
             TS
           </span>
-          <span className="hidden sm:inline text-sm text-[var(--color-text-secondary)] pixel-text">
+          <span className="hidden sm:inline text-xs text-[var(--color-text-secondary)] pixel-text">
             tanmay singh
           </span>
         </Link>
@@ -48,7 +48,7 @@ export default function PixelNav() {
           {navLinks.map((link) => {
             const isActive = !link.external && (pathname === link.href ||
               (link.href !== "/" && pathname.startsWith(link.href)));
-            const className = `px-4 py-2 text-sm pixel-text transition-all duration-200 border-2 ${
+            const className = `px-3 py-1.5 text-xs pixel-text transition-all duration-200 border-2 ${
               isActive
                 ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
                 : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border)]"
@@ -82,7 +82,7 @@ export default function PixelNav() {
           <button
             onClick={toggleTheme}
             data-interactive
-            className="ml-3 px-3 py-2 border-2 border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] transition-all duration-200 pixel-text text-sm"
+            className="ml-3 px-2.5 py-1.5 border-2 border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] transition-all duration-200 pixel-text text-xs"
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
             {theme === "dark" ? "☀️ DAY" : "🌙 NIGHT"}

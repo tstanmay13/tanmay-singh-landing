@@ -269,6 +269,7 @@ function LoadoutRow({ slot, items }: { slot: string; items: string }) {
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [contributions, setContributions] = useState<number | null>(null);
+  const [projectCount, setProjectCount] = useState<number | null>(null);
   const aboutRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -276,7 +277,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // If the API fails we show nothing rather than a made-up number.
+    // If an API fails we keep the placeholder rather than a made-up number.
     const fetchContributions = async () => {
       try {
         const response = await fetch("/api/github-contributions");
@@ -289,18 +290,37 @@ export default function Home() {
         console.error("Failed to fetch GitHub contributions:", error);
       }
     };
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch("/api/portfolio/repos");
+        if (!response.ok) throw new Error("Failed to fetch repos");
+        const data = await response.json();
+        setProjectCount(data.repos?.length ?? null);
+      } catch {
+        // leave null
+      }
+    };
     fetchContributions();
+    fetchProjects();
   }, []);
 
   const scrollToAbout = useCallback(() => {
     aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Real numbers only — see /games, radiordle.org, github.com/tstanmay13.
+  // The classic trio — live numbers where possible, placeholders while loading.
   const heroStats: Stat[] = [
-    { label: "GAMES IN THE ARCADE", value: "33", icon: "#" },
-    { label: "DAILY PLAYERS", value: "1K+", icon: "*" },
-    { label: "MERGED PRS / YR", value: "400+", icon: ">" },
+    { label: "YRS EXP", value: "3+", icon: ">" },
+    {
+      label: "PROJECTS",
+      value: projectCount !== null ? `${projectCount}` : "...",
+      icon: "#",
+    },
+    {
+      label: "COMMITS",
+      value: contributions !== null ? contributions.toLocaleString() : "...",
+      icon: "*",
+    },
   ];
 
   if (!mounted) {
