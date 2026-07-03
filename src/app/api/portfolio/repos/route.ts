@@ -82,7 +82,7 @@ export async function GET() {
           !BLOCKED_REPOS.includes(repo.name) &&
           !JUNK_PATTERNS.test(repo.name) &&
           // A repo earns a card by having a description; write one on GitHub to surface it here.
-          repo.description !== null
+          repo.description != null
       )
       .map((repo) => ({
         name: repo.name,

@@ -249,21 +249,31 @@ function FeaturedCard({ project }: { project: FeaturedProject }) {
         ))}
       </div>
       <div className="flex gap-3 mt-auto">
-        {project.links.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            target={link.href.startsWith("http") ? "_blank" : undefined}
-            rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-            className="pixel-text text-[10px] px-3 py-2 border-2 transition-all duration-200"
-            style={{
-              borderColor: "var(--color-accent)",
-              color: "var(--color-accent)",
-            }}
-          >
-            {link.label}
-          </a>
-        ))}
+        {project.links.map((link) => {
+          const isExternal = link.href.startsWith("http");
+          const style = {
+            borderColor: "var(--color-accent)",
+            color: "var(--color-accent)",
+          };
+          const cls =
+            "pixel-text text-[10px] px-3 py-2 border-2 transition-all duration-200";
+          return isExternal ? (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cls}
+              style={style}
+            >
+              {link.label}
+            </a>
+          ) : (
+            <Link key={link.href} href={link.href} className={cls} style={style}>
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
