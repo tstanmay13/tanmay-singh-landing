@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import GamePlayCounter from '@/components/GamePlayCounter';
 
 interface Item {
@@ -117,13 +117,13 @@ export default function SalaryGamePage() {
 
   if (showReceipt) {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+      <ArcadeCabinet
+        title="SPEND MY SALARY"
+        subtitle="Junior Developer Salary Breakdown"
       >
         <div className="max-w-2xl mx-auto">
           <div
-            className="pixel-card rounded-lg p-6 md:p-8"
+            className="pixel-card p-6 md:p-8"
             style={{ backgroundColor: 'var(--color-bg-card)' }}
           >
             <h2 className="pixel-text text-lg md:text-xl text-center mb-2" style={{ color: 'var(--color-accent)' }}>
@@ -172,71 +172,61 @@ export default function SalaryGamePage() {
             </div>
           </div>
         </div>
-      </div>
+      </ArcadeCabinet>
     );
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
+    <ArcadeCabinet
+      title="SPEND MY SALARY"
+      subtitle="One junior developer paycheck. Infinite wants."
+      wide
     >
-      {/* Sticky Header */}
+      {/* Sticky Balance HUD */}
       <div
-        className="sticky top-0 z-50 border-b backdrop-blur-md"
+        className="sticky top-16 z-30 border-2 backdrop-blur-md"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--color-bg-secondary) 90%, transparent)',
           borderColor: 'var(--color-border)',
         }}
       >
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <Link
-              href="/games"
-              className="text-sm transition-colors hover:opacity-80"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              &larr; Back to Games
-            </Link>
-            <GamePlayCounter slug="salary" onPlay />
-            {purchasedItems.length > 0 && (
-              <button
-                onClick={() => setShowReceipt(true)}
-                className="text-xs px-3 py-1 rounded border transition-colors hover:opacity-80"
-                style={{
-                  borderColor: 'var(--color-accent)',
-                  color: 'var(--color-accent)',
-                }}
-              >
-                View Receipt
-              </button>
-            )}
-          </div>
-
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="pixel-text text-xs md:text-sm whitespace-nowrap" style={{ color: 'var(--color-accent)' }}>
-              SPEND MY SALARY
-            </h1>
-            <div className="text-right">
-              <span
-                className="mono-text text-xl md:text-2xl font-bold transition-colors duration-300"
-                style={{ color: getBalanceColor() }}
-              >
-                {formatMoney(remaining)}
-              </span>
-              <span className="text-xs block" style={{ color: 'var(--color-text-muted)' }}>
-                remaining
-              </span>
+            <GamePlayCounter slug="salary" onPlay />
+            <div className="flex items-center gap-4">
+              {purchasedItems.length > 0 && (
+                <button
+                  onClick={() => setShowReceipt(true)}
+                  className="pixel-text text-[0.625rem] px-3 py-1 border-2 transition-colors hover:opacity-80"
+                  style={{
+                    borderColor: 'var(--color-accent)',
+                    color: 'var(--color-accent)',
+                  }}
+                >
+                  View Receipt
+                </button>
+              )}
+              <div className="text-right">
+                <span
+                  className="mono-text text-xl md:text-2xl font-bold transition-colors duration-300"
+                  style={{ color: getBalanceColor() }}
+                >
+                  {formatMoney(remaining)}
+                </span>
+                <span className="text-xs block" style={{ color: 'var(--color-text-muted)' }}>
+                  remaining
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Progress Bar */}
           <div
-            className="w-full h-2 rounded-full mt-2 overflow-hidden"
+            className="w-full h-2 mt-2 overflow-hidden"
             style={{ backgroundColor: 'var(--color-surface)' }}
           >
             <div
-              className="h-full rounded-full transition-all duration-500 ease-out"
+              className="h-full transition-all duration-500 ease-out"
               style={{
                 width: `${Math.min(spentPercent, 100)}%`,
                 backgroundColor: getBalanceColor(),
@@ -297,7 +287,7 @@ export default function SalaryGamePage() {
       )}
 
       {/* Items Grid */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="py-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {ITEMS.map((item) => {
             const qty = cart[item.id]?.quantity || 0;
@@ -384,6 +374,6 @@ export default function SalaryGamePage() {
           </button>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

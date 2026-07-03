@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
@@ -393,50 +393,8 @@ export default function MinesweeperPage() {
   if (!mounted) return null;
 
   return (
-    <div
-      className="min-h-screen relative"
-      style={{ background: 'var(--color-bg)' }}
-    >
-      {/* Dot background */}
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="pt-8 pb-4 px-4 text-center">
-          <Link
-            href="/games"
-            className="pixel-text text-xs inline-block mb-6 transition-colors duration-200"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = 'var(--color-accent)')
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = 'var(--color-text-secondary)')
-            }
-          >
-            &lt; BACK TO GAMES
-          </Link>
-
-          <h1
-            className="pixel-text text-3xl sm:text-4xl md:text-5xl mb-2"
-            style={{
-              color: 'var(--color-accent)',
-              textShadow: `
-                0 0 10px var(--color-accent-glow),
-                0 0 30px var(--color-accent-glow)
-              `,
-            }}
-          >
-            MINESWEEPER
-          </h1>
-          <p
-            className="pixel-text text-[10px] mb-6"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            PIXEL EDITION
-          </p>
-        </header>
-
+    <ArcadeCabinet title="MINESWEEPER" subtitle="Pixel edition">
+      <div>
         {/* Difficulty Selector */}
         <div className="flex justify-center gap-2 sm:gap-3 mb-6 px-4">
           {(Object.keys(DIFFICULTIES) as Difficulty[]).map((d) => {
@@ -610,7 +568,7 @@ export default function MinesweeperPage() {
           </div>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
 

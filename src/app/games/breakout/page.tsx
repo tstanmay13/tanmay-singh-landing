@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 // ---------------------------------------------------------------------------
@@ -738,40 +738,8 @@ function BreakoutGame() {
   // -------------------------------------------------------------------
 
   return (
-    <div
-      className="min-h-screen relative"
-      style={{ background: 'var(--color-bg)' }}
-    >
-      <div className="fixed inset-0 dot-pattern pointer-events-none z-0" />
-
-      <div className="relative z-10" ref={containerRef}>
-        {/* Header */}
-        <header className="pt-8 pb-4 px-4 text-center">
-          <Link
-            href="/games"
-            className="pixel-text text-xs inline-block mb-6 transition-colors duration-200"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = 'var(--color-accent)')
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = 'var(--color-text-secondary)')
-            }
-          >
-            &lt; BACK TO GAMES
-          </Link>
-
-          <h1
-            className="pixel-text text-2xl sm:text-3xl mb-2"
-            style={{
-              color: 'var(--color-accent)',
-              textShadow: '0 0 10px var(--color-accent-glow), 0 0 30px var(--color-accent-glow)',
-            }}
-          >
-            BREAKOUT REMIX
-          </h1>
-        </header>
-
+    <ArcadeCabinet title="BREAKOUT REMIX">
+      <div ref={containerRef}>
         {/* HUD */}
         <div className="max-w-[532px] mx-auto px-4 mb-2">
           <div
@@ -809,7 +777,7 @@ function BreakoutGame() {
               {uiEffects.map((eff, i) => (
                 <span
                   key={`${eff.kind}-${i}`}
-                  className="pixel-text text-[8px] px-2 py-1 border"
+                  className="pixel-text text-[0.625rem] px-2 py-1 border"
                   style={{
                     borderColor: POWERUP_COLORS[eff.kind],
                     color: POWERUP_COLORS[eff.kind],
@@ -859,7 +827,7 @@ function BreakoutGame() {
           )}
 
           <p
-            className="pixel-text text-[8px]"
+            className="pixel-text text-[0.625rem]"
             style={{ color: 'var(--color-text-muted)' }}
           >
             MOVE MOUSE OR TOUCH TO CONTROL PADDLE
@@ -894,6 +862,6 @@ function BreakoutGame() {
           </div>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

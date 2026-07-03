@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useGamePlay } from '@/components/GamePlayCounter';
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -120,38 +120,30 @@ export default function SnakesGamePage() {
   }, [direction, food, gameOver, gameStarted, generateFood]);
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#F5F5F0] p-5 md:p-10">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href="/games"
-          className="inline-block mb-6 text-[#B8A082] hover:text-[#FFB347] transition-colors"
+    <ArcadeCabinet title="SNAKE" subtitle="Use arrow keys to control the snake">
+      <div className="flex flex-col items-center gap-4">
+        <div
+          className="pixel-text text-sm"
+          style={{ color: 'var(--color-accent)' }}
         >
-          ← Back to Games
-        </Link>
-
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#F5F5F0] mb-2">
-            🐍 Snake Game
-          </h1>
-          <p className="text-xl text-[#B8A082] mb-4">
-            Use arrow keys to control the snake
-          </p>
-          <div className="text-3xl font-bold text-[#FFB347]">
-            Score: {score}
-          </div>
+          SCORE: {score}
         </div>
 
         <div className="flex flex-col items-center gap-4">
           <div
-            className="bg-[#1A1A1A] border border-[#2A2520] rounded-2xl p-4"
+            className="p-4"
             style={{
+              background: 'var(--color-bg-secondary)',
+              border: '2px solid var(--color-border)',
               width: GRID_SIZE * CELL_SIZE + 32,
               height: GRID_SIZE * CELL_SIZE + 32,
             }}
           >
             <div
-              className="relative bg-[#0D0D0D] border-4 border-[#FFB347] rounded-xl"
+              className="relative"
               style={{
+                background: 'var(--color-bg)',
+                border: '4px solid var(--color-accent)',
                 width: GRID_SIZE * CELL_SIZE,
                 height: GRID_SIZE * CELL_SIZE,
               }}
@@ -159,13 +151,16 @@ export default function SnakesGamePage() {
               {snake.map((segment, index) => (
                 <div
                   key={index}
-                  className="absolute rounded-sm transition-all"
+                  className="absolute transition-all"
                   style={{
                     left: segment.x * CELL_SIZE,
                     top: segment.y * CELL_SIZE,
                     width: CELL_SIZE - 2,
                     height: CELL_SIZE - 2,
-                    backgroundColor: index === 0 ? '#FFB347' : '#FA8072',
+                    backgroundColor:
+                      index === 0
+                        ? 'var(--color-accent)'
+                        : 'var(--color-accent-secondary)',
                   }}
                 />
               ))}
@@ -184,29 +179,38 @@ export default function SnakesGamePage() {
               </div>
 
               {gameOver && (
-                <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-xl">
-                  <div className="bg-[#1A1A1A] border border-[#FFB347] p-8 rounded-xl text-center">
-                    <h2 className="text-3xl font-bold text-[#FFB347] mb-4">
-                      Game Over!
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                  <div
+                    className="pixel-border p-8 text-center"
+                    style={{ background: 'var(--color-bg-card)' }}
+                  >
+                    <h2
+                      className="pixel-text text-sm mb-4"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      GAME OVER
                     </h2>
-                    <p className="text-xl text-[#F5F5F0] mb-6">
+                    <p
+                      className="mono-text text-lg mb-6"
+                      style={{ color: 'var(--color-text)' }}
+                    >
                       Final Score: {score}
                     </p>
-                    <button
-                      onClick={resetGame}
-                      className="px-8 py-3 bg-[#FFB347] text-[#0D0D0D] rounded-full font-semibold hover:bg-[#FFB347]/80 transition-colors text-lg"
-                    >
-                      Play Again →
+                    <button onClick={resetGame} className="pixel-btn">
+                      Play Again
                     </button>
                   </div>
                 </div>
               )}
 
               {!gameStarted && !gameOver && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-center">
-                    <p className="text-xl text-[#F5F5F0] mb-4">
-                      Press any arrow key to start
+                    <p
+                      className="pixel-text text-[0.625rem] px-4"
+                      style={{ color: 'var(--color-text)' }}
+                    >
+                      PRESS ANY ARROW KEY TO START
                     </p>
                   </div>
                 </div>
@@ -214,14 +218,11 @@ export default function SnakesGamePage() {
             </div>
           </div>
 
-          <button
-            onClick={resetGame}
-            className="px-6 py-3 bg-[#1A1A1A] border border-[#FFB347]/50 text-[#FFB347] rounded-full font-semibold hover:border-[#FFB347] transition-colors"
-          >
+          <button onClick={resetGame} className="pixel-btn">
             Reset Game
           </button>
         </div>
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }
