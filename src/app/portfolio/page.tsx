@@ -71,6 +71,20 @@ const FEATURED: FeaturedProject[] = [
     ],
   },
   {
+    title: "Stat!",
+    description:
+      "A daily medical-emergency puzzle: four timed clinical decisions per scenario, physician-written. Radiordle's sibling — same daily-game architecture, harder domain.",
+    tech: ["Next.js", "TypeScript", "Supabase"],
+    links: [{ label: "GitHub", href: "https://github.com/tstanmay13/stat-" }],
+  },
+  {
+    title: "ccs — Claude Code session search",
+    description:
+      "CLI helpers for Claude Code: grep every past session, pick in fzf, resume where you left off. Built because I kept losing good sessions.",
+    tech: ["Shell", "fzf", "Claude Code"],
+    links: [{ label: "GitHub", href: "https://github.com/tstanmay13/claude-code-search-" }],
+  },
+  {
     title: "This site",
     description:
       "Portfolio + 33-game retro arcade with realtime multiplayer (lobbies, room codes, presence) over Supabase channels.",
