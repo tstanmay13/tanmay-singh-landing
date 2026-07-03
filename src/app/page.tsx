@@ -44,9 +44,9 @@ const PROJECTS: Project[] = [
   {
     title: "Fern Replay",
     description:
-      "Git-native 3-way merge engine that keeps customers' hand-edits alive across SDK regenerations. Designed and built it solo at Fern; live in production for ElevenLabs and Auth0.",
+      "Git-native 3-way merge engine that keeps customers' hand-edits alive across SDK regenerations. Designed and built it solo at Fern; live in production for ElevenLabs and Auth0. I wrote up what it taught me about git.",
     techStack: ["TypeScript", "git internals", "diff3"],
-    link: "https://www.npmjs.com/package/@fern-api/replay",
+    link: "/writing/regeneration-is-a-rebase",
     icon: "<->",
   },
   {

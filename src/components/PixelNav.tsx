@@ -15,6 +15,7 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/games", label: "Games", icon: "🎮" },
+  { href: "/writing", label: "Writing", icon: "📝" },
   { href: "/portfolio", label: "Portfolio", icon: "💼" },
   { href: "/resume.pdf", label: "Resume", icon: "📄", external: true },
   { href: "/contact", label: "Contact", icon: "💌" },
