@@ -42,36 +42,36 @@ interface Stat {
 
 const PROJECTS: Project[] = [
   {
-    title: "Cloud Platform",
+    title: "Fern Replay",
     description:
-      "Scalable microservices platform with real-time monitoring, CI/CD pipelines, and automated infrastructure provisioning.",
-    techStack: ["Go", "K8s", "AWS", "Terraform"],
-    link: "https://github.com/tstanmay13",
-    icon: "[ ]",
+      "Git-native 3-way merge engine that keeps customers' hand-edits alive across SDK regenerations. Designed and built it solo at Fern; live in production for ElevenLabs and Auth0.",
+    techStack: ["TypeScript", "git internals", "diff3"],
+    link: "https://www.npmjs.com/package/@fern-api/replay",
+    icon: "<->",
   },
   {
-    title: "AI Chat Engine",
+    title: "Radwordle",
     description:
-      "Conversational AI system with RAG pipeline, vector search, and streaming responses for enterprise knowledge bases.",
-    techStack: ["Python", "FastAPI", "LangChain", "Pinecone"],
-    link: "https://github.com/tstanmay13",
-    icon: ">_",
+      "Daily Radiohead-themed word game with 1,000+ daily players. Playwright-tested, ISR-cached after the serverless bill taught me a lesson.",
+    techStack: ["Next.js", "Supabase", "Playwright"],
+    link: "https://radiordle.org",
+    icon: "[w]",
   },
   {
     title: "Retro Arcade",
     description:
-      "Collection of browser-based retro games with shake detection, leaderboards, and mobile-first touch controls.",
-    techStack: ["Next.js", "TypeScript", "Canvas", "WebSocket"],
+      "The 33 browser games on this site, including realtime multiplayer over WebSocket channels — lobbies, room codes, reconnection and all. Start with Merge Conflict.",
+    techStack: ["Next.js", "Canvas", "Supabase Realtime"],
     link: "/games",
     icon: "##",
   },
   {
-    title: "Dev Toolkit",
+    title: "Claude Code Skills",
     description:
-      "CLI tool suite for automating development workflows including code generation, DB migrations, and deployments.",
-    techStack: ["Rust", "SQLite", "Docker", "gRPC"],
-    link: "https://github.com/tstanmay13",
-    icon: "./",
+      "Two published plugins for Anthropic's Claude Code: debrief, an end-of-session recall ritual built on the testing effect, and product-view, which reframes agent output in user terms.",
+    techStack: ["Claude Code", "Markdown", "plugin marketplace"],
+    link: "https://github.com/tstanmay13/debrief",
+    icon: ">_",
   },
 ];
 
@@ -103,16 +103,16 @@ const ARCADE_GAMES: ArcadeGame[] = [
     ],
   },
   {
-    title: "TETRIS",
-    description: "Block-stacking puzzle game",
-    path: "/games",
-    status: "coming-soon",
+    title: "MERGE CONFLICT",
+    description: "Multiplayer: merge code before your team does",
+    path: "/games/merge-conflict",
+    status: "playable",
     art: [
-      " [][] []   ",
-      " [][][][] ",
-      "   [][][]  ",
-      " [][][]    ",
-      " [][][][]  ",
+      " <<<<<<<   ",
+      "  a = 1;   ",
+      " =======   ",
+      "  a = 2;   ",
+      " >>>>>>>   ",
     ],
   },
 ];
@@ -135,20 +135,19 @@ const SOCIAL_LINKS: SocialLink[] = [
   },
 ];
 
-const TECH_STATS: { name: string; level: number; color: string }[] = [
-  { name: "TypeScript", level: 92, color: "var(--color-blue)" },
-  { name: "React/Next", level: 90, color: "var(--color-cyan)" },
-  { name: "Node.js", level: 88, color: "var(--color-accent)" },
-  { name: "Python", level: 82, color: "var(--color-orange)" },
-  { name: "Go", level: 75, color: "var(--color-purple)" },
-  { name: "DevOps", level: 78, color: "var(--color-pink)" },
+// Inventory-style loadout — the tools actually in daily use, no invented percentages.
+const LOADOUT: { slot: string; items: string }[] = [
+  { slot: "LANGUAGES", items: "TypeScript · Java · Python · Rust · Go" },
+  { slot: "WIRE", items: "WebSockets · SSE · OAuth2 · OpenAPI" },
+  { slot: "INFRA", items: "AWS · Postgres · Docker · Vercel" },
+  { slot: "AGENTS", items: "Claude SDK · MCP · agent-readiness evals" },
 ];
 
 const ROTATING_PROJECTS = [
-  "retro game arcade",
-  "AI-powered dev tools",
-  "open source libraries",
-  "cloud infrastructure",
+  "a Rust CLI generator",
+  "agent-readiness tooling",
+  "SDKs in six languages",
+  "too many browser games",
 ];
 
 /* ============================================
@@ -233,7 +232,7 @@ function TerminalWindow({
         />
         <span
           className="pixel-text text-xs ml-2"
-          style={{ color: "var(--color-text-muted)", fontSize: "0.55rem" }}
+          style={{ color: "var(--color-text-muted)", fontSize: "0.625rem" }}
         >
           {title}
         </span>
@@ -244,43 +243,20 @@ function TerminalWindow({
   );
 }
 
-function PixelBar({
-  label,
-  value,
-  maxValue = 100,
-  color,
-}: {
-  label: string;
-  value: number;
-  maxValue?: number;
-  color: string;
-}) {
-  const percentage = Math.min((value / maxValue) * 100, 100);
+function LoadoutRow({ slot, items }: { slot: string; items: string }) {
   return (
-    <div className="flex items-center gap-3 mb-2">
+    <div className="flex items-baseline gap-3 mb-3 last:mb-0">
       <span
         className="pixel-text w-28 text-right shrink-0"
-        style={{ color: "var(--color-text-secondary)", fontSize: "0.5rem" }}
+        style={{ color: "var(--color-accent)", fontSize: "0.625rem" }}
       >
-        {label}
+        {slot}
       </span>
-      <div
-        className="flex-1 h-4 relative"
-        style={{
-          background: "var(--color-bg-secondary)",
-          border: "1px solid var(--color-border)",
-        }}
-      >
-        <div
-          className="h-full transition-all duration-1000 ease-out"
-          style={{ width: `${percentage}%`, background: color }}
-        />
-      </div>
       <span
-        className="pixel-text w-10 shrink-0"
-        style={{ color: "var(--color-text-muted)", fontSize: "0.5rem" }}
+        className="mono-text text-sm"
+        style={{ color: "var(--color-text-secondary)" }}
       >
-        {value}
+        {items}
       </span>
     </div>
   );
@@ -293,7 +269,6 @@ function PixelBar({
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [contributions, setContributions] = useState<number | null>(null);
-  const [projectCount, setProjectCount] = useState<number | null>(null);
   const aboutRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -301,6 +276,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // If the API fails we show nothing rather than a made-up number.
     const fetchContributions = async () => {
       try {
         const response = await fetch("/api/github-contributions");
@@ -311,35 +287,20 @@ export default function Home() {
         setContributions(data.totalContributions);
       } catch (error) {
         console.error("Failed to fetch GitHub contributions:", error);
-        setContributions(243);
-      }
-    };
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch("/api/portfolio/repos");
-        if (!response.ok) throw new Error("Failed to fetch repos");
-        const data = await response.json();
-        setProjectCount(data.repos?.length ?? null);
-      } catch {
-        setProjectCount(37);
       }
     };
     fetchContributions();
-    fetchProjects();
   }, []);
 
   const scrollToAbout = useCallback(() => {
     aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  // Real numbers only — see github.com/tstanmay13 and radiordle.org.
   const heroStats: Stat[] = [
-    { label: "YRS EXP", value: "3+", icon: ">" },
-    { label: "PROJECTS", value: projectCount !== null ? `${projectCount}` : "...", icon: "#" },
-    {
-      label: "COMMITS",
-      value: contributions !== null ? contributions.toLocaleString() : "...",
-      icon: "*",
-    },
+    { label: "MERGED PRS / YR", value: "400+", icon: ">" },
+    { label: "SDK LANGUAGES", value: "6", icon: "#" },
+    { label: "DAILY PLAYERS", value: "1K+", icon: "*" },
   ];
 
   if (!mounted) {
@@ -394,20 +355,27 @@ export default function Home() {
 
         {/* Main title */}
         <h1
-          className="pixel-text text-3xl sm:text-5xl md:text-6xl text-center mb-4 animate-flicker leading-tight"
+          className="pixel-text text-3xl sm:text-5xl md:text-6xl text-center mb-4 leading-tight"
           style={{ color: "var(--color-text)" }}
         >
           TANMAY{" "}
           <span style={{ color: "var(--color-accent)" }}>SINGH</span>
         </h1>
 
-        {/* Subtitle with typing effect */}
+        {/* Positioning line — say the real thing, once */}
         <p
-          className="mono-text text-lg sm:text-xl md:text-2xl text-center mb-10"
+          className="mono-text text-base sm:text-lg md:text-xl text-center mb-3 max-w-2xl"
           style={{ color: "var(--color-text-secondary)" }}
         >
           <span style={{ color: "var(--color-accent)" }}>&gt;</span>{" "}
-          <TypingText texts={["Full-Stack Developer", "Game Builder", "Open Source Contributor", "Problem Solver"]} />
+          Senior software engineer. I build SDK generators and agent tooling
+          at Fern (acquired by Postman).
+        </p>
+        <p
+          className="mono-text text-sm sm:text-base text-center mb-10"
+          style={{ color: "var(--color-text-muted)" }}
+        >
+          Before that: passkeys and auth at Amazon Identity.
         </p>
 
         {/* Stats bar */}
@@ -430,7 +398,7 @@ export default function Home() {
                 className="pixel-text"
                 style={{
                   color: "var(--color-text-muted)",
-                  fontSize: "0.5rem",
+                  fontSize: "0.625rem",
                 }}
               >
                 {stat.label}
@@ -452,7 +420,7 @@ export default function Home() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float"
           style={{ color: "var(--color-text-muted)" }}
         >
-          <span className="pixel-text" style={{ fontSize: "0.5rem" }}>
+          <span className="pixel-text" style={{ fontSize: "0.625rem" }}>
             v v v
           </span>
         </div>
@@ -478,17 +446,18 @@ export default function Home() {
         <ScrollReveal delay={100}>
           <TerminalWindow title="tanmay@dev:~$ cat about.txt">
             <p style={{ color: "var(--color-text-secondary)" }}>
-              <span style={{ color: "var(--color-accent)" }}>$</span> Hey there.
-              I&apos;m a full-stack developer who builds things for the web. I care
-              about clean architecture, developer experience, and shipping products
-              that actually work.
+              <span style={{ color: "var(--color-accent)" }}>$</span> I build the
+              machinery that turns API specs into SDKs people actually want to
+              use — six languages, streaming, auth, pagination, the hard parts.
+              Lately that includes a git-native merge engine (Replay) and tooling
+              that makes CLIs legible to AI agents.
             </p>
             <br />
             <p style={{ color: "var(--color-text-secondary)" }}>
-              <span style={{ color: "var(--color-accent)" }}>$</span> When I&apos;m
-              not pushing commits, I&apos;m building retro games, experimenting with
-              new frameworks, or tinkering with side projects that probably
-              won&apos;t make money but are fun to build.
+              <span style={{ color: "var(--color-accent)" }}>$</span> This site is
+              mostly an excuse to build games. There are 33 in the arcade,
+              multiplayer included. Try Merge Conflict — it&apos;s basically my
+              day job with a scoreboard.
             </p>
             <br />
             <p style={{ color: "var(--color-text-muted)" }}>
@@ -498,26 +467,21 @@ export default function Home() {
           </TerminalWindow>
         </ScrollReveal>
 
-        {/* Tech stack RPG stats */}
+        {/* Daily-driver tools, inventory style */}
         <ScrollReveal delay={200}>
           <div className="mt-10">
             <h3
               className="pixel-text text-sm mb-6"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              SKILL TREE
+              LOADOUT
             </h3>
             <div
               className="pixel-border p-5"
               style={{ background: "var(--color-bg-card)" }}
             >
-              {TECH_STATS.map((tech) => (
-                <PixelBar
-                  key={tech.name}
-                  label={tech.name}
-                  value={tech.level}
-                  color={tech.color}
-                />
+              {LOADOUT.map((row) => (
+                <LoadoutRow key={row.slot} slot={row.slot} items={row.items} />
               ))}
             </div>
           </div>
@@ -582,7 +546,7 @@ export default function Home() {
                       key={tech}
                       className="pixel-text px-2 py-1"
                       style={{
-                        fontSize: "0.45rem",
+                        fontSize: "0.625rem",
                         color: "var(--color-accent)",
                         border: "1px solid var(--color-border)",
                         background: "var(--color-bg-secondary)",
@@ -604,12 +568,8 @@ export default function Home() {
       <section className="max-w-5xl mx-auto px-4 py-20" id="arcade">
         <ScrollReveal>
           <h2
-            className="pixel-text text-xl sm:text-2xl mb-2 text-center animate-glow-pulse inline-block w-full"
-            style={{
-              color: "var(--color-accent)",
-              textShadow:
-                "0 0 10px var(--color-accent-glow), 0 0 30px var(--color-accent-glow)",
-            }}
+            className="pixel-text text-xl sm:text-2xl mb-2 text-center inline-block w-full"
+            style={{ color: "var(--color-accent)" }}
           >
             ARCADE
           </h2>
@@ -617,7 +577,7 @@ export default function Home() {
             className="pixel-text text-center mb-10"
             style={{
               color: "var(--color-text-muted)",
-              fontSize: "0.55rem",
+              fontSize: "0.625rem",
             }}
           >
             INSERT COIN TO PLAY
@@ -659,7 +619,7 @@ export default function Home() {
                   <span
                     className="pixel-text inline-block px-3 py-1"
                     style={{
-                      fontSize: "0.5rem",
+                      fontSize: "0.625rem",
                       color: "var(--color-bg)",
                       background: "var(--color-accent)",
                     }}
@@ -670,7 +630,7 @@ export default function Home() {
                   <span
                     className="pixel-text inline-block px-3 py-1"
                     style={{
-                      fontSize: "0.5rem",
+                      fontSize: "0.625rem",
                       color: "var(--color-text-muted)",
                       border: "1px solid var(--color-border)",
                     }}
@@ -721,7 +681,7 @@ export default function Home() {
                 className="pixel-text"
                 style={{
                   color: "var(--color-text-muted)",
-                  fontSize: "0.5rem",
+                  fontSize: "0.625rem",
                 }}
               >
                 LIFETIME XP
@@ -779,7 +739,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="pixel-text transition-colors duration-200 hover:underline"
                 style={{
-                  fontSize: "0.5rem",
+                  fontSize: "0.625rem",
                   color: "var(--color-accent)",
                 }}
               >
@@ -803,17 +763,17 @@ export default function Home() {
               className="pixel-text text-lg sm:text-2xl mb-4"
               style={{ color: "var(--color-text)" }}
             >
-              GAME OVER?{" "}
+              PLAYER 2{" "}
               <span style={{ color: "var(--color-accent)" }}>
-                LET&apos;S TALK!
+                WANTED
               </span>
             </h2>
             <p
               className="mono-text text-sm mb-8"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              Whether it&apos;s a project, a job, or just geeking out about
-              tech -- I&apos;m all ears.
+              I&apos;m in NYC building SDK and agent tooling. If you want to
+              talk shop — or you beat my Snake high score — say hi.
             </p>
 
             {/* Social links */}
@@ -841,7 +801,7 @@ export default function Home() {
                   <span
                     className="pixel-text"
                     style={{
-                      fontSize: "0.45rem",
+                      fontSize: "0.625rem",
                       color: "var(--color-text-secondary)",
                     }}
                   >
@@ -877,9 +837,9 @@ export default function Home() {
       <footer className="text-center py-8">
         <p
           className="pixel-text"
-          style={{ fontSize: "0.45rem", color: "var(--color-text-muted)" }}
+          style={{ fontSize: "0.625rem", color: "var(--color-text-muted)" }}
         >
-          CRAFTED WITH CODE & CAFFEINE &copy; {new Date().getFullYear()}
+          &copy; {new Date().getFullYear()} TANMAY SINGH &middot; NYC
         </p>
       </footer>
     </div>
