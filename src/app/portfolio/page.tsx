@@ -51,7 +51,10 @@ const FEATURED: FeaturedProject[] = [
     description:
       "Git-native 3-way merge engine that preserves hand-edits to generated SDKs across regenerations. Sole-authored at Fern; in production for ElevenLabs and Auth0.",
     tech: ["TypeScript", "git internals", "diff3"],
-    links: [{ label: "npm", href: "https://www.npmjs.com/package/@fern-api/replay" }],
+    links: [
+      { label: "Essay", href: "/writing/regeneration-is-a-rebase" },
+      { label: "npm", href: "https://www.npmjs.com/package/@fern-api/replay" },
+    ],
   },
   {
     title: "Radwordle",
