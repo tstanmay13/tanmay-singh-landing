@@ -918,10 +918,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     // Choice: Create or Join
     if (lobbyPhase === 'choice') {
       return (
-        <div
-          className="min-h-screen p-4 md:p-8"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div>
           <div className="max-w-md mx-auto">
             <button
               onClick={onBack}
@@ -932,14 +929,8 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
             </button>
 
             <div className="text-center mb-8">
-              <h2
-                className="pixel-text text-lg md:text-xl mb-2"
-                style={{ color: 'var(--color-accent)' }}
-              >
-                WAVELENGTH ONLINE
-              </h2>
               <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                4-12 players, each on their own device
+                ONLINE MODE {'—'} 4-12 players, each on their own device
               </p>
             </div>
 
@@ -970,10 +961,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     // Create / Join form
     if (lobbyPhase === 'create' || lobbyPhase === 'join') {
       return (
-        <div
-          className="min-h-screen p-4 md:p-8"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div>
           <div className="max-w-md mx-auto">
             <button
               onClick={() => { setLobbyPhase('choice'); setFormError(null); }}
@@ -994,7 +982,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
               <div>
                 <label
                   className="pixel-text text-xs block mb-2"
-                  style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+                  style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
                 >
                   YOUR NAME
                 </label>
@@ -1018,7 +1006,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
                 <div>
                   <label
                     className="pixel-text text-xs block mb-2"
-                    style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+                    style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
                   >
                     ROOM CODE
                   </label>
@@ -1064,10 +1052,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
       const canStart = onlinePlayers.length >= 4 && onlinePlayers.every((p) => p.is_ready || p.is_host);
 
       return (
-        <div
-          className="min-h-screen p-4 md:p-8"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div>
           <div className="max-w-md mx-auto">
             <div className="flex items-center justify-between mb-6">
               <button
@@ -1085,13 +1070,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
             </div>
 
             <div className="text-center mb-6">
-              <h3
-                className="pixel-text text-xs"
-                style={{ color: 'var(--color-accent)' }}
-              >
-                WAVELENGTH
-              </h3>
-              <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                 {onlinePlayers.length}/12 players
               </p>
             </div>
@@ -1103,7 +1082,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
             >
               <h4
                 className="pixel-text text-xs mb-3"
-                style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+                style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
               >
                 PLAYERS (auto-split into teams)
               </h4>
@@ -1214,10 +1193,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
   if (phase === 'category-select') {
     if (!isHost) {
       return (
-        <div
-          className="min-h-screen p-4 md:p-8 flex items-center justify-center"
-          style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-        >
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="text-4xl mb-4 animate-pixel-bounce">{'\u23F3'}</div>
             <p className="pixel-text text-sm mb-2" style={{ color: 'var(--color-accent)' }}>
@@ -1237,10 +1213,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     }
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-lg mx-auto">
           <h2
             className="pixel-text text-lg md:text-xl text-center mb-2"
@@ -1282,7 +1255,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
           >
             <h4
               className="pixel-text text-xs mb-3 text-center"
-              style={{ color: 'var(--color-text-secondary)', fontSize: '0.5rem' }}
+              style={{ color: 'var(--color-text-secondary)', fontSize: '0.625rem' }}
             >
               TEAMS
             </h4>
@@ -1490,17 +1463,14 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
 
   if (phase === 'psychic-view' && roundData) {
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <button
             onClick={onBack}
             className="text-sm transition-colors hover:opacity-80 inline-block mb-4"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            {'\u2190'} Back to Games
+            {'\u2190'} Back
           </button>
 
           {scoreboard}
@@ -1643,17 +1613,14 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
       .map((p) => p.display_name);
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <button
             onClick={onBack}
             className="text-sm transition-colors hover:opacity-80 inline-block mb-4"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            {'\u2190'} Back to Games
+            {'\u2190'} Back
           </button>
 
           {scoreboard}
@@ -1738,17 +1705,14 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
             : 'var(--color-red)';
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div>
         <div className="max-w-2xl mx-auto">
           <button
             onClick={onBack}
             className="text-sm transition-colors hover:opacity-80 inline-block mb-4"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            {'\u2190'} Back to Games
+            {'\u2190'} Back
           </button>
 
           {scoreboard}
@@ -1820,10 +1784,7 @@ export default function OnlineGame({ onBack }: OnlineGameProps) {
     );
 
     return (
-      <div
-        className="min-h-screen p-4 md:p-8 flex items-center justify-center"
-        style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
-      >
+      <div className="flex items-center justify-center">
         <div className="max-w-lg w-full text-center">
           <div className="animate-scale-in">
             <p

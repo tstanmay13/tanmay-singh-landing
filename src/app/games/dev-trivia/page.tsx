@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { QUESTIONS, CATEGORY_META, ALL_CATEGORIES, TEAM_NAMES, TEAM_COLORS } from './questions';
 import type { Category, Difficulty, TriviaQuestion } from './questions';
@@ -68,6 +68,17 @@ function difficultyPoints(d: Difficulty): number {
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
 export default function DevTriviaShowdownPage() {
+  return (
+    <ArcadeCabinet
+      title="DEV TRIVIA SHOWDOWN"
+      subtitle="Team programming trivia with wagering"
+    >
+      <DevTriviaGame />
+    </ArcadeCabinet>
+  );
+}
+
+function DevTriviaGame() {
   const [mounted, setMounted] = useState(false);
   const [gameMode, setGameMode] = useState<'select' | 'same-device' | 'online'>('select');
 
@@ -289,27 +300,8 @@ export default function DevTriviaShowdownPage() {
   // ─── Mode Select Screen ─────────────────────────────────────
   if (gameMode === 'select') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-md mx-auto">
-          <Link
-            href="/games"
-            className="pixel-text text-xs hover:underline mb-6 block"
-            style={{ color: 'var(--color-accent)' }}
-          >
-            &lt; BACK
-          </Link>
-          <div className="text-center mb-10">
-            <h1 className="pixel-text text-xl md:text-2xl mb-3" style={{ color: 'var(--color-accent)' }}>
-              DEV TRIVIA
-            </h1>
-            <h2 className="pixel-text text-sm md:text-base mb-2" style={{ color: 'var(--color-blue)' }}>
-              SHOWDOWN
-            </h2>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Team-based programming trivia with wagering
-            </p>
-          </div>
-
           <div className="space-y-4">
             <button
               onClick={() => setGameMode('same-device')}
@@ -349,17 +341,17 @@ export default function DevTriviaShowdownPage() {
   const winner: 0 | 1 | -1 = scores[0] > scores[1] ? 0 : scores[1] > scores[0] ? 1 : -1;
 
   return (
-    <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+    <div>
       {/* Header */}
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/games"
+          <button
+            onClick={() => setGameMode('select')}
             className="pixel-text text-xs hover:underline"
             style={{ color: 'var(--color-accent)' }}
           >
             &lt; BACK
-          </Link>
+          </button>
           {phase !== 'lobby' && phase !== 'team-setup' && phase !== 'game-over' && (
             <div className="flex gap-6 items-center">
               <div className="text-center">
@@ -380,18 +372,6 @@ export default function DevTriviaShowdownPage() {
         {/* ═══ LOBBY ═══ */}
         {phase === 'lobby' && (
           <div className="animate-fade-in-up">
-            <div className="text-center mb-8">
-              <h1 className="pixel-text text-xl md:text-2xl mb-3" style={{ color: 'var(--color-accent)' }}>
-                DEV TRIVIA
-              </h1>
-              <h2 className="pixel-text text-sm md:text-base mb-2" style={{ color: 'var(--color-blue)' }}>
-                SHOWDOWN
-              </h2>
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                Team-based programming trivia with wagering
-              </p>
-            </div>
-
             {/* Mode selector */}
             <div className="flex justify-center gap-3 mb-6">
               <button

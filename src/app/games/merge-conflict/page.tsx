@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import GamePlayCounter from '@/components/GamePlayCounter';
 import OnlineGame from './OnlineGame';
@@ -468,19 +468,16 @@ export default function MergeConflictPage() {
 
   if (!mounted) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'var(--color-bg)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+      <ArcadeCabinet
+        title="MERGE CONFLICT"
+        subtitle="Two devs, one function, zero communication"
       >
-        <p className="pixel-text" style={{ color: 'var(--color-accent)', fontSize: '0.75rem' }}>
-          LOADING...
-        </p>
-      </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <p className="pixel-text" style={{ color: 'var(--color-accent)', fontSize: '0.75rem' }}>
+            LOADING...
+          </p>
+        </div>
+      </ArcadeCabinet>
     );
   }
 
@@ -489,44 +486,12 @@ export default function MergeConflictPage() {
      ================================================================ */
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'var(--color-bg)',
-        padding: '1.5rem',
-        paddingTop: '6rem',
-        paddingBottom: '4rem',
-      }}
+    <ArcadeCabinet
+      title="MERGE CONFLICT"
+      subtitle="Two devs, one function, zero communication"
     >
       <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-          <Link
-            href="/games"
-            className="pixel-btn"
-            style={{
-              padding: '0.5rem 1rem',
-              fontSize: '0.65rem',
-              textDecoration: 'none',
-            }}
-          >
-            &lt; BACK
-          </Link>
-          <div style={{ flex: 1 }}>
-            <h1
-              className="pixel-text"
-              style={{
-                fontSize: 'clamp(0.8rem, 3vw, 1.3rem)',
-                color: 'var(--color-accent)',
-                margin: 0,
-              }}
-            >
-              MERGE CONFLICT
-            </h1>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>
-              Two devs. One function. Zero communication.
-            </p>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
           <GamePlayCounter slug="merge-conflict" />
         </div>
 
@@ -1416,24 +1381,10 @@ export default function MergeConflictPage() {
               >
                 PLAY AGAIN
               </button>
-              <Link
-                href="/games"
-                className="pixel-btn"
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  fontSize: '0.8rem',
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                  display: 'block',
-                }}
-              >
-                BACK TO ARCADE
-              </Link>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </ArcadeCabinet>
   );
 }

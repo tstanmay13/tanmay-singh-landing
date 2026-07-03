@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ArcadeCabinet from '@/components/ArcadeCabinet';
 import { WORD_CATEGORIES, getRandomPair, getTotalPairCount } from './words';
 import type { WordPair } from './words';
 import OnlineGame from './OnlineGame';
@@ -58,6 +58,17 @@ function shuffleArray<T>(arr: T[]): T[] {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function PixelImpostorPage() {
+  return (
+    <ArcadeCabinet
+      title="PIXEL IMPOSTOR"
+      subtitle="One word, one liar, find the fake"
+    >
+      <PixelImpostorGame />
+    </ArcadeCabinet>
+  );
+}
+
+function PixelImpostorGame() {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<'select' | 'local' | 'online'>('select');
 
@@ -470,16 +481,10 @@ export default function PixelImpostorPage() {
 
   if (phase === 'mode-select') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-lg mx-auto">
-          <Link href="/games" className="inline-flex items-center gap-2 text-sm mb-6 hover:opacity-80 transition-opacity" style={{ color: 'var(--color-text-secondary)' }}>
-            {'\u2190'} Back to Arcade
-          </Link>
-
           <div className="text-center mb-8">
-            <div className="text-5xl mb-4">{'\uD83D\uDD75\uFE0F'}</div>
-            <h1 className="pixel-text text-xl md:text-2xl mb-2" style={{ color: 'var(--color-accent)' }}>PIXEL IMPOSTOR</h1>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>One word. One liar. Everyone suspects everyone.</p>
+            <div className="text-5xl">{'\uD83D\uDD75\uFE0F'}</div>
           </div>
 
           <div className="space-y-4">
@@ -524,7 +529,7 @@ export default function PixelImpostorPage() {
 
   if (phase === 'lobby') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-lg mx-auto">
           <button onClick={fullReset} className="inline-flex items-center gap-2 text-sm mb-6 hover:opacity-80 transition-opacity" style={{ color: 'var(--color-text-secondary)' }}>
             {'\u2190'} Back
@@ -573,7 +578,7 @@ export default function PixelImpostorPage() {
 
   if (phase === 'category-select') {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-lg mx-auto">
           <button onClick={() => setPhase('lobby')} className="inline-flex items-center gap-2 text-sm mb-6 hover:opacity-80 transition-opacity" style={{ color: 'var(--color-text-secondary)' }}>{'\u2190'} Back</button>
 
@@ -608,9 +613,9 @@ export default function PixelImpostorPage() {
     const word = isImpostor ? roundState.pair.decoy : roundState.pair.real;
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         {renderPrivacyScreen()}
-        <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[80vh]">
+        <div className="max-w-lg mx-auto flex flex-col items-center">
           <p className="pixel-text text-xs mb-2" style={{ color: 'var(--color-text-muted)' }}>
             ROUND {currentRound}/{totalRounds} {'\u2022'} {roundState.category.toUpperCase()}
           </p>
@@ -658,7 +663,7 @@ export default function PixelImpostorPage() {
     const submittedClues = Object.entries(roundState.clues);
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         {renderPrivacyScreen()}
         <div className="max-w-lg mx-auto">
           <p className="pixel-text text-xs text-center mb-2" style={{ color: 'var(--color-text-muted)' }}>
@@ -696,7 +701,7 @@ export default function PixelImpostorPage() {
 
   if (phase === 'discussion' && roundState) {
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-lg mx-auto">
           <p className="pixel-text text-xs text-center mb-2" style={{ color: 'var(--color-text-muted)' }}>ROUND {currentRound}/{totalRounds}</p>
           <h2 className="pixel-text text-lg text-center mb-4" style={{ color: 'var(--color-orange)' }}>DISCUSSION TIME</h2>
@@ -733,7 +738,7 @@ export default function PixelImpostorPage() {
     const otherPlayers = players.filter((p) => p.id !== currentVoter.id);
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         {renderPrivacyScreen()}
         <div className="max-w-lg mx-auto">
           <p className="pixel-text text-xs text-center mb-2" style={{ color: 'var(--color-text-muted)' }}>VOTE {currentVoterIndex + 1}/{turnOrder.length}</p>
@@ -776,8 +781,8 @@ export default function PixelImpostorPage() {
 
     if (showImpostorGuess) {
       return (
-        <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-          <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[80vh]">
+        <div>
+          <div className="max-w-lg mx-auto flex flex-col items-center">
             <div className="text-5xl mb-4">{'\uD83D\uDE08'}</div>
             <h2 className="pixel-text text-lg text-center mb-2" style={{ color: 'var(--color-red)' }}>CAUGHT!</h2>
             <p className="text-center text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>{impostorPlayer?.name}, you have one chance to guess the real word!</p>
@@ -793,7 +798,7 @@ export default function PixelImpostorPage() {
     }
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-lg mx-auto">
           <p className="pixel-text text-xs text-center mb-4" style={{ color: 'var(--color-text-muted)' }}>ROUND {currentRound}/{totalRounds}</p>
           <h2 className="pixel-text text-lg text-center mb-6" style={{ color: 'var(--color-orange)' }}>VOTE RESULTS</h2>
@@ -840,7 +845,7 @@ export default function PixelImpostorPage() {
     const caught = getMostVotedId() === roundState.impostorId;
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
+      <div>
         <div className="max-w-lg mx-auto">
           <p className="pixel-text text-xs text-center mb-2" style={{ color: 'var(--color-text-muted)' }}>ROUND {currentRound}/{totalRounds} RESULTS</p>
 
@@ -882,8 +887,8 @@ export default function PixelImpostorPage() {
     const winner = sortedByScore[0];
 
     return (
-      <div className="min-h-screen p-4 md:p-8" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
-        <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[80vh]">
+      <div>
+        <div className="max-w-lg mx-auto flex flex-col items-center">
           <div className="text-6xl mb-4 animate-pixel-bounce">{'\uD83C\uDFC6'}</div>
           <h2 className="pixel-text text-xl md:text-2xl text-center mb-2" style={{ color: 'var(--color-accent)' }}>GAME OVER</h2>
           <p className="text-sm mb-8" style={{ color: 'var(--color-text-secondary)' }}>{totalRounds} rounds completed</p>
@@ -910,7 +915,6 @@ export default function PixelImpostorPage() {
 
           <div className="flex gap-3">
             <button onClick={resetGame} className="pixel-btn px-6 py-3 text-sm rounded-lg" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)' }}>PLAY AGAIN</button>
-            <Link href="/games" className="pixel-btn px-6 py-3 text-sm rounded-lg inline-flex items-center" style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}>ARCADE</Link>
           </div>
         </div>
       </div>
