@@ -45,6 +45,42 @@ interface FeaturedProject {
   links: { label: string; href: string }[];
 }
 
+interface LiveProject {
+  title: string;
+  label: string;
+  description: string;
+  domain: string;
+  href: string;
+  mark: string;
+  tech: string[];
+  accent: string;
+}
+
+const LIVE_PROJECTS: LiveProject[] = [
+  {
+    title: "Radiordle",
+    label: "Daily radiology puzzle",
+    description:
+      "Read the image, make the diagnosis, and solve the daily case in five guesses. Built as a focused game for medical learners and diagnostic-image obsessives.",
+    domain: "www.radiordle.org",
+    href: "https://www.radiordle.org/",
+    mark: "XR",
+    tech: ["Next.js", "Supabase", "Playwright"],
+    accent: "var(--color-cyan)",
+  },
+  {
+    title: "CFB Games",
+    label: "College football arcade",
+    description:
+      "Draft legends from across eras in The 16-0 Draft, then test your memory in Guess the Season. Two data-driven college football games in one live arcade.",
+    domain: "cfb-games.com",
+    href: "https://cfb-games.com/",
+    mark: "16-0",
+    tech: ["React", "TypeScript", "Supabase"],
+    accent: "var(--color-orange)",
+  },
+];
+
 const FEATURED: FeaturedProject[] = [
   {
     title: "Fern Replay",
@@ -55,13 +91,6 @@ const FEATURED: FeaturedProject[] = [
       { label: "Essay", href: "/writing/regeneration-is-a-rebase" },
       { label: "npm", href: "https://www.npmjs.com/package/@fern-api/replay" },
     ],
-  },
-  {
-    title: "Radwordle",
-    description:
-      "Daily Radiohead word game with 1,000+ daily players. 55-test Playwright suite; ISR caching cut serverless invocations ~87x.",
-    tech: ["Next.js", "Supabase", "Playwright"],
-    links: [{ label: "Play", href: "https://radiordle.org" }],
   },
   {
     title: "debrief + product-view",
@@ -229,6 +258,115 @@ function LanguageDot({ language }: { language: string }) {
       className="inline-block w-3 h-3 rounded-full shrink-0"
       style={{ backgroundColor: color }}
     />
+  );
+}
+
+function LiveProjectCard({ project }: { project: LiveProject }) {
+  return (
+    <article
+      className="pixel-card rounded-lg overflow-hidden h-full flex flex-col transition-transform duration-200 hover:-translate-y-1"
+      style={{ borderColor: project.accent }}
+    >
+      <div
+        className="flex items-center justify-between gap-4 px-4 py-3 border-b-2"
+        style={{
+          borderColor: project.accent,
+          backgroundColor: "var(--color-bg-secondary)",
+        }}
+      >
+        <div className="flex items-center gap-2" aria-hidden="true">
+          {[0, 1, 2].map((dot) => (
+            <span
+              key={dot}
+              className="block w-2 h-2"
+              style={{
+                border: `1px solid ${project.accent}`,
+                backgroundColor: dot === 0 ? project.accent : "transparent",
+              }}
+            />
+          ))}
+        </div>
+        <span
+          className="pixel-text text-[8px]"
+          style={{ color: project.accent }}
+        >
+          LIVE WEBSITE
+        </span>
+      </div>
+
+      <div className="p-6 md:p-7 flex flex-col flex-grow">
+        <div className="flex items-start justify-between gap-5 mb-5">
+          <div>
+            <p
+              className="pixel-text text-[8px] mb-2"
+              style={{ color: project.accent }}
+            >
+              {project.label.toUpperCase()}
+            </p>
+            <h3
+              className="pixel-text text-lg md:text-xl"
+              style={{ color: "var(--color-text)" }}
+            >
+              {project.title}
+            </h3>
+          </div>
+          <div
+            className="pixel-text text-xs shrink-0 w-16 h-16 flex items-center justify-center border-2"
+            style={{
+              color: project.accent,
+              borderColor: project.accent,
+              backgroundColor: "var(--color-bg)",
+              boxShadow: `4px 4px 0 ${project.accent}`,
+            }}
+            aria-hidden="true"
+          >
+            {project.mark}
+          </div>
+        </div>
+
+        <p
+          className="text-sm leading-relaxed mb-5 flex-grow"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          {project.description}
+        </p>
+
+        <div className="flex flex-wrap gap-1.5 mb-6">
+          {project.tech.map((tech) => (
+            <span
+              key={tech}
+              className="mono-text text-[10px] px-2 py-0.5"
+              style={{
+                color: "var(--color-text-secondary)",
+                backgroundColor: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              {tech}
+            </span>
+          ))}
+        </div>
+
+        <a
+          href={project.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between gap-4 px-4 py-3 border-2 transition-all duration-200 group"
+          style={{
+            borderColor: project.accent,
+            color: project.accent,
+          }}
+        >
+          <span className="mono-text text-xs">{project.domain}</span>
+          <span
+            className="pixel-text text-[9px] transition-transform duration-200 group-hover:translate-x-1"
+            aria-hidden="true"
+          >
+            VISIT &rarr;
+          </span>
+        </a>
+      </div>
+    </article>
   );
 }
 
@@ -675,14 +813,31 @@ export default function PortfolioPage() {
           </div>
         )}
 
-        {/* Featured — hand-curated, no API dependency */}
+        {/* Live websites */}
         <ScrollReveal delay={200}>
           <section className="mb-10">
             <h2
               className="pixel-text text-xs mb-5"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {"// FEATURED"}
+              {"// LIVE WEBSITES"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {LIVE_PROJECTS.map((project) => (
+                <LiveProjectCard key={project.title} project={project} />
+              ))}
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* Featured — hand-curated, no API dependency */}
+        <ScrollReveal delay={250}>
+          <section className="mb-10">
+            <h2
+              className="pixel-text text-xs mb-5"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              {"// SELECTED BUILDS"}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {FEATURED.map((project) => (

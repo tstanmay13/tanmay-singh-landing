@@ -42,6 +42,22 @@ interface Stat {
 
 const PROJECTS: Project[] = [
   {
+    title: "Radiordle",
+    description:
+      "A daily radiology puzzle: read the image, make the diagnosis, and solve each case in five guesses. Live and playable every day.",
+    techStack: ["Next.js", "Supabase", "Playwright"],
+    link: "https://www.radiordle.org/",
+    icon: "[XR]",
+  },
+  {
+    title: "CFB Games",
+    description:
+      "A live college football arcade featuring The 16-0 Draft and Guess the Season—draft legends across eras, then test your CFB memory.",
+    techStack: ["React", "TypeScript", "Supabase"],
+    link: "https://cfb-games.com/",
+    icon: "16-0",
+  },
+  {
     title: "Fern Replay",
     description:
       "Git-native 3-way merge engine that keeps customers' hand-edits alive across SDK regenerations. Designed and built it solo at Fern; live in production for ElevenLabs and Auth0. I wrote up what it taught me about git.",
@@ -50,28 +66,12 @@ const PROJECTS: Project[] = [
     icon: "<->",
   },
   {
-    title: "Radwordle",
-    description:
-      "Daily Radiohead-themed word game with 1,000+ daily players. Playwright-tested, ISR-cached after the serverless bill taught me a lesson.",
-    techStack: ["Next.js", "Supabase", "Playwright"],
-    link: "https://radiordle.org",
-    icon: "[w]",
-  },
-  {
     title: "Retro Arcade",
     description:
       "The 33 browser games on this site, including realtime multiplayer over WebSocket channels — lobbies, room codes, reconnection and all. Start with Merge Conflict.",
     techStack: ["Next.js", "Canvas", "Supabase Realtime"],
     link: "/games",
     icon: "##",
-  },
-  {
-    title: "Claude Code Skills",
-    description:
-      "Two published plugins for Anthropic's Claude Code: debrief, an end-of-session recall ritual built on the testing effect, and product-view, which reframes agent output in user terms.",
-    techStack: ["Claude Code", "Markdown", "plugin marketplace"],
-    link: "https://github.com/tstanmay13/debrief",
-    icon: ">_",
   },
 ];
 
