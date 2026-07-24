@@ -666,8 +666,8 @@ export default function GamesPage() {
                         }
                       }}
                     >
-                      {/* Badges - top row */}
-                      <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                      {/* Game type badges */}
+                      <div className="absolute top-3 left-3 flex items-start">
                         <div className="flex gap-1.5">
                           {isMultiplayer && (
                             <span
@@ -692,17 +692,6 @@ export default function GamesPage() {
                             </span>
                           )}
                         </div>
-                        {game.isNew && (
-                          <span
-                            className="pixel-text text-[7px] px-1.5 py-0.5 animate-glow-pulse"
-                            style={{
-                              background: "var(--color-accent)",
-                              color: "var(--color-bg)",
-                            }}
-                          >
-                            NEW
-                          </span>
-                        )}
                       </div>
 
                       {/* Cabinet screen area */}
@@ -745,8 +734,8 @@ export default function GamesPage() {
                         </p>
                       )}
 
-                      {/* Category badge + play count */}
-                      <div className="flex items-center justify-center gap-2 mb-3">
+                      {/* Category badge */}
+                      <div className="flex items-center justify-center mb-3">
                         <span
                           className="pixel-text text-[8px] px-2 py-1 border inline-block"
                           style={{
@@ -756,17 +745,6 @@ export default function GamesPage() {
                         >
                           {game.category.toUpperCase()}
                         </span>
-                        {(playCounts[game.id] ?? 0) > 0 && (
-                          <span
-                            className="pixel-text text-[8px] px-2 py-1 inline-block"
-                            style={{
-                              color: "var(--color-text-muted)",
-                              border: "1px solid var(--color-border)",
-                            }}
-                          >
-                            {playCounts[game.id].toLocaleString()} PLAYS
-                          </span>
-                        )}
                       </div>
 
                       {/* Play button */}
