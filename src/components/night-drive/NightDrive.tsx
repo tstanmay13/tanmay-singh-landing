@@ -67,10 +67,44 @@ function DistrictAction({
   );
 }
 
+function DistrictPoi({
+  link,
+  index,
+}: {
+  link: NightDriveDistrict["links"][number];
+  index: number;
+}) {
+  const className = styles.poi;
+  const content = (
+    <>
+      <i aria-hidden="true" />
+      <span>
+        <small>POI {String(index + 1).padStart(2, "0")}</small>
+        <strong>{link.label}</strong>
+      </span>
+    </>
+  );
+
+  if (link.external) {
+    return (
+      <a className={className} href={link.href} target="_blank" rel="noopener noreferrer">
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link className={className} href={link.href}>
+      {content}
+    </Link>
+  );
+}
+
 export default function NightDrive({ districts }: NightDriveProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
+  const speedRef = useRef<HTMLSpanElement>(null);
   const activeIndexRef = useRef(0);
   const reducedMotionRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -97,6 +131,12 @@ export default function NightDrive({ districts }: NightDriveProps) {
     const lamps = Array.from(
       root.querySelectorAll<HTMLElement>("[data-drive-lamp]"),
     );
+    const streetBlocks = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-drive-block]"),
+    );
+    const districtGates = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-drive-gate]"),
+    );
     const videos = Array.from(
       root.querySelectorAll<HTMLVideoElement>("[data-drive-video]"),
     );
@@ -111,6 +151,14 @@ export default function NightDrive({ districts }: NightDriveProps) {
     let chapterMetrics: { top: number; height: number }[] = [];
     let frameId = 0;
     let ticking = false;
+    let steerTarget = 0;
+    let steerCurrent = 0;
+    let lookTarget = 0;
+    let lookCurrent = 0;
+    let speedTarget = 8;
+    let speedCurrent = 8;
+    let lastScrollY = window.scrollY;
+    let lastScrollTime = performance.now();
 
     const measure = () => {
       viewportHeight = window.innerHeight;
@@ -156,10 +204,18 @@ export default function NightDrive({ districts }: NightDriveProps) {
       const currentCurve = ROAD_CURVES[currentIndex] ?? 0;
       const nextCurve = ROAD_CURVES[currentIndex + 1] ?? currentCurve;
       const curve = currentCurve + (nextCurve - currentCurve) * transition;
+      steerCurrent += (steerTarget - steerCurrent) * 0.14;
+      lookCurrent += (lookTarget - lookCurrent) * 0.12;
+      speedCurrent += (speedTarget - speedCurrent) * 0.2;
+      speedTarget += (8 - speedTarget) * 0.075;
+      const drivingCurve = curve + steerCurrent * 0.11;
 
       root.style.setProperty("--drive-progress", rootProgress.toFixed(4));
       root.style.setProperty("--drive-local", localProgress.toFixed(4));
-      root.style.setProperty("--drive-curve", curve.toFixed(4));
+      root.style.setProperty("--drive-curve", drivingCurve.toFixed(4));
+      root.style.setProperty("--drive-steer", steerCurrent.toFixed(4));
+      root.style.setProperty("--drive-look", lookCurrent.toFixed(4));
+      root.style.setProperty("--drive-speed", speedCurrent.toFixed(2));
 
       scenes.forEach((scene, index) => {
         const opacity = clamp(1 - Math.abs(scenePosition - index));
@@ -171,7 +227,7 @@ export default function NightDrive({ districts }: NightDriveProps) {
         );
         scene.style.setProperty(
           "--scene-shift",
-          (((index % 2 === 0 ? -1 : 1) * sceneProgress * 1.8) + curve * 3).toFixed(3),
+          (((index % 2 === 0 ? -1 : 1) * sceneProgress * 1.8) + drivingCurve * 3).toFixed(3),
         );
       });
 
@@ -188,7 +244,7 @@ export default function NightDrive({ districts }: NightDriveProps) {
         const seed = Math.floor(index / 2) / Math.max(1, lamps.length / 2);
         const depth = (rootProgress * 7.5 + seed) % 1;
         const perspective = Math.pow(depth, 1.72);
-        const center = 50 + curve * 18 * (1 - depth);
+        const center = 50 + drivingCurve * 18 * (1 - depth) - steerCurrent * 2.2;
         const halfRoad = 3.4 + perspective * 43;
         const x = center + side * halfRoad;
         const y = 34 + perspective * 71;
@@ -199,6 +255,40 @@ export default function NightDrive({ districts }: NightDriveProps) {
         lamp.style.top = `${y.toFixed(3)}%`;
         lamp.style.opacity = opacity.toFixed(3);
         lamp.style.transform = `translate(-50%, -100%) scale(${scale.toFixed(3)})`;
+      });
+
+      streetBlocks.forEach((block, index) => {
+        const side = index % 2 === 0 ? -1 : 1;
+        const seed = Math.floor(index / 2) / Math.max(1, streetBlocks.length / 2);
+        const depth = (rootProgress * 11.5 + seed) % 1;
+        const perspective = Math.pow(depth, 1.64);
+        const center = 50 + drivingCurve * 22 * (1 - depth) - steerCurrent * 3.4;
+        const streetWidth = 6 + perspective * 57;
+        const x = center + side * streetWidth;
+        const y = 33 + perspective * 79;
+        const scale = 0.1 + perspective * 2.9;
+        const opacity = clamp(Math.sin(Math.PI * depth) * 1.7);
+
+        block.style.left = `${x.toFixed(3)}%`;
+        block.style.top = `${y.toFixed(3)}%`;
+        block.style.opacity = opacity.toFixed(3);
+        block.style.zIndex = String(20 + Math.round(depth * 70));
+        block.style.transform = `translate(-50%, -100%) scale(${scale.toFixed(3)}) rotateY(${side * -7}deg)`;
+      });
+
+      const arrivingIndex = Math.min(districts.length - 1, currentIndex + 1);
+      const gateDepth = clamp((cameraProgress - 0.58) / 0.42);
+      const gateOpacity =
+        smoothstep(gateDepth / 0.16) *
+        (1 - smoothstep((gateDepth - 0.76) / 0.24));
+      districtGates.forEach((gate, index) => {
+        const isArriving = index === arrivingIndex && arrivingIndex !== currentIndex;
+        const perspective = Math.pow(gateDepth, 1.82);
+        const y = 34 + perspective * 78;
+        const scale = 0.18 + perspective * 3.9;
+        gate.style.top = `${y.toFixed(3)}%`;
+        gate.style.opacity = isArriving ? gateOpacity.toFixed(3) : "0";
+        gate.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       });
 
       copies.forEach((copy, index) => {
@@ -260,8 +350,17 @@ export default function NightDrive({ districts }: NightDriveProps) {
       if (hintRef.current) {
         hintRef.current.style.opacity = clamp(1 - rootProgress * 16).toFixed(3);
       }
+      if (speedRef.current) {
+        speedRef.current.textContent = String(Math.round(speedCurrent)).padStart(2, "0");
+      }
 
       ticking = false;
+      const stillSettling =
+        Math.abs(steerTarget - steerCurrent) > 0.002 ||
+        Math.abs(lookTarget - lookCurrent) > 0.002 ||
+        Math.abs(speedCurrent - 8) > 0.2 ||
+        Math.abs(speedTarget - 8) > 0.2;
+      if (stillSettling) scheduleUpdate();
     };
 
     const scheduleUpdate = () => {
@@ -273,6 +372,29 @@ export default function NightDrive({ districts }: NightDriveProps) {
     const handleResize = () => {
       if (coarseQuery.matches && window.innerWidth === layoutWidth) return;
       measure();
+      scheduleUpdate();
+    };
+
+    const handleScroll = () => {
+      const now = performance.now();
+      const elapsed = Math.max(16, now - lastScrollTime);
+      const distance = Math.abs(window.scrollY - lastScrollY);
+      speedTarget = clamp(8 + (distance / elapsed) * 18, 8, 96);
+      lastScrollY = window.scrollY;
+      lastScrollTime = now;
+      scheduleUpdate();
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (coarseQuery.matches || reducedMotionRef.current) return;
+      steerTarget = clamp((event.clientX / window.innerWidth - 0.5) * 2, -1, 1);
+      lookTarget = clamp((event.clientY / window.innerHeight - 0.5) * 2, -1, 1);
+      scheduleUpdate();
+    };
+
+    const resetPointerLook = () => {
+      steerTarget = 0;
+      lookTarget = 0;
       scheduleUpdate();
     };
 
@@ -295,16 +417,22 @@ export default function NightDrive({ districts }: NightDriveProps) {
     measure();
     update();
 
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("blur", resetPointerLook);
+    root.addEventListener("pointerleave", resetPointerLook);
     reduceQuery.addEventListener("change", handleMotionChange);
 
     return () => {
       window.cancelAnimationFrame(frameId);
-      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("blur", resetPointerLook);
+      root.removeEventListener("pointerleave", resetPointerLook);
       reduceQuery.removeEventListener("change", handleMotionChange);
       videos.forEach((video) => {
         video.removeEventListener("loadedmetadata", scheduleUpdate);
@@ -352,7 +480,8 @@ export default function NightDrive({ districts }: NightDriveProps) {
 
           <div className={styles.statusReadout} aria-hidden="true">
             <span className={styles.statusLight} />
-            <span>ROUTE LIVE</span>
+            <span ref={speedRef}>08</span>
+            <span>KM/H</span>
           </div>
         </div>
 
@@ -376,8 +505,14 @@ export default function NightDrive({ districts }: NightDriveProps) {
           ))}
         </nav>
 
+        <div className={styles.poiLayer} aria-label={`${activeDistrict?.label} points of interest`}>
+          {activeDistrict?.links.map((link, index) => (
+            <DistrictPoi key={`${activeDistrict.id}-${link.href}`} link={link} index={index} />
+          ))}
+        </div>
+
         <div ref={hintRef} className={styles.scrollHint} aria-hidden="true">
-          <span>Scroll to drive</span>
+          <span>Scroll to drive · move to steer</span>
           <i />
         </div>
       </div>

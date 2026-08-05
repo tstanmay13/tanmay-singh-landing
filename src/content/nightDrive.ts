@@ -46,16 +46,16 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
     id: "city-limits",
     code: "ND-01",
     label: "City Limits",
-    eyebrow: "Tanmay Singh · New York City",
-    headline: "I build the systems behind good developer experiences.",
+    eyebrow: "Tanmay Singh · driving after dark",
+    headline: "Hey, I’m Tanmay.",
     body:
-      "Senior software engineer working across SDK generation, identity, real-time systems, and agent tooling — with a habit of turning side ideas into things people can actually use.",
-    proof: ["3+ years", "SDKs + agents", "33 browser games"],
+      "I write software in New York, disappear into side projects, and keep building browser games long after I should have gone to sleep.",
+    proof: ["Software engineer", "Game maker", "Occasional writer"],
     links: [
       {
-        label: "Start the drive",
+        label: "Keep driving",
         href: "#downtown",
-        detail: "Selected work ahead",
+        detail: "Downtown is up ahead",
         primary: true,
       },
     ],
@@ -68,11 +68,11 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
     id: "downtown",
     code: "ND-02",
     label: "Downtown",
-    eyebrow: "Selected work",
-    headline: "Useful systems, shipped into the real world.",
+    eyebrow: "Things I’ve made",
+    headline: "A few projects I couldn’t leave alone.",
     body:
-      "The work spans generated code, daily games, and data-heavy products. The common thread is careful infrastructure made approachable at the surface.",
-    proof: ["Production systems", "Independent products", "End-to-end ownership"],
+      "A radiology guessing game, a college-football arcade, a merge engine for generated code, and a growing pile of smaller experiments.",
+    proof: ["Daily puzzles", "Odd tools", "Side quests"],
     links: [
       {
         label: "Radiordle",
@@ -107,22 +107,22 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
     id: "studio-district",
     code: "ND-03",
     label: "Studio District",
-    eyebrow: "Practice",
-    headline: "Deep in the stack. Curious at the edges.",
+    eyebrow: "Current rabbit holes",
+    headline: "What I’m messing with lately.",
     body:
-      "I work mostly in TypeScript, Java, Python, Rust, and Go, with current attention on agent-ready APIs, reliable code generation, streaming systems, and the tools that make complex platforms feel simple.",
-    proof: ["TypeScript · Java", "Rust · Go · Python", "WebSockets · SSE · OpenAPI"],
+      "Small Rust tools, agents that can actually find their way around a codebase, real-time multiplayer, weird browser APIs, and whichever language makes the idea more fun.",
+    proof: ["Rust tools", "Agents", "Realtime games"],
     links: [
       {
         label: "Explore the portfolio",
         href: "/portfolio",
-        detail: "The projects behind the toolchain",
+        detail: "More finished and unfinished things",
         primary: true,
       },
       {
         label: "Read the résumé",
         href: "/resume.pdf",
-        detail: "Experience and technical focus",
+        detail: "The chronological version",
         external: true,
       },
     ],
@@ -135,11 +135,11 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
     id: "arcade-pier",
     code: "ND-04",
     label: "Arcade Pier",
-    eyebrow: "Playground",
-    headline: "The fastest way to understand my work is to play it.",
+    eyebrow: "Open late",
+    headline: "Thirty-three games. Pick one.",
     body:
-      "The arcade holds 33 browser games: quick solo experiments, pass-the-phone chaos, and real-time multiplayer rooms built on Supabase Realtime.",
-    proof: ["33 games", "7 online multiplayer", "No install"],
+      "Some take ten seconds. Some need a room full of friends. A suspicious number began as jokes and became fully working games.",
+    proof: ["Solo", "Pass the phone", "Online multiplayer"],
     links: [
       {
         label: "Enter the arcade",
@@ -162,11 +162,11 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
     id: "radio-hill",
     code: "ND-05",
     label: "Radio Hill",
-    eyebrow: "Writing",
-    headline: "Notes from inside the machinery.",
+    eyebrow: "One clear signal",
+    headline: "A story about git, generators, and a very stubborn problem.",
     body:
-      "Long-form writing stays close to systems I have actually built. Few pieces, on purpose — each one earns the transmission.",
-    proof: ["Engineering essays", "Real systems", "No filler"],
+      "I don’t publish often. This one is about building a merge engine and realizing regeneration behaves a lot like a rebase.",
+    proof: ["12 min read", "Git internals", "One actual war story"],
     links: [
       {
         label: "Regeneration is a rebase",
@@ -189,14 +189,14 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
     id: "last-exit",
     code: "ND-06",
     label: "Last Exit",
-    eyebrow: "Open channel",
-    headline: "Good systems start with a clear conversation.",
+    eyebrow: "End of the road",
+    headline: "That’s the city.",
     body:
-      "If you are building developer infrastructure, agent tooling, or a product that needs both technical depth and a sharp interface, I would like to hear about it.",
-    proof: ["NYC", "contact@tanmay-singh.com", "Usually replies within a few days"],
+      "GitHub has the code. The résumé has the chronological version. The contact page is there if you want to say hi.",
+    proof: ["New York City", "contact@tanmay-singh.com", "Thanks for driving"],
     links: [
       {
-        label: "Start a conversation",
+        label: "Say hi",
         href: "/contact",
         detail: "Send a message",
         primary: true,
@@ -204,7 +204,7 @@ export const NIGHT_DRIVE_DISTRICTS: NightDriveDistrict[] = [
       {
         label: "GitHub",
         href: "https://github.com/tstanmay13",
-        detail: "Code, experiments, and current work",
+        detail: "Code and unfinished experiments",
         external: true,
       },
       {

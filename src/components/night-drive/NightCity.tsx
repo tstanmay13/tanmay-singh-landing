@@ -385,6 +385,60 @@ function CinematicMedia({ district, index }: { district: NightDriveDistrict; ind
   );
 }
 
+function StreetCanyon({ districts }: NightCityProps) {
+  return (
+    <>
+      <div className={styles.streetCanyon}>
+        {Array.from({ length: 18 }, (_, index) => {
+          const kind = index % 7 === 2 ? "palm" : index % 7 === 5 ? "tower" : "building";
+          const side = index % 2 === 0 ? "left" : "right";
+
+          return (
+            <span
+              key={index}
+              className={styles.streetBlock}
+              data-drive-block={index}
+              data-kind={kind}
+              data-side={side}
+              data-variant={index % 4}
+            >
+              <i className={styles.blockSide} />
+              <i className={styles.blockFace}>
+                {Array.from({ length: 8 }, (_, windowIndex) => (
+                  <b key={windowIndex} />
+                ))}
+              </i>
+              <i className={styles.streetPalm}>
+                <b />
+                <b />
+                <b />
+                <b />
+              </i>
+            </span>
+          );
+        })}
+      </div>
+
+      <div className={styles.districtGates}>
+        {districts.map((district, index) => (
+          <div
+            key={district.id}
+            className={styles.districtGate}
+            data-drive-gate={index}
+          >
+            <i className={styles.gatePostLeft} />
+            <i className={styles.gatePostRight} />
+            <div className={styles.gateSign}>
+              <span>Approaching</span>
+              <strong>{district.label}</strong>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export default function NightCity({ districts }: NightCityProps) {
   return (
     <div className={styles.city} aria-hidden="true">
@@ -450,6 +504,8 @@ export default function NightCity({ districts }: NightCityProps) {
           </span>
         ))}
       </div>
+
+      <StreetCanyon districts={districts} />
 
       <div className={styles.windshield} />
       <div className={styles.grain} />
