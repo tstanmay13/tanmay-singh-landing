@@ -1,4 +1,11 @@
 export type DistrictAccent = "magenta" | "cyan" | "amber" | "violet";
+export type DistrictId =
+  | "city-limits"
+  | "downtown"
+  | "studio-district"
+  | "arcade-pier"
+  | "radio-hill"
+  | "last-exit";
 
 export interface DistrictLink {
   label: string;
@@ -20,7 +27,7 @@ export interface DistrictMedia {
 }
 
 export interface NightDriveDistrict {
-  id: string;
+  id: DistrictId;
   code: string;
   label: string;
   eyebrow: string;

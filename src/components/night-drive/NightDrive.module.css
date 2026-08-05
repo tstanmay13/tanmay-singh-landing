@@ -821,22 +821,19 @@
 
 .poi {
   position: absolute;
+  top: 34%;
+  left: 50%;
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  opacity: 0;
   color: var(--color-drive-text-soft);
   text-decoration: none;
   text-shadow: 0 0.15rem 0.8rem var(--color-drive-sky-top);
-  pointer-events: auto;
-  transition:
-    color 160ms ease,
-    transform 160ms ease;
+  pointer-events: none;
+  transition: color 160ms ease;
+  will-change: top, left, opacity, transform;
 }
-
-.poi:nth-child(1) { top: 31%; right: 27%; }
-.poi:nth-child(2) { top: 49%; right: 13%; }
-.poi:nth-child(3) { top: 23%; right: 42%; }
-.poi:nth-child(4) { top: 62%; right: 31%; }
 
 .poi i {
   position: relative;
@@ -881,9 +878,68 @@
 }
 
 .poi:hover,
-.poi:focus-visible {
+.poi:focus-visible,
+.poi[data-focused="true"] {
   color: var(--district-accent);
-  transform: translateY(-0.2rem);
+}
+
+.poi:hover i,
+.poi:focus-visible i,
+.poi[data-focused="true"] i {
+  background: var(--district-accent);
+  box-shadow:
+    0 0 0 0.22rem color-mix(in srgb, var(--district-accent) 18%, transparent),
+    0 0 1.4rem var(--district-accent);
+}
+
+.poi:hover strong,
+.poi:focus-visible strong,
+.poi[data-focused="true"] strong {
+  background: color-mix(in srgb, var(--color-drive-sky-top) 82%, transparent);
+}
+
+.steerControls {
+  position: absolute;
+  z-index: 34;
+  right: clamp(1rem, 2.4vw, 2.5rem);
+  bottom: max(1.2rem, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 2.3rem auto 2.3rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem;
+  border: 1px solid var(--color-drive-route-dim);
+  background: color-mix(in srgb, var(--color-drive-sky-top) 76%, transparent);
+  backdrop-filter: blur(0.45rem);
+}
+
+.steerControls button {
+  display: grid;
+  width: 2.3rem;
+  height: 2.3rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--color-drive-route-dim);
+  color: var(--color-drive-text-soft);
+  background: color-mix(in srgb, var(--color-drive-sky) 76%, transparent);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.steerControls button:hover,
+.steerControls button:focus-visible,
+.steerControls button:active {
+  border-color: var(--district-accent);
+  color: var(--district-accent);
+}
+
+.steerControls span {
+  color: var(--color-drive-text-muted);
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  letter-spacing: 0.1em;
 }
 
 .scrollHint {
@@ -932,6 +988,7 @@
   z-index: 10;
   margin-top: -100vh;
   margin-top: -100svh;
+  pointer-events: none;
 }
 
 .chapter {
@@ -1168,6 +1225,12 @@
     display: none;
   }
 
+  .steerControls {
+    top: 8.1rem;
+    right: 1rem;
+    bottom: auto;
+  }
+
   .windshield {
     background:
       linear-gradient(
@@ -1347,6 +1410,16 @@
   .districtAction {
     min-height: 3.1rem;
   }
+
+  .steerControls {
+    grid-template-columns: 3rem auto 3rem;
+  }
+
+  .steerControls button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1375,6 +1448,7 @@
   .streetCanyon,
   .districtGates,
   .poiLayer,
+  .steerControls,
   .scrollHint,
   .route,
   .grain {

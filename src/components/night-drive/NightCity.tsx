@@ -1,38 +1,41 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
-import type { NightDriveDistrict } from "@/content/nightDrive";
+import type { DistrictId, NightDriveDistrict } from "@/content/nightDrive";
 import styles from "./NightDrive.module.css";
 
 interface NightCityProps {
   districts: NightDriveDistrict[];
 }
 
-const ROAD_GEOMETRY = [
-  {
+const ROAD_GEOMETRY: Record<
+  DistrictId,
+  { surface: string; center: string }
+> = {
+  "city-limits": {
     surface: "M88 1000 C244 790 392 532 468 344 L532 344 C608 532 756 790 912 1000 Z",
     center: "M500 1000 C500 790 500 530 500 344",
   },
-  {
+  downtown: {
     surface: "M66 1000 C260 806 300 610 532 344 L596 344 C472 604 612 800 936 1000 Z",
     center: "M500 1000 C382 782 610 562 564 344",
   },
-  {
+  "studio-district": {
     surface: "M104 1000 C392 800 612 620 424 344 L488 344 C748 612 602 808 896 1000 Z",
     center: "M500 1000 C622 780 394 570 456 344",
   },
-  {
+  "arcade-pier": {
     surface: "M52 1000 C290 770 474 602 500 344 L564 344 C552 586 690 786 948 1000 Z",
     center: "M500 1000 C430 748 574 554 532 344",
   },
-  {
+  "radio-hill": {
     surface: "M98 1000 C336 830 258 612 454 344 L518 344 C420 598 760 822 902 1000 Z",
     center: "M500 1000 C340 806 528 564 486 344",
   },
-  {
+  "last-exit": {
     surface: "M76 1000 C244 786 414 522 468 344 L532 344 C586 522 756 786 924 1000 Z",
     center: "M500 1000 C500 760 500 530 500 344",
   },
-];
+};
 
 const STAR_POSITIONS = [
   [7, 12], [14, 28], [22, 8], [29, 20], [38, 11], [46, 26],
@@ -52,8 +55,8 @@ function Palm({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
   );
 }
 
-function Landmark({ districtIndex }: { districtIndex: number }) {
-  if (districtIndex === 0) {
+function Landmark({ districtId }: { districtId: DistrictId }) {
+  if (districtId === "city-limits") {
     return (
       <g className={styles.landmark}>
         <path d="M270 515 Q390 350 510 515" />
@@ -65,7 +68,7 @@ function Landmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 1) {
+  if (districtId === "downtown") {
     return (
       <g className={styles.towerLandmark}>
         <path d="M760 510 L790 145 L820 510 Z" />
@@ -76,7 +79,7 @@ function Landmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 2) {
+  if (districtId === "studio-district") {
     return (
       <g className={styles.studioLandmark}>
         <path d="M1130 504 L1230 338 L1368 504 Z" />
@@ -87,7 +90,7 @@ function Landmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 3) {
+  if (districtId === "arcade-pier") {
     return (
       <g className={styles.pierLandmark}>
         <circle cx="1186" cy="397" r="108" />
@@ -108,7 +111,7 @@ function Landmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 4) {
+  if (districtId === "radio-hill") {
     return (
       <g className={styles.radioLandmark}>
         <path d="M1190 510 L1260 228 L1330 510" />
@@ -134,7 +137,13 @@ function Landmark({ districtIndex }: { districtIndex: number }) {
   );
 }
 
-function Skyline({ districtIndex }: { districtIndex: number }) {
+function Skyline({
+  districtId,
+  districtIndex,
+}: {
+  districtId: DistrictId;
+  districtIndex: number;
+}) {
   const buildings = Array.from({ length: 13 }, (_, buildingIndex) => {
     const x = ((buildingIndex * 131 + districtIndex * 67) % 1510) - 30;
     const width = 78 + ((buildingIndex * 37 + districtIndex * 19) % 94);
@@ -182,7 +191,7 @@ function Skyline({ districtIndex }: { districtIndex: number }) {
     >
       <path className={styles.farHills} d="M0 505 Q190 418 380 493 T760 475 T1140 490 T1600 445 L1600 610 L0 610 Z" />
       {buildings}
-      <Landmark districtIndex={districtIndex} />
+      <Landmark districtId={districtId} />
       <rect className={styles.water} x="0" y="520" width="1600" height="190" />
       {Array.from({ length: 17 }, (_, reflectionIndex) => (
         <line
@@ -198,8 +207,8 @@ function Skyline({ districtIndex }: { districtIndex: number }) {
   );
 }
 
-function PortraitLandmark({ districtIndex }: { districtIndex: number }) {
-  if (districtIndex === 0) {
+function PortraitLandmark({ districtId }: { districtId: DistrictId }) {
+  if (districtId === "city-limits") {
     return (
       <g className={styles.landmark}>
         <path d="M184 642 Q330 458 476 642" />
@@ -211,7 +220,7 @@ function PortraitLandmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 1) {
+  if (districtId === "downtown") {
     return (
       <g className={styles.towerLandmark}>
         <path d="M406 650 L450 172 L494 650 Z" />
@@ -222,7 +231,7 @@ function PortraitLandmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 2) {
+  if (districtId === "studio-district") {
     return (
       <g className={styles.studioLandmark}>
         <path d="M142 646 L300 410 L468 646 Z" />
@@ -232,7 +241,7 @@ function PortraitLandmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 3) {
+  if (districtId === "arcade-pier") {
     return (
       <g className={styles.pierLandmark}>
         <circle cx="630" cy="486" r="142" />
@@ -253,7 +262,7 @@ function PortraitLandmark({ districtIndex }: { districtIndex: number }) {
     );
   }
 
-  if (districtIndex === 4) {
+  if (districtId === "radio-hill") {
     return (
       <g className={styles.radioLandmark}>
         <path d="M520 650 L610 258 L700 650" />
@@ -279,7 +288,13 @@ function PortraitLandmark({ districtIndex }: { districtIndex: number }) {
   );
 }
 
-function PortraitSkyline({ districtIndex }: { districtIndex: number }) {
+function PortraitSkyline({
+  districtId,
+  districtIndex,
+}: {
+  districtId: DistrictId;
+  districtIndex: number;
+}) {
   const buildings = Array.from({ length: 9 }, (_, buildingIndex) => {
     const x = ((buildingIndex * 109 + districtIndex * 43) % 860) - 30;
     const width = 78 + ((buildingIndex * 31 + districtIndex * 17) % 80);
@@ -320,7 +335,7 @@ function PortraitSkyline({ districtIndex }: { districtIndex: number }) {
     >
       <path className={styles.farHills} d="M0 625 Q120 526 260 610 T520 592 T900 550 L900 790 L0 790 Z" />
       {buildings}
-      <PortraitLandmark districtIndex={districtIndex} />
+      <PortraitLandmark districtId={districtId} />
       <rect className={styles.water} x="0" y="650" width="900" height="245" />
       {Array.from({ length: 11 }, (_, reflectionIndex) => (
         <line
@@ -347,7 +362,7 @@ function CinematicMedia({ district, index }: { district: NightDriveDistrict; ind
     <div className={styles.cinematicMedia} data-drive-media-index={index}>
       {media.poster ? (
         <Image
-          className={`${styles.mediaPoster} ${styles.mediaPosterDesktop}`}
+          className={`${styles.mediaPoster} ${media.mobilePoster ? styles.mediaPosterDesktop : ""}`}
           src={media.poster}
           alt=""
           fill
@@ -464,8 +479,8 @@ export default function NightCity({ districts }: NightCityProps) {
             data-drive-scene={index}
             data-accent={district.accent}
           >
-            <Skyline districtIndex={index} />
-            <PortraitSkyline districtIndex={index} />
+            <Skyline districtId={district.id} districtIndex={index} />
+            <PortraitSkyline districtId={district.id} districtIndex={index} />
             <CinematicMedia district={district} index={index} />
           </div>
         ))}
@@ -478,7 +493,7 @@ export default function NightCity({ districts }: NightCityProps) {
           preserveAspectRatio="none"
         >
           {districts.map((district, index) => {
-            const geometry = ROAD_GEOMETRY[index] ?? ROAD_GEOMETRY[0];
+            const geometry = ROAD_GEOMETRY[district.id];
             return (
               <g key={district.id} className={styles.roadScene} data-drive-road={index}>
                 <path className={styles.roadShoulder} d={geometry.surface} />

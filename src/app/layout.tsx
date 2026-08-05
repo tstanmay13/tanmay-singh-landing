@@ -3,25 +3,24 @@ import ClientLayout from "@/components/ClientLayout";
 import "./globals.css";
 
 const DESCRIPTION =
-  "Senior software engineer in NYC. I build SDK generators and agent tooling at Fern (acquired by Postman); before that, passkeys and auth at Amazon Identity. Also: a 33-game retro arcade.";
+  "Tanmay Singh’s nighttime portfolio: software, daily games, odd tools, engineering stories, and a 33-game browser arcade.";
 
 export const metadata: Metadata = {
-  title: "Tanmay Singh — Senior Software Engineer",
+  metadataBase: new URL("https://tanmay-singh.com"),
+  title: "Tanmay Singh — Software, Games, Side Quests",
   description: DESCRIPTION,
   keywords: [
     "Tanmay Singh",
-    "Senior Software Engineer",
-    "SDK generation",
-    "developer experience",
-    "AI agent tooling",
-    "Fern",
-    "Postman",
+    "software engineer",
+    "browser games",
+    "creative coding",
+    "side projects",
     "NYC",
   ],
   authors: [{ name: "Tanmay Singh" }],
   creator: "Tanmay Singh",
   openGraph: {
-    title: "Tanmay Singh — Senior Software Engineer",
+    title: "Tanmay Singh — Software, Games, Side Quests",
     description: DESCRIPTION,
     url: "https://tanmay-singh.com",
     siteName: "Tanmay Singh",
@@ -30,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tanmay Singh — Senior Software Engineer",
+    title: "Tanmay Singh — Software, Games, Side Quests",
     description: DESCRIPTION,
     creator: "@tanmaysingh",
   },
@@ -62,10 +61,10 @@ const personJsonLd = {
     "https://linkedin.com/in/tsingh13",
   ],
   knowsAbout: [
-    "SDK code generation",
-    "developer experience",
-    "AI agent tooling",
-    "authentication and identity",
+    "Browser games",
+    "Creative coding",
+    "Software tools",
+    "Real-time multiplayer games",
     "real-time streaming (WebSockets, SSE)",
   ],
 };

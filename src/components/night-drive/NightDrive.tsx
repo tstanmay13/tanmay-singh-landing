@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
-import type { NightDriveDistrict } from "@/content/nightDrive";
+import type { CSSProperties, ReactNode } from "react";
+import type { DistrictId, NightDriveDistrict } from "@/content/nightDrive";
 import NightCity from "./NightCity";
 import styles from "./NightDrive.module.css";
 
@@ -11,7 +11,14 @@ interface NightDriveProps {
   districts: NightDriveDistrict[];
 }
 
-const ROAD_CURVES = [-0.08, 0.24, -0.18, 0.16, -0.22, 0];
+const ROAD_CURVES: Record<DistrictId, number> = {
+  "city-limits": -0.08,
+  downtown: 0.24,
+  "studio-district": -0.18,
+  "arcade-pier": 0.16,
+  "radio-hill": -0.22,
+  "last-exit": 0,
+};
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -27,6 +34,38 @@ function lingerEase(value: number, amount: number) {
   const linger = clamp(amount, 0, 0.6);
   const centered = x - 0.5;
   return (1 - linger) * x + linger * (4 * centered * centered * centered + 0.5);
+}
+
+function DestinationLink({
+  link,
+  className,
+  children,
+  dataDrivePoi,
+}: {
+  link: NightDriveDistrict["links"][number];
+  className: string;
+  children: ReactNode;
+  dataDrivePoi?: number;
+}) {
+  if (link.external) {
+    return (
+      <a
+        className={className}
+        data-drive-poi={dataDrivePoi}
+        href={link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link className={className} data-drive-poi={dataDrivePoi} href={link.href}>
+      {children}
+    </Link>
+  );
 }
 
 function DistrictAction({
@@ -47,23 +86,10 @@ function DistrictAction({
     </>
   );
 
-  if (link.external) {
-    return (
-      <a
-        className={className}
-        href={link.href}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {content}
-      </a>
-    );
-  }
-
   return (
-    <Link className={className} href={link.href}>
+    <DestinationLink className={className} link={link}>
       {content}
-    </Link>
+    </DestinationLink>
   );
 }
 
@@ -85,18 +111,10 @@ function DistrictPoi({
     </>
   );
 
-  if (link.external) {
-    return (
-      <a className={className} href={link.href} target="_blank" rel="noopener noreferrer">
-        {content}
-      </a>
-    );
-  }
-
   return (
-    <Link className={className} href={link.href}>
+    <DestinationLink className={className} dataDrivePoi={index} link={link}>
       {content}
-    </Link>
+    </DestinationLink>
   );
 }
 
@@ -136,6 +154,9 @@ export default function NightDrive({ districts }: NightDriveProps) {
     );
     const districtGates = Array.from(
       root.querySelectorAll<HTMLElement>("[data-drive-gate]"),
+    );
+    const steerControls = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-drive-steer-control]"),
     );
     const videos = Array.from(
       root.querySelectorAll<HTMLVideoElement>("[data-drive-video]"),
@@ -201,8 +222,10 @@ export default function NightDrive({ districts }: NightDriveProps) {
         districts.length - 1,
         currentIndex + transition,
       );
-      const currentCurve = ROAD_CURVES[currentIndex] ?? 0;
-      const nextCurve = ROAD_CURVES[currentIndex + 1] ?? currentCurve;
+      const currentId = districts[currentIndex]?.id ?? "city-limits";
+      const nextId = districts[currentIndex + 1]?.id ?? currentId;
+      const currentCurve = ROAD_CURVES[currentId];
+      const nextCurve = ROAD_CURVES[nextId];
       const curve = currentCurve + (nextCurve - currentCurve) * transition;
       steerCurrent += (steerTarget - steerCurrent) * 0.14;
       lookCurrent += (lookTarget - lookCurrent) * 0.12;
@@ -291,6 +314,34 @@ export default function NightDrive({ districts }: NightDriveProps) {
         gate.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       });
 
+      const pois = Array.from(
+        root.querySelectorAll<HTMLElement>("[data-drive-poi]"),
+      );
+      pois.forEach((poi, index) => {
+        const side = index % 2 === 0 ? 1 : -1;
+        const start = 0.02 + index * 0.11;
+        const depth = clamp((localProgress - start) / 0.72);
+        const perspective = Math.pow(depth, 1.7);
+        const center =
+          50 + drivingCurve * 18 * (1 - depth) - steerCurrent * 2.8;
+        const roadside = 6 + perspective * 49;
+        const x = center + side * roadside;
+        const y = 34 + perspective * 61;
+        const scale = 0.42 + perspective * 1.28;
+        const enter = smoothstep(depth / 0.12);
+        const exit = 1 - smoothstep((depth - 0.82) / 0.18);
+        const opacity = enter * exit;
+        const focused =
+          opacity > 0.45 && Math.abs(steerCurrent - side * 0.72) < 0.46;
+
+        poi.style.left = `${x.toFixed(3)}%`;
+        poi.style.top = `${y.toFixed(3)}%`;
+        poi.style.opacity = opacity.toFixed(3);
+        poi.style.pointerEvents = opacity > 0.3 ? "auto" : "none";
+        poi.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+        poi.dataset.focused = String(focused);
+      });
+
       copies.forEach((copy, index) => {
         if (reducedMotionRef.current) {
           copy.style.opacity = "1";
@@ -339,6 +390,7 @@ export default function NightDrive({ districts }: NightDriveProps) {
         activeIndexRef.current = currentIndex;
         setActiveIndex(currentIndex);
         root.dataset.accent = districts[currentIndex]?.accent ?? "magenta";
+        window.requestAnimationFrame(scheduleUpdate);
       }
 
       if (progressRef.current) {
@@ -398,6 +450,54 @@ export default function NightDrive({ districts }: NightDriveProps) {
       scheduleUpdate();
     };
 
+    const handleSteerControlStart = (event: PointerEvent) => {
+      const control = event.currentTarget as HTMLButtonElement;
+      steerTarget = clamp(
+        Number(control.dataset.driveSteerControl ?? 0),
+        -1,
+        1,
+      );
+      scheduleUpdate();
+    };
+
+    const handleSteerControlEnd = () => {
+      steerTarget = 0;
+      scheduleUpdate();
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (key === "arrowleft" || key === "a") {
+        steerTarget = -0.92;
+      } else if (key === "arrowright" || key === "d") {
+        steerTarget = 0.92;
+      } else {
+        return;
+      }
+
+      scheduleUpdate();
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (
+        key !== "arrowleft" &&
+        key !== "arrowright" &&
+        key !== "a" &&
+        key !== "d"
+      ) {
+        return;
+      }
+
+      steerTarget = 0;
+      scheduleUpdate();
+    };
+
     const handleMotionChange = () => {
       reducedMotionRef.current = reduceQuery.matches;
       root.dataset.reducedMotion = String(reduceQuery.matches);
@@ -405,11 +505,21 @@ export default function NightDrive({ districts }: NightDriveProps) {
       scheduleUpdate();
     };
 
+    const handleVideoSeeked = (event: Event) => {
+      const video = event.currentTarget as HTMLVideoElement;
+      video.parentElement?.setAttribute("data-video-ready", "true");
+      scheduleUpdate();
+    };
+
     videos.forEach((video) => {
       video.addEventListener("loadedmetadata", scheduleUpdate);
-      video.addEventListener("seeked", () => {
-        video.parentElement?.setAttribute("data-video-ready", "true");
-      }, { once: true });
+      video.addEventListener("seeked", handleVideoSeeked);
+    });
+    steerControls.forEach((control) => {
+      control.addEventListener("pointerdown", handleSteerControlStart);
+      control.addEventListener("pointerup", handleSteerControlEnd);
+      control.addEventListener("pointercancel", handleSteerControlEnd);
+      control.addEventListener("pointerleave", handleSteerControlEnd);
     });
 
     root.dataset.reducedMotion = String(reduceQuery.matches);
@@ -421,6 +531,8 @@ export default function NightDrive({ districts }: NightDriveProps) {
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("blur", resetPointerLook);
     root.addEventListener("pointerleave", resetPointerLook);
     reduceQuery.addEventListener("change", handleMotionChange);
@@ -431,11 +543,20 @@ export default function NightDrive({ districts }: NightDriveProps) {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
       window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", resetPointerLook);
       root.removeEventListener("pointerleave", resetPointerLook);
       reduceQuery.removeEventListener("change", handleMotionChange);
       videos.forEach((video) => {
         video.removeEventListener("loadedmetadata", scheduleUpdate);
+        video.removeEventListener("seeked", handleVideoSeeked);
+      });
+      steerControls.forEach((control) => {
+        control.removeEventListener("pointerdown", handleSteerControlStart);
+        control.removeEventListener("pointerup", handleSteerControlEnd);
+        control.removeEventListener("pointercancel", handleSteerControlEnd);
+        control.removeEventListener("pointerleave", handleSteerControlEnd);
       });
     };
   }, [districts]);
@@ -505,14 +626,32 @@ export default function NightDrive({ districts }: NightDriveProps) {
           ))}
         </nav>
 
-        <div className={styles.poiLayer} aria-label={`${activeDistrict?.label} points of interest`}>
+        <nav className={styles.poiLayer} aria-label={`${activeDistrict?.label} points of interest`}>
           {activeDistrict?.links.map((link, index) => (
             <DistrictPoi key={`${activeDistrict.id}-${link.href}`} link={link} index={index} />
           ))}
+        </nav>
+
+        <div className={styles.steerControls} role="group" aria-label="Steering controls">
+          <button
+            type="button"
+            data-drive-steer-control="-1"
+            aria-label="Steer left"
+          >
+            ←
+          </button>
+          <span aria-hidden="true">STEER</span>
+          <button
+            type="button"
+            data-drive-steer-control="1"
+            aria-label="Steer right"
+          >
+            →
+          </button>
         </div>
 
         <div ref={hintRef} className={styles.scrollHint} aria-hidden="true">
-          <span>Scroll to drive · move to steer</span>
+          <span>Scroll to drive · move or use A/D to steer</span>
           <i />
         </div>
       </div>
