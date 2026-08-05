@@ -1,30 +1,23 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PixelNav from "@/components/PixelNav";
-import CustomCursor from "@/components/CustomCursor";
-import ParallaxBackground from "@/components/ParallaxBackground";
-import LoadingScreen from "@/components/LoadingScreen";
 
 export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [loading, setLoading] = useState(true);
-
-  const handleLoadingComplete = useCallback(() => {
-    setLoading(false);
-  }, []);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <ThemeProvider>
-      {loading && <LoadingScreen onComplete={handleLoadingComplete} />}
-      <CustomCursor />
-      <ParallaxBackground />
       <PixelNav />
-      <main className="relative z-10 pt-16">{children}</main>
+      <main className={isHome ? "site-main site-main-home" : "site-main"}>
+        {children}
+      </main>
     </ThemeProvider>
   );
 }

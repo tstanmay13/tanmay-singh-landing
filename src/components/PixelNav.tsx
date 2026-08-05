@@ -2,155 +2,143 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "./ThemeProvider";
+import styles from "./PixelNav.module.css";
 
 interface NavLink {
   href: string;
   label: string;
-  icon: string;
   external?: boolean;
 }
 
 const navLinks: NavLink[] = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/games", label: "Games", icon: "🎮" },
-  { href: "/writing", label: "Writing", icon: "📝" },
-  { href: "/portfolio", label: "Portfolio", icon: "💼" },
-  { href: "/resume.pdf", label: "Resume", icon: "📄", external: true },
-  { href: "/contact", label: "Contact", icon: "💌" },
+  { href: "/", label: "Drive" },
+  { href: "/portfolio", label: "Work" },
+  { href: "/games", label: "Games" },
+  { href: "/writing", label: "Writing" },
+  { href: "/resume.pdf", label: "Résumé", external: true },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function PixelNav() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isHome = pathname === "/";
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 pixel-nav">
-      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 group"
-          data-interactive
-        >
-          <span className="text-xl pixel-text font-bold text-[var(--color-accent)] group-hover:animate-pixel-bounce">
-            TS
-          </span>
-          <span className="hidden sm:inline text-xs text-[var(--color-text-secondary)] pixel-text">
-            tanmay singh
-          </span>
+    <nav
+      className={`${styles.nav} ${isHome ? styles.navHome : ""}`}
+      aria-label="Primary navigation"
+    >
+      <div className={styles.inner}>
+        <Link href="/" className={styles.identity} aria-label="Tanmay Singh, home">
+          <span className={styles.mark}>TS</span>
+          <span className={styles.name}>Tanmay Singh</span>
         </Link>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className={styles.desktopLinks}>
           {navLinks.map((link) => {
-            const isActive = !link.external && (pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href)));
-            const className = `px-3 py-1.5 text-xs pixel-text transition-all duration-200 border-2 ${
-              isActive
-                ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border)]"
-            }`;
+            const isActive =
+              !link.external &&
+              (pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(link.href)));
+            const className = `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`;
+
             return link.external ? (
               <a
                 key={link.href}
                 href={link.href}
+                className={className}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-interactive
-                className={className}
               >
-                <span className="mr-1.5">{link.icon}</span>
                 {link.label}
               </a>
             ) : (
               <Link
                 key={link.href}
                 href={link.href}
-                data-interactive
                 className={className}
+                aria-current={isActive ? "page" : undefined}
               >
-                <span className="mr-1.5">{link.icon}</span>
                 {link.label}
               </Link>
             );
           })}
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            data-interactive
-            className="ml-3 px-2.5 py-1.5 border-2 border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] transition-all duration-200 pixel-text text-xs"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          >
-            {theme === "dark" ? "☀️ DAY" : "🌙 NIGHT"}
-          </button>
+          {!isHome ? (
+            <button
+              type="button"
+              className={styles.themeToggle}
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? "DAY" : "NIGHT"}
+            </button>
+          ) : null}
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            data-interactive
-            className="px-2 py-1.5 border-2 border-[var(--color-border)] text-sm"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            data-interactive
-            className="px-3 py-1.5 border-2 border-[var(--color-border)] pixel-text text-[var(--color-text)] text-sm"
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? "✕" : "☰"} MENU
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.menuButton}
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          aria-controls="primary-mobile-menu"
+        >
+          <span>{menuOpen ? "Close" : "Menu"}</span>
+          <i aria-hidden="true" />
+        </button>
       </div>
 
-      {/* Mobile Menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
-          menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
-        }`}
+        id="primary-mobile-menu"
+        className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ""}`}
       >
-        <div className="px-4 pb-4 flex flex-col gap-1 pixel-nav-mobile">
+        <div className={styles.mobileMenuInner}>
           {navLinks.map((link) => {
-            const isActive = !link.external && (pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href)));
-            const className = `px-4 py-3 text-sm pixel-text transition-all duration-200 border-2 ${
-              isActive
-                ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
-            }`;
+            const isActive =
+              !link.external &&
+              (pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(link.href)));
+            const className = `${styles.mobileLink} ${isActive ? styles.mobileLinkActive : ""}`;
+
             return link.external ? (
               <a
                 key={link.href}
                 href={link.href}
+                className={className}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-interactive
                 onClick={() => setMenuOpen(false)}
-                className={className}
               >
-                <span className="mr-2">{link.icon}</span>
-                {link.label}
+                <span>{link.label}</span>
+                <i aria-hidden="true">↗</i>
               </a>
             ) : (
               <Link
                 key={link.href}
                 href={link.href}
-                data-interactive
-                onClick={() => setMenuOpen(false)}
                 className={className}
+                aria-current={isActive ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
               >
-                <span className="mr-2">{link.icon}</span>
-                {link.label}
+                <span>{link.label}</span>
+                <i aria-hidden="true">→</i>
               </Link>
             );
           })}
+
+          {!isHome ? (
+            <button type="button" className={styles.mobileTheme} onClick={toggleTheme}>
+              Switch to {theme === "dark" ? "day" : "night"} mode
+            </button>
+          ) : null}
         </div>
       </div>
     </nav>

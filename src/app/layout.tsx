@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import ClientLayout from "@/components/ClientLayout";
 import "./globals.css";
 
@@ -40,6 +40,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 // Structured data so AI sourcing tools and crawlers get the facts without
 // parsing pixel art.
 const personJsonLd = {
@@ -71,7 +77,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="scanlines crt-vignette antialiased">
+      <body className="antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}

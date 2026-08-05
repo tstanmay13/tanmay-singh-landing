@@ -12,19 +12,19 @@
    ============================================ */
 :root,
 [data-theme="dark"] {
-  --color-bg: #0a0a0f;
-  --color-bg-secondary: #12121a;
-  --color-bg-card: #16161f;
-  --color-bg-card-hover: #1c1c28;
-  --color-surface: #1a1a25;
-  --color-border: #2a2a3a;
-  --color-border-hover: #3a3a4f;
-  --color-text: #e8e8f0;
-  --color-text-secondary: #9a9ab2;
-  --color-text-muted: #7d7d98;
-  --color-accent: #00ff88;
-  --color-accent-secondary: #00cc6a;
-  --color-accent-glow: rgba(0, 255, 136, 0.15);
+  --color-bg: #070814;
+  --color-bg-secondary: #0c0e1d;
+  --color-bg-card: #111426;
+  --color-bg-card-hover: #171a31;
+  --color-surface: #14172b;
+  --color-border: #292d48;
+  --color-border-hover: #3d4265;
+  --color-text: #eef3ff;
+  --color-text-secondary: #aab2cd;
+  --color-text-muted: #7f89aa;
+  --color-accent: #5ae7ff;
+  --color-accent-secondary: #24abc7;
+  --color-accent-glow: rgba(90, 231, 255, 0.15);
   --color-purple: #a855f7;
   --color-pink: #ec4899;
   --color-blue: #3b82f6;
@@ -33,9 +33,36 @@
   --color-cyan: #06b6d4;
   --color-green: #22c55e;
   --color-yellow: #eab308;
-  --cursor-color: #00ff88;
+  --cursor-color: #5ae7ff;
   --scanline-opacity: 0.03;
   --crt-vignette: rgba(0, 0, 0, 0.4);
+}
+
+/* Night Drive is deliberately invariant across the general light/dark toggle. */
+:root {
+  --color-drive-sky-top: #03040d;
+  --color-drive-sky: #07091a;
+  --color-drive-horizon-deep: #24102e;
+  --color-drive-hills: #0c0b20;
+  --color-drive-building: #100d27;
+  --color-drive-building-near: #191130;
+  --color-drive-building-edge: #2a1944;
+  --color-drive-water: #050918;
+  --color-drive-asphalt: #04050b;
+  --color-drive-road-edge: #252945;
+  --color-drive-palm: #102b38;
+  --color-drive-palm-trunk: #43334f;
+  --color-drive-lamp-pole: #4d4c63;
+  --color-drive-magenta: #e447a7;
+  --color-drive-cyan: #5ae7ff;
+  --color-drive-cyan-dim: #24758c;
+  --color-drive-amber: #ffb45c;
+  --color-drive-amber-soft: #ffd39a;
+  --color-drive-violet: #8b6cff;
+  --color-drive-text: #f1f4ff;
+  --color-drive-text-soft: #bdc5de;
+  --color-drive-text-muted: #7f89aa;
+  --color-drive-route-dim: #333853;
 }
 
 /* ============================================
@@ -85,6 +112,22 @@ body {
   color: var(--color-text);
   transition: background-color 0.4s ease, color 0.4s ease;
   overflow-x: hidden;
+}
+
+.site-main {
+  position: relative;
+  z-index: 1;
+  padding-top: 4.25rem;
+}
+
+.site-main-home {
+  z-index: auto;
+  padding-top: 0;
+}
+
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
 }
 
 /* Pixel text class */
@@ -467,6 +510,14 @@ body {
 /* Accessibility + no-JS resilience: never hide content when the user
    prefers reduced motion (also disables the decorative animations). */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  body {
+    transition: none;
+  }
+
   .reveal,
   .reveal-left,
   .reveal-scale {
