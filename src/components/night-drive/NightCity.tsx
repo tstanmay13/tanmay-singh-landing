@@ -454,6 +454,31 @@ function StreetCanyon({ districts }: NightCityProps) {
   );
 }
 
+function DriverCar() {
+  return (
+    <div className={styles.driverCar}>
+      <i className={styles.carShadow} />
+      <i className={`${styles.carWheel} ${styles.carWheelLeft}`} />
+      <i className={`${styles.carWheel} ${styles.carWheelRight}`} />
+      <div className={styles.carCabin}>
+        <i className={styles.carRearWindow} />
+        <i className={styles.carMirrorLeft} />
+        <i className={styles.carMirrorRight} />
+      </div>
+      <div className={styles.carBody}>
+        <i className={styles.carCenterStripe} />
+        <i className={`${styles.carTailLight} ${styles.carTailLightLeft}`} />
+        <i className={`${styles.carTailLight} ${styles.carTailLightRight}`} />
+        <span className={styles.carPlate}>
+          <small>NY</small>
+          <strong>TS-13</strong>
+        </span>
+        <i className={styles.carBumper} />
+      </div>
+    </div>
+  );
+}
+
 export default function NightCity({ districts }: NightCityProps) {
   return (
     <div className={styles.city} aria-hidden="true">
@@ -524,6 +549,7 @@ export default function NightCity({ districts }: NightCityProps) {
 
       <div className={styles.windshield} />
       <div className={styles.grain} />
+      <DriverCar />
     </div>
   );
 }

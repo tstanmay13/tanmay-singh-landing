@@ -682,6 +682,245 @@
   mix-blend-mode: soft-light;
 }
 
+.driverCar {
+  position: absolute;
+  z-index: 21;
+  bottom: -1.4rem;
+  left: 50%;
+  width: clamp(18rem, 34vw, 31rem);
+  height: clamp(9rem, 17vw, 14.5rem);
+  filter: drop-shadow(
+    0 0.9rem 1.2rem color-mix(in srgb, var(--color-drive-sky-top) 82%, transparent)
+  );
+  transform: translate3d(
+      calc(-50% + var(--drive-steer, 0) * 2.8vw),
+      calc(var(--drive-look, 0) * 0.45vh),
+      0
+    )
+    rotate(calc(var(--drive-steer, 0) * -2.2deg));
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.carShadow {
+  position: absolute;
+  right: 8%;
+  bottom: 0;
+  left: 8%;
+  height: 24%;
+  border-radius: 50%;
+  background: var(--color-drive-asphalt);
+  box-shadow:
+    0 0 2rem var(--color-drive-sky-top),
+    0 -0.15rem 1.5rem color-mix(in srgb, var(--district-accent) 10%, transparent);
+  filter: blur(0.45rem);
+}
+
+.carWheel {
+  position: absolute;
+  z-index: 1;
+  bottom: 7%;
+  width: 9%;
+  height: 36%;
+  border: 0.18rem solid var(--color-drive-road-edge);
+  border-radius: 34% 34% 20% 20%;
+  background: var(--color-drive-asphalt);
+  box-shadow: inset 0 0 0 0.18rem var(--color-drive-sky-top);
+}
+
+.carWheelLeft {
+  left: 7%;
+  transform: rotate(calc(var(--drive-steer, 0) * 4deg));
+}
+
+.carWheelRight {
+  right: 7%;
+  transform: rotate(calc(var(--drive-steer, 0) * 4deg));
+}
+
+.carCabin {
+  position: absolute;
+  z-index: 2;
+  top: 4%;
+  left: 20%;
+  width: 60%;
+  height: 48%;
+  clip-path: polygon(19% 0, 81% 0, 100% 100%, 0 100%);
+  background: linear-gradient(
+    145deg,
+    var(--color-drive-building-edge),
+    var(--color-drive-building-near) 58%,
+    var(--district-accent) 160%
+  );
+  box-shadow: inset 0 0.18rem 0 var(--district-accent);
+  animation: carCruise 900ms ease-in-out infinite alternate;
+}
+
+.carRearWindow {
+  position: absolute;
+  inset: 9% 9% 7%;
+  clip-path: polygon(16% 0, 84% 0, 100% 100%, 0 100%);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 20%,
+      color-mix(in srgb, var(--color-drive-text-muted) 16%, transparent) 21%,
+      transparent 23%
+    ),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--color-drive-cyan) 18%, transparent),
+      var(--color-drive-sky-top) 48%,
+      color-mix(in srgb, var(--district-accent) 19%, var(--color-drive-sky))
+    );
+  box-shadow: inset 0 0 1.2rem var(--color-drive-sky-top);
+}
+
+.carRearWindow::after {
+  content: "";
+  position: absolute;
+  top: -18%;
+  left: 38%;
+  width: 14%;
+  height: 142%;
+  background: color-mix(in srgb, var(--color-drive-text) 12%, transparent);
+  transform: rotate(24deg);
+}
+
+.carMirrorLeft,
+.carMirrorRight {
+  position: absolute;
+  bottom: 4%;
+  width: 17%;
+  height: 17%;
+  border-top: 1px solid var(--district-accent);
+  border-radius: 45%;
+  background: var(--color-drive-building-edge);
+}
+
+.carMirrorLeft {
+  right: 94%;
+  transform: rotate(-8deg);
+}
+
+.carMirrorRight {
+  left: 94%;
+  transform: rotate(8deg);
+}
+
+.carBody {
+  position: absolute;
+  z-index: 3;
+  right: 3%;
+  bottom: 5%;
+  left: 3%;
+  height: 64%;
+  clip-path: polygon(17% 0, 83% 0, 97% 37%, 100% 72%, 91% 94%, 68% 100%, 32% 100%, 9% 94%, 0 72%, 3% 37%);
+  background:
+    linear-gradient(
+      90deg,
+      var(--color-drive-building-near),
+      var(--color-drive-building-edge) 19%,
+      color-mix(in srgb, var(--district-accent) 46%, var(--color-drive-building-near)) 50%,
+      var(--color-drive-building-edge) 81%,
+      var(--color-drive-building-near)
+    );
+  box-shadow:
+    inset 0 0.18rem 0 color-mix(in srgb, var(--district-accent) 78%, transparent),
+    inset 0 -1.2rem 2rem var(--color-drive-sky-top);
+  animation: carCruise 900ms ease-in-out infinite alternate;
+}
+
+.carCenterStripe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 48.5%;
+  width: 3%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-drive-cyan) 58%, transparent),
+    color-mix(in srgb, var(--district-accent) 72%, transparent)
+  );
+  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--district-accent) 40%, transparent);
+  opacity: 0.72;
+}
+
+.carTailLight {
+  position: absolute;
+  top: 46%;
+  width: 18%;
+  height: 13%;
+  border: 1px solid var(--color-drive-magenta);
+  border-radius: 46% 18%;
+  background: var(--color-drive-magenta);
+  box-shadow:
+    0 0 0.55rem var(--color-drive-magenta),
+    0 0 1.5rem color-mix(in srgb, var(--color-drive-magenta) 55%, transparent);
+  animation: tailLightPulse 1.7s ease-in-out infinite alternate;
+}
+
+.carTailLightLeft {
+  left: 9%;
+  transform: skewX(-13deg);
+}
+
+.carTailLightRight {
+  right: 9%;
+  transform: skewX(13deg);
+}
+
+.carPlate {
+  position: absolute;
+  top: 51%;
+  left: 50%;
+  display: grid;
+  width: 24%;
+  min-width: 3.8rem;
+  padding: 0.18rem 0.25rem;
+  border: 1px solid var(--color-drive-text-muted);
+  place-items: center;
+  color: var(--color-drive-sky-top);
+  background: var(--color-drive-text-soft);
+  font-family: var(--font-mono);
+  line-height: 1;
+  transform: translateX(-50%);
+}
+
+.carPlate small {
+  font-size: clamp(0.22rem, 0.38vw, 0.34rem);
+  letter-spacing: 0.12em;
+}
+
+.carPlate strong {
+  margin-top: 0.12rem;
+  font-size: clamp(0.42rem, 0.65vw, 0.62rem);
+  letter-spacing: 0.06em;
+}
+
+.carBumper {
+  position: absolute;
+  right: 17%;
+  bottom: 7%;
+  left: 17%;
+  height: 7%;
+  border-top: 1px solid var(--color-drive-text-muted);
+  border-radius: 50%;
+  background: var(--color-drive-sky-top);
+  box-shadow: 0 0.3rem 0 var(--color-drive-asphalt);
+}
+
+@keyframes carCruise {
+  from { transform: translateY(0); }
+  to { transform: translateY(-0.18rem); }
+}
+
+@keyframes tailLightPulse {
+  from { opacity: 0.72; }
+  to { opacity: 1; }
+}
+
 .hud {
   position: absolute;
   z-index: 30;
@@ -945,7 +1184,7 @@
 .scrollHint {
   position: absolute;
   z-index: 32;
-  bottom: max(1.2rem, env(safe-area-inset-bottom));
+  bottom: max(clamp(9.5rem, 16vw, 14rem), env(safe-area-inset-bottom));
   left: 50%;
   display: flex;
   flex-direction: column;
@@ -1300,7 +1539,7 @@
 
   .chapterFrame {
     align-items: flex-end;
-    padding: 8rem 1.15rem calc(3.25rem + env(safe-area-inset-bottom));
+    padding: 8rem 1.15rem calc(8rem + env(safe-area-inset-bottom));
   }
 
   .chapterFrame::before {
@@ -1318,8 +1557,14 @@
 
   .chapterContent {
     width: min(100%, 40rem);
-    max-height: min(69svh, 44rem);
+    max-height: min(61svh, 40rem);
     padding: 1rem 0 0;
+  }
+
+  .driverCar {
+    bottom: -0.8rem;
+    width: min(72vw, 20rem);
+    height: clamp(7.5rem, 34vw, 10rem);
   }
 
   .headline {
@@ -1458,6 +1703,16 @@
   .chapters {
     margin-top: 0;
     padding-top: 32svh;
+  }
+
+  .driverCar {
+    transform: translateX(-50%);
+  }
+
+  .carCabin,
+  .carBody,
+  .carTailLight {
+    animation: none;
   }
 
   .chapter {
