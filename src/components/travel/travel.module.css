@@ -1,0 +1,312 @@
+.root {
+  --travel-void: #140f0c;
+  --travel-void-lift: #1c1612;
+  --travel-window: rgba(236, 196, 132, 0.16);
+  --travel-brass: #b0894f;
+  --travel-brass-soft: #d4b37a;
+  --travel-ruby: #9a2f2f;
+  --travel-ticket: #efe6d4;
+  --travel-ticket-edge: #d7c9ad;
+  --travel-ink: #211910;
+  --travel-ink-soft: #5a4c3c;
+  --travel-rule: rgba(33, 25, 16, 0.16);
+  --font-display: var(--font-travel-display), "Palatino Linotype", Palatino, serif;
+  --font-sans: var(--font-travel-sans), "Gill Sans", "Trebuchet MS", sans-serif;
+
+  position: relative;
+  min-height: calc(100dvh - 4.25rem);
+  overflow: hidden;
+  color: var(--travel-ticket);
+  background:
+    radial-gradient(ellipse 80% 55% at 18% -10%, var(--travel-window), transparent 58%),
+    radial-gradient(ellipse 50% 40% at 90% 110%, rgba(80, 40, 24, 0.35), transparent 60%),
+    linear-gradient(180deg, var(--travel-void-lift), var(--travel-void));
+  font-family: var(--font-sans);
+}
+
+.globeSlot {
+  position: absolute;
+  inset: 0;
+}
+
+.globeFallback,
+.hoverChip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.globeFallback {
+  top: 46%;
+  color: var(--travel-brass-soft);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+}
+
+.hoverChip {
+  bottom: 5.5rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--travel-brass) 50%, transparent);
+  background: color-mix(in srgb, var(--travel-void) 72%, transparent);
+  color: var(--travel-ticket);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mast {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem 0;
+  pointer-events: none;
+}
+
+.kicker,
+.hint {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.kicker {
+  color: var(--travel-brass-soft);
+  font-size: 0.68rem;
+}
+
+.title {
+  margin: 0.2rem 0 0;
+  color: #f6efe2;
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+.hint {
+  align-self: end;
+  max-width: 16rem;
+  color: color-mix(in srgb, var(--travel-ticket) 62%, transparent);
+  font-size: 0.66rem;
+  text-align: right;
+}
+
+.rail {
+  position: absolute;
+  z-index: 2;
+  top: 8.5rem;
+  left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: calc(100dvh - 14rem);
+  overflow: auto;
+  padding-right: 0.4rem;
+}
+
+.railButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.38rem 0.15rem;
+  border: 0;
+  border-left: 2px solid transparent;
+  color: color-mix(in srgb, var(--travel-ticket) 70%, transparent);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.railButton:hover,
+.railButtonSelected {
+  border-left-color: var(--travel-brass);
+  color: #fff8ea;
+}
+
+.railName {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.railMeta {
+  margin-top: 0.15rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.lodNote {
+  position: absolute;
+  z-index: 2;
+  right: 1.4rem;
+  bottom: 1.3rem;
+  color: color-mix(in srgb, var(--travel-brass-soft) 80%, white);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ticket {
+  position: absolute;
+  z-index: 3;
+  top: 6.8rem;
+  right: 1.2rem;
+  width: min(22.5rem, calc(100vw - 2.2rem));
+  max-height: calc(100dvh - 9.2rem);
+  overflow: auto;
+  padding: 1.15rem 1.15rem 1.3rem;
+  border: 1px solid var(--travel-ticket-edge);
+  background:
+    linear-gradient(180deg, transparent 36px, var(--travel-rule) 36px, var(--travel-rule) 37px, transparent 37px),
+    var(--travel-ticket);
+  color: var(--travel-ink);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(176, 137, 79, 0.18);
+}
+
+.ticketHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.ticketRegion {
+  margin: 0;
+  color: var(--travel-ink-soft);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ticketName {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+.close {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--travel-ticket-edge);
+  color: var(--travel-ink-soft);
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.visit {
+  margin-top: 1.05rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--travel-rule);
+}
+
+.visitYear {
+  margin: 0;
+  color: var(--travel-ruby);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.visitTitle {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.visitBody {
+  margin: 0.35rem 0 0;
+  color: var(--travel-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.years {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.85rem 0 0;
+}
+
+.years span {
+  padding: 0.18rem 0.4rem;
+  border: 1px solid var(--travel-ticket-edge);
+  color: var(--travel-ruby);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.plates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+}
+
+.plate {
+  min-height: 5.4rem;
+  border: 1px solid color-mix(in srgb, var(--travel-ink) 16%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 42%),
+    var(--plate);
+  box-shadow: inset 0 0 0 6px var(--travel-ticket);
+}
+
+.plateCaption {
+  margin: 0.35rem 0 0;
+  color: var(--travel-ink-soft);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.plateNote {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--travel-ink-soft);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 720px) {
+  .mast {
+    padding: 1rem 1rem 0;
+  }
+
+  .hint,
+  .rail {
+    display: none;
+  }
+
+  .ticket {
+    top: auto;
+    right: 0.7rem;
+    bottom: 0.7rem;
+    left: 0.7rem;
+    width: auto;
+    max-height: 42dvh;
+  }
+
+  .lodNote {
+    right: 0.8rem;
+    bottom: auto;
+    top: 6.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket {
+    transition: none;
+  }
+}

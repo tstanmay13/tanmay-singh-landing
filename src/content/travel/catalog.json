@@ -1,0 +1,2301 @@
+{
+  "generatedAt": "2026-09-02T07:40:57.220Z",
+  "stats": {
+    "countries": 11,
+    "cities": 110,
+    "visits": 9456
+  },
+  "countries": [
+    {
+      "code": "US",
+      "name": "United States",
+      "flag": "🇺🇸",
+      "visitCount": 9275,
+      "dwellMs": 220179775598,
+      "firstSeen": "2013-09-16",
+      "lastSeen": "2026-08-26",
+      "cities": [
+        {
+          "id": "4671654",
+          "name": "Austin",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.2672,
+          "lng": -97.7431,
+          "population": 931830,
+          "visitCount": 5238,
+          "spotCount": 734,
+          "dwellMs": 96122609391,
+          "firstSeen": "2016-04-29",
+          "lastSeen": "2025-04-28",
+          "years": [
+            "2016",
+            "2018",
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024",
+            "2025"
+          ]
+        },
+        {
+          "id": "4719457",
+          "name": "Plano",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.0198,
+          "lng": -96.6989,
+          "population": 283558,
+          "visitCount": 2564,
+          "spotCount": 456,
+          "dwellMs": 83129353383,
+          "firstSeen": "2013-09-16",
+          "lastSeen": "2026-07-03",
+          "years": [
+            "2013",
+            "2014",
+            "2015",
+            "2016",
+            "2017",
+            "2018",
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024",
+            "2025",
+            "2026"
+          ]
+        },
+        {
+          "id": "5128581",
+          "name": "New York",
+          "admin": "NY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 40.7143,
+          "lng": -74.006,
+          "population": 8175133,
+          "visitCount": 710,
+          "spotCount": 353,
+          "dwellMs": 32720568365,
+          "firstSeen": "2016-07-18",
+          "lastSeen": "2026-08-26",
+          "years": [
+            "2016",
+            "2021",
+            "2022",
+            "2023",
+            "2024",
+            "2025",
+            "2026"
+          ]
+        },
+        {
+          "id": "4684888",
+          "name": "Dallas",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.7831,
+          "lng": -96.8067,
+          "population": 1300092,
+          "visitCount": 203,
+          "spotCount": 137,
+          "dwellMs": 1571680329,
+          "firstSeen": "2014-04-26",
+          "lastSeen": "2026-01-04",
+          "years": [
+            "2014",
+            "2015",
+            "2017",
+            "2018",
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+            "2023",
+            "2024",
+            "2025",
+            "2026"
+          ]
+        },
+        {
+          "id": "4699066",
+          "name": "Houston",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.7633,
+          "lng": -95.3633,
+          "population": 2296224,
+          "visitCount": 28,
+          "spotCount": 20,
+          "dwellMs": 503585490,
+          "firstSeen": "2022-03-11",
+          "lastSeen": "2025-04-06",
+          "years": [
+            "2022",
+            "2023",
+            "2024",
+            "2025"
+          ]
+        },
+        {
+          "id": "4407066",
+          "name": "St. Louis",
+          "admin": "MO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 38.6273,
+          "lng": -90.1979,
+          "population": 315685,
+          "visitCount": 41,
+          "spotCount": 26,
+          "dwellMs": 439979411,
+          "firstSeen": "2023-04-25",
+          "lastSeen": "2023-04-30",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "5809844",
+          "name": "Seattle",
+          "admin": "WA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 47.6062,
+          "lng": -122.3321,
+          "population": 684451,
+          "visitCount": 43,
+          "spotCount": 22,
+          "dwellMs": 408989329,
+          "firstSeen": "2021-08-27",
+          "lastSeen": "2023-03-08",
+          "years": [
+            "2021",
+            "2023"
+          ]
+        },
+        {
+          "id": "5506956",
+          "name": "Las Vegas",
+          "admin": "NV",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 36.175,
+          "lng": -115.1372,
+          "population": 623747,
+          "visitCount": 21,
+          "spotCount": 13,
+          "dwellMs": 340821541,
+          "firstSeen": "2022-08-25",
+          "lastSeen": "2022-08-28",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "5368361",
+          "name": "Los Angeles",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 34.0522,
+          "lng": -118.2437,
+          "population": 3971883,
+          "visitCount": 37,
+          "spotCount": 32,
+          "dwellMs": 299862852,
+          "firstSeen": "2018-07-31",
+          "lastSeen": "2025-07-03",
+          "years": [
+            "2018",
+            "2025"
+          ]
+        },
+        {
+          "id": "5391959",
+          "name": "San Francisco",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 37.7749,
+          "lng": -122.4194,
+          "population": 864816,
+          "visitCount": 4,
+          "spotCount": 4,
+          "dwellMs": 276015621,
+          "firstSeen": "2016-07-30",
+          "lastSeen": "2024-11-03",
+          "years": [
+            "2016",
+            "2024"
+          ]
+        },
+        {
+          "id": "4644585",
+          "name": "Nashville",
+          "admin": "TN",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 36.1659,
+          "lng": -86.7844,
+          "population": 530852,
+          "visitCount": 36,
+          "spotCount": 23,
+          "dwellMs": 240215813,
+          "firstSeen": "2023-03-25",
+          "lastSeen": "2023-03-27",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "4737151",
+          "name": "Tool",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.2679,
+          "lng": -96.1702,
+          "population": 2268,
+          "visitCount": 5,
+          "spotCount": 2,
+          "dwellMs": 236974140,
+          "firstSeen": "2022-12-23",
+          "lastSeen": "2022-12-26",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4341513",
+          "name": "Shreveport",
+          "admin": "LA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.5251,
+          "lng": -93.7502,
+          "population": 197204,
+          "visitCount": 12,
+          "spotCount": 7,
+          "dwellMs": 223648164,
+          "firstSeen": "2019-12-24",
+          "lastSeen": "2019-12-26",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "5832759",
+          "name": "Moose Wilson Road",
+          "admin": "WY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 43.5252,
+          "lng": -110.8447,
+          "population": 1821,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 220900468,
+          "firstSeen": "2026-06-15",
+          "lastSeen": "2026-06-19",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "5421506",
+          "name": "Fairplay",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.2247,
+          "lng": -106.002,
+          "population": 681,
+          "visitCount": 4,
+          "spotCount": 1,
+          "dwellMs": 208739146,
+          "firstSeen": "2023-02-23",
+          "lastSeen": "2023-02-27",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "5123831",
+          "name": "Lake Placid",
+          "admin": "NY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 44.2796,
+          "lng": -73.982,
+          "population": 2465,
+          "visitCount": 3,
+          "spotCount": 3,
+          "dwellMs": 204277295,
+          "firstSeen": "2025-10-13",
+          "lastSeen": "2025-10-16",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "4887398",
+          "name": "Chicago",
+          "admin": "IL",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 41.85,
+          "lng": -87.65,
+          "population": 2720546,
+          "visitCount": 19,
+          "spotCount": 15,
+          "dwellMs": 189855407,
+          "firstSeen": "2023-06-15",
+          "lastSeen": "2023-06-17",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "4682464",
+          "name": "College Station",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.628,
+          "lng": -96.3344,
+          "population": 107889,
+          "visitCount": 26,
+          "spotCount": 13,
+          "dwellMs": 186395618,
+          "firstSeen": "2019-02-22",
+          "lastSeen": "2019-03-19",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "4714131",
+          "name": "New Braunfels",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.703,
+          "lng": -98.1244,
+          "population": 70543,
+          "visitCount": 23,
+          "spotCount": 11,
+          "dwellMs": 183945844,
+          "firstSeen": "2019-04-27",
+          "lastSeen": "2023-02-18",
+          "years": [
+            "2019",
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "id": "4335045",
+          "name": "New Orleans",
+          "admin": "LA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.9547,
+          "lng": -90.0751,
+          "population": 389617,
+          "visitCount": 15,
+          "spotCount": 11,
+          "dwellMs": 168665262,
+          "firstSeen": "2022-03-11",
+          "lastSeen": "2022-03-13",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4990729",
+          "name": "Detroit",
+          "admin": "MI",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 42.3314,
+          "lng": -83.0457,
+          "population": 677116,
+          "visitCount": 7,
+          "spotCount": 7,
+          "dwellMs": 152276685,
+          "firstSeen": "2025-02-28",
+          "lastSeen": "2025-03-02",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "4738883",
+          "name": "Van",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.5249,
+          "lng": -95.6372,
+          "population": 2685,
+          "visitCount": 4,
+          "spotCount": 3,
+          "dwellMs": 150017291,
+          "firstSeen": "2019-07-26",
+          "lastSeen": "2019-07-28",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "4676206",
+          "name": "Brenham",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.1669,
+          "lng": -96.3977,
+          "population": 16579,
+          "visitCount": 2,
+          "spotCount": 1,
+          "dwellMs": 148311391,
+          "firstSeen": "2022-12-09",
+          "lastSeen": "2025-04-06",
+          "years": [
+            "2022",
+            "2025"
+          ]
+        },
+        {
+          "id": "5577516",
+          "name": "Granby",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 40.0861,
+          "lng": -105.9395,
+          "population": 1877,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 143671998,
+          "firstSeen": "2024-07-12",
+          "lastSeen": "2024-07-14",
+          "years": [
+            "2024"
+          ]
+        },
+        {
+          "id": "4678901",
+          "name": "Canyon Lake",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.8752,
+          "lng": -98.2625,
+          "population": 21262,
+          "visitCount": 2,
+          "spotCount": 1,
+          "dwellMs": 131449673,
+          "firstSeen": "2019-04-26",
+          "lastSeen": "2019-04-28",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "4684724",
+          "name": "Cypress",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.9691,
+          "lng": -95.6972,
+          "population": 46025,
+          "visitCount": 10,
+          "spotCount": 8,
+          "dwellMs": 128224053,
+          "firstSeen": "2022-12-09",
+          "lastSeen": "2023-09-24",
+          "years": [
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "id": "4695535",
+          "name": "Gun Barrel City",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.3346,
+          "lng": -96.1514,
+          "population": 5985,
+          "visitCount": 5,
+          "spotCount": 2,
+          "dwellMs": 126210646,
+          "firstSeen": "2018-12-28",
+          "lastSeen": "2018-12-30",
+          "years": [
+            "2018"
+          ]
+        },
+        {
+          "id": "5391811",
+          "name": "San Diego",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.7157,
+          "lng": -117.1647,
+          "population": 1394928,
+          "visitCount": 5,
+          "spotCount": 5,
+          "dwellMs": 116556499,
+          "firstSeen": "2025-07-04",
+          "lastSeen": "2025-07-06",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "4683416",
+          "name": "Corpus Christi",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 27.8006,
+          "lng": -97.3964,
+          "population": 324074,
+          "visitCount": 5,
+          "spotCount": 3,
+          "dwellMs": 112840919,
+          "firstSeen": "2014-07-03",
+          "lastSeen": "2014-07-05",
+          "years": [
+            "2014"
+          ]
+        },
+        {
+          "id": "4535414",
+          "name": "Durant",
+          "admin": "OK",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.994,
+          "lng": -96.3708,
+          "population": 17286,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 104091504,
+          "firstSeen": "2019-08-09",
+          "lastSeen": "2019-08-10",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "4671240",
+          "name": "Arlington",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.7357,
+          "lng": -97.1081,
+          "population": 388125,
+          "visitCount": 9,
+          "spotCount": 3,
+          "dwellMs": 102301039,
+          "firstSeen": "2021-11-25",
+          "lastSeen": "2025-12-28",
+          "years": [
+            "2021",
+            "2022",
+            "2023",
+            "2025"
+          ]
+        },
+        {
+          "id": "5392171",
+          "name": "San Jose",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 37.3394,
+          "lng": -121.895,
+          "population": 1026908,
+          "visitCount": 11,
+          "spotCount": 7,
+          "dwellMs": 100756326,
+          "firstSeen": "2016-07-31",
+          "lastSeen": "2016-08-04",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4724129",
+          "name": "Round Rock",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.5083,
+          "lng": -97.6789,
+          "population": 115997,
+          "visitCount": 29,
+          "spotCount": 25,
+          "dwellMs": 94536592,
+          "firstSeen": "2018-08-25",
+          "lastSeen": "2024-08-06",
+          "years": [
+            "2018",
+            "2021",
+            "2022",
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "id": "4726206",
+          "name": "San Antonio",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.4241,
+          "lng": -98.4936,
+          "population": 1469845,
+          "visitCount": 8,
+          "spotCount": 7,
+          "dwellMs": 82157729,
+          "firstSeen": "2021-03-20",
+          "lastSeen": "2026-07-05",
+          "years": [
+            "2021",
+            "2022",
+            "2026"
+          ]
+        },
+        {
+          "id": "5828648",
+          "name": "Jackson",
+          "admin": "WY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 43.4799,
+          "lng": -110.7624,
+          "population": 10523,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 75143955,
+          "firstSeen": "2026-06-18",
+          "lastSeen": "2026-06-19",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "4691930",
+          "name": "Fort Worth",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.7254,
+          "lng": -97.3208,
+          "population": 833319,
+          "visitCount": 6,
+          "spotCount": 6,
+          "dwellMs": 68609704,
+          "firstSeen": "2022-08-14",
+          "lastSeen": "2022-12-19",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "5414872",
+          "name": "Breckenridge",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.4817,
+          "lng": -106.0383,
+          "population": 4896,
+          "visitCount": 10,
+          "spotCount": 9,
+          "dwellMs": 64206087,
+          "firstSeen": "2023-02-24",
+          "lastSeen": "2023-02-25",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "4733103",
+          "name": "South Padre Island",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 26.1037,
+          "lng": -97.1647,
+          "population": 2884,
+          "visitCount": 5,
+          "spotCount": 3,
+          "dwellMs": 62064182,
+          "firstSeen": "2014-07-05",
+          "lastSeen": "2014-07-06",
+          "years": [
+            "2014"
+          ]
+        },
+        {
+          "id": "4692746",
+          "name": "Gainesville",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.6259,
+          "lng": -97.1333,
+          "population": 16292,
+          "visitCount": 5,
+          "spotCount": 3,
+          "dwellMs": 58580913,
+          "firstSeen": "2025-12-23",
+          "lastSeen": "2025-12-24",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "5412347",
+          "name": "Aurora",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.7294,
+          "lng": -104.8319,
+          "population": 359407,
+          "visitCount": 4,
+          "spotCount": 1,
+          "dwellMs": 38138187,
+          "firstSeen": "2023-02-23",
+          "lastSeen": "2023-06-15",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "5419384",
+          "name": "Denver",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.7392,
+          "lng": -104.9847,
+          "population": 682545,
+          "visitCount": 3,
+          "spotCount": 3,
+          "dwellMs": 23758711,
+          "firstSeen": "2023-02-23",
+          "lastSeen": "2024-07-14",
+          "years": [
+            "2023",
+            "2024"
+          ]
+        },
+        {
+          "id": "4692279",
+          "name": "Fredericksburg",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.2752,
+          "lng": -98.872,
+          "population": 11094,
+          "visitCount": 6,
+          "spotCount": 6,
+          "dwellMs": 18629178,
+          "firstSeen": "2022-11-12",
+          "lastSeen": "2022-11-12",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "5100886",
+          "name": "Marlboro",
+          "admin": "NJ",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 40.3154,
+          "lng": -74.2463,
+          "population": 40191,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 13133485,
+          "firstSeen": "2026-07-26",
+          "lastSeen": "2026-07-26",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "4726491",
+          "name": "San Marcos",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.8833,
+          "lng": -97.9414,
+          "population": 60684,
+          "visitCount": 6,
+          "spotCount": 4,
+          "dwellMs": 11767168,
+          "firstSeen": "2022-04-23",
+          "lastSeen": "2023-02-18",
+          "years": [
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "id": "4735966",
+          "name": "Temple",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 31.0982,
+          "lng": -97.3428,
+          "population": 72277,
+          "visitCount": 12,
+          "spotCount": 10,
+          "dwellMs": 11111894,
+          "firstSeen": "2019-05-19",
+          "lastSeen": "2025-01-25",
+          "years": [
+            "2019",
+            "2020",
+            "2021",
+            "2022",
+            "2024",
+            "2025"
+          ]
+        },
+        {
+          "id": "4727873",
+          "name": "Seven Points",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.3204,
+          "lng": -96.213,
+          "population": 1447,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 9848000,
+          "firstSeen": "2018-12-29",
+          "lastSeen": "2018-12-29",
+          "years": [
+            "2018"
+          ]
+        },
+        {
+          "id": "4839366",
+          "name": "New Haven",
+          "admin": "CT",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 41.3082,
+          "lng": -72.9282,
+          "population": 130322,
+          "visitCount": 5,
+          "spotCount": 4,
+          "dwellMs": 9820275,
+          "firstSeen": "2016-07-17",
+          "lastSeen": "2016-07-22",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4739526",
+          "name": "Waco",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 31.5493,
+          "lng": -97.1467,
+          "population": 132356,
+          "visitCount": 8,
+          "spotCount": 7,
+          "dwellMs": 9685590,
+          "firstSeen": "2019-08-24",
+          "lastSeen": "2023-03-10",
+          "years": [
+            "2019",
+            "2021",
+            "2022",
+            "2023"
+          ]
+        },
+        {
+          "id": "4685907",
+          "name": "Denton",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.2148,
+          "lng": -97.1331,
+          "population": 131044,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 9644816,
+          "firstSeen": "2025-12-24",
+          "lastSeen": "2025-12-24",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "4990510",
+          "name": "Dearborn",
+          "admin": "MI",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 42.3223,
+          "lng": -83.1763,
+          "population": 95171,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 9494259,
+          "firstSeen": "2018-06-25",
+          "lastSeen": "2018-06-25",
+          "years": [
+            "2018"
+          ]
+        },
+        {
+          "id": "5378771",
+          "name": "Oceanside",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.1959,
+          "lng": -117.3795,
+          "population": 175691,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 9123710,
+          "firstSeen": "2025-07-05",
+          "lastSeen": "2025-07-05",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "4670605",
+          "name": "Alvord",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.3585,
+          "lng": -97.6947,
+          "population": 1403,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 8540095,
+          "firstSeen": "2020-11-25",
+          "lastSeen": "2020-11-25",
+          "years": [
+            "2020"
+          ]
+        },
+        {
+          "id": "4740686",
+          "name": "West",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 31.8024,
+          "lng": -97.0917,
+          "population": 2883,
+          "visitCount": 7,
+          "spotCount": 5,
+          "dwellMs": 7881083,
+          "firstSeen": "2018-06-20",
+          "lastSeen": "2023-05-28",
+          "years": [
+            "2018",
+            "2019",
+            "2021",
+            "2023"
+          ]
+        },
+        {
+          "id": "5393052",
+          "name": "Santa Cruz",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 36.9741,
+          "lng": -122.0308,
+          "population": 64220,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 7071000,
+          "firstSeen": "2016-08-02",
+          "lastSeen": "2016-08-02",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4736476",
+          "name": "The Woodlands",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.158,
+          "lng": -95.4894,
+          "population": 93847,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 6826906,
+          "firstSeen": "2022-12-11",
+          "lastSeen": "2022-12-11",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4709013",
+          "name": "Mansfield",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.5632,
+          "lng": -97.1417,
+          "population": 64274,
+          "visitCount": 5,
+          "spotCount": 3,
+          "dwellMs": 6655681,
+          "firstSeen": "2017-12-23",
+          "lastSeen": "2019-12-15",
+          "years": [
+            "2017",
+            "2019"
+          ]
+        },
+        {
+          "id": "5422503",
+          "name": "Frisco",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.5744,
+          "lng": -106.0975,
+          "population": 3035,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 6624469,
+          "firstSeen": "2023-02-25",
+          "lastSeen": "2023-02-25",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "4723406",
+          "name": "Rockwall",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.9312,
+          "lng": -96.4597,
+          "population": 42566,
+          "visitCount": 2,
+          "spotCount": 1,
+          "dwellMs": 6524568,
+          "firstSeen": "2020-01-04",
+          "lastSeen": "2020-01-05",
+          "years": [
+            "2020"
+          ]
+        },
+        {
+          "id": "4700168",
+          "name": "Irving",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.814,
+          "lng": -96.9489,
+          "population": 236607,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 4754675,
+          "firstSeen": "2019-01-19",
+          "lastSeen": "2019-01-20",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "4697867",
+          "name": "Hillsboro",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.011,
+          "lng": -97.13,
+          "population": 8321,
+          "visitCount": 3,
+          "spotCount": 2,
+          "dwellMs": 4533023,
+          "firstSeen": "2019-10-13",
+          "lastSeen": "2022-11-27",
+          "years": [
+            "2019",
+            "2021",
+            "2022"
+          ]
+        },
+        {
+          "id": "4175179",
+          "name": "The Villages",
+          "admin": "FL",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 28.9341,
+          "lng": -81.9599,
+          "population": 51442,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 4235535,
+          "firstSeen": "2019-03-17",
+          "lastSeen": "2019-03-17",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "5505411",
+          "name": "Henderson",
+          "admin": "NV",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 36.0397,
+          "lng": -114.9819,
+          "population": 285667,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 4115787,
+          "firstSeen": "2016-07-28",
+          "lastSeen": "2016-07-28",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "5427207",
+          "name": "Ken Caryl",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.5758,
+          "lng": -105.1122,
+          "population": 32438,
+          "visitCount": 2,
+          "spotCount": 1,
+          "dwellMs": 3761285,
+          "firstSeen": "2023-02-23",
+          "lastSeen": "2023-02-23",
+          "years": [
+            "2023"
+          ]
+        },
+        {
+          "id": "4740328",
+          "name": "Waxahachie",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.3865,
+          "lng": -96.8483,
+          "population": 33384,
+          "visitCount": 2,
+          "spotCount": 1,
+          "dwellMs": 3103001,
+          "firstSeen": "2021-08-08",
+          "lastSeen": "2022-07-30",
+          "years": [
+            "2021",
+            "2022"
+          ]
+        },
+        {
+          "id": "4685524",
+          "name": "DeSoto",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.5899,
+          "lng": -96.8569,
+          "population": 52486,
+          "visitCount": 4,
+          "spotCount": 4,
+          "dwellMs": 2960245,
+          "firstSeen": "2019-09-10",
+          "lastSeen": "2024-10-13",
+          "years": [
+            "2019",
+            "2020",
+            "2022",
+            "2024"
+          ]
+        },
+        {
+          "id": "4724194",
+          "name": "Rowlett",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.9029,
+          "lng": -96.5639,
+          "population": 60236,
+          "visitCount": 3,
+          "spotCount": 3,
+          "dwellMs": 2727470,
+          "firstSeen": "2020-01-04",
+          "lastSeen": "2020-01-04",
+          "years": [
+            "2020"
+          ]
+        },
+        {
+          "id": "4693003",
+          "name": "Garland",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.9126,
+          "lng": -96.6389,
+          "population": 236897,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 2079796,
+          "firstSeen": "2020-01-05",
+          "lastSeen": "2020-01-05",
+          "years": [
+            "2020"
+          ]
+        },
+        {
+          "id": "4315588",
+          "name": "Baton Rouge",
+          "admin": "LA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.4433,
+          "lng": -91.1875,
+          "population": 228590,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 1988091,
+          "firstSeen": "2022-03-11",
+          "lastSeen": "2022-03-13",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4693696",
+          "name": "Glen Rose",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.2346,
+          "lng": -97.7553,
+          "population": 2580,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1921343,
+          "firstSeen": "2019-03-21",
+          "lastSeen": "2019-03-21",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "5367929",
+          "name": "Long Beach",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.767,
+          "lng": -118.1892,
+          "population": 474140,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1884126,
+          "firstSeen": "2018-08-03",
+          "lastSeen": "2018-08-03",
+          "years": [
+            "2018"
+          ]
+        },
+        {
+          "id": "4329037",
+          "name": "Jennings",
+          "admin": "LA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.2224,
+          "lng": -92.6571,
+          "population": 10180,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 1880699,
+          "firstSeen": "2022-03-11",
+          "lastSeen": "2022-03-11",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4738214",
+          "name": "Tyler",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.3513,
+          "lng": -95.3011,
+          "population": 103700,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1764927,
+          "firstSeen": "2019-12-26",
+          "lastSeen": "2019-12-26",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "5350734",
+          "name": "Fremont",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 37.5483,
+          "lng": -121.9886,
+          "population": 232206,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1761874,
+          "firstSeen": "2016-08-03",
+          "lastSeen": "2016-08-03",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4693472",
+          "name": "Giddings",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.1827,
+          "lng": -96.9364,
+          "population": 5064,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1685002,
+          "firstSeen": "2022-03-11",
+          "lastSeen": "2022-03-11",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4683462",
+          "name": "Corsicana",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.0954,
+          "lng": -96.4689,
+          "population": 23952,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 1671577,
+          "firstSeen": "2019-03-18",
+          "lastSeen": "2022-12-11",
+          "years": [
+            "2019",
+            "2022"
+          ]
+        },
+        {
+          "id": "4716805",
+          "name": "Orange",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.093,
+          "lng": -93.7365,
+          "population": 19347,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 1637650,
+          "firstSeen": "2022-03-11",
+          "lastSeen": "2022-03-11",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "5427946",
+          "name": "Lakewood",
+          "admin": "CO",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 39.7047,
+          "lng": -105.0814,
+          "population": 152597,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 1527028,
+          "firstSeen": "2024-07-14",
+          "lastSeen": "2024-07-14",
+          "years": [
+            "2024"
+          ]
+        },
+        {
+          "id": "5296391",
+          "name": "Grand Canyon",
+          "admin": "AZ",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 36.0544,
+          "lng": -112.1393,
+          "population": 1460,
+          "visitCount": 3,
+          "spotCount": 3,
+          "dwellMs": 1425488,
+          "firstSeen": "2016-07-28",
+          "lastSeen": "2016-07-28",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4692559",
+          "name": "Frisco",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 33.1507,
+          "lng": -96.8236,
+          "population": 154407,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1267157,
+          "firstSeen": "2018-03-30",
+          "lastSeen": "2018-03-30",
+          "years": [
+            "2018"
+          ]
+        },
+        {
+          "id": "4693342",
+          "name": "Georgetown",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.6327,
+          "lng": -97.6772,
+          "population": 63716,
+          "visitCount": 2,
+          "spotCount": 2,
+          "dwellMs": 834594,
+          "firstSeen": "2019-01-21",
+          "lastSeen": "2023-03-18",
+          "years": [
+            "2019",
+            "2023"
+          ]
+        },
+        {
+          "id": "5321098",
+          "name": "Williams",
+          "admin": "AZ",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 35.2495,
+          "lng": -112.191,
+          "population": 3122,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 671592,
+          "firstSeen": "2016-07-28",
+          "lastSeen": "2016-07-28",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4678858",
+          "name": "Canton",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 32.5565,
+          "lng": -95.8633,
+          "population": 3752,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 517000,
+          "firstSeen": "2019-07-26",
+          "lastSeen": "2019-07-26",
+          "years": [
+            "2019"
+          ]
+        },
+        {
+          "id": "5407529",
+          "name": "Watsonville",
+          "admin": "CA",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 36.9102,
+          "lng": -121.7569,
+          "population": 53628,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 467982,
+          "firstSeen": "2016-08-01",
+          "lastSeen": "2016-08-01",
+          "years": [
+            "2016"
+          ]
+        },
+        {
+          "id": "4672989",
+          "name": "Beaumont",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 30.0861,
+          "lng": -94.1018,
+          "population": 118129,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 426921,
+          "firstSeen": "2022-03-13",
+          "lastSeen": "2022-03-13",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "4682665",
+          "name": "Columbus",
+          "admin": "TX",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 29.7066,
+          "lng": -96.5397,
+          "population": 3629,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 372178,
+          "firstSeen": "2022-03-13",
+          "lastSeen": "2022-03-13",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "5106834",
+          "name": "Albany",
+          "admin": "NY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 42.6526,
+          "lng": -73.7562,
+          "population": 98469,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 195362,
+          "firstSeen": "2025-10-13",
+          "lastSeen": "2025-10-13",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "5132143",
+          "name": "Poughkeepsie",
+          "admin": "NY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 41.7004,
+          "lng": -73.921,
+          "population": 30371,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 159931,
+          "firstSeen": "2025-10-16",
+          "lastSeen": "2025-10-16",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "5125771",
+          "name": "Manhattan",
+          "admin": "NY",
+          "countryCode": "US",
+          "country": "United States",
+          "flag": "🇺🇸",
+          "lat": 40.7834,
+          "lng": -73.9662,
+          "population": 1487536,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 75129,
+          "firstSeen": "2025-06-30",
+          "lastSeen": "2025-06-30",
+          "years": [
+            "2025"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "flag": "🇯🇵",
+      "visitCount": 76,
+      "dwellMs": 986217315,
+      "firstSeen": "2026-03-10",
+      "lastSeen": "2026-03-24",
+      "cities": [
+        {
+          "id": "1850147",
+          "name": "Tokyo",
+          "admin": "",
+          "countryCode": "JP",
+          "country": "Japan",
+          "flag": "🇯🇵",
+          "lat": 35.6895,
+          "lng": 139.6917,
+          "population": 8336599,
+          "visitCount": 35,
+          "spotCount": 28,
+          "dwellMs": 411697099,
+          "firstSeen": "2026-03-10",
+          "lastSeen": "2026-03-24",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1854186",
+          "name": "Ōmachi",
+          "admin": "",
+          "countryCode": "JP",
+          "country": "Japan",
+          "flag": "🇯🇵",
+          "lat": 36.5,
+          "lng": 137.8667,
+          "population": 30599,
+          "visitCount": 7,
+          "spotCount": 5,
+          "dwellMs": 219695450,
+          "firstSeen": "2026-03-13",
+          "lastSeen": "2026-03-16",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1857910",
+          "name": "Kyoto",
+          "admin": "",
+          "countryCode": "JP",
+          "country": "Japan",
+          "flag": "🇯🇵",
+          "lat": 35.0211,
+          "lng": 135.7539,
+          "population": 1459640,
+          "visitCount": 19,
+          "spotCount": 14,
+          "dwellMs": 213349464,
+          "firstSeen": "2026-03-16",
+          "lastSeen": "2026-03-19",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1853909",
+          "name": "Osaka",
+          "admin": "",
+          "countryCode": "JP",
+          "country": "Japan",
+          "flag": "🇯🇵",
+          "lat": 34.6937,
+          "lng": 135.5022,
+          "population": 2592413,
+          "visitCount": 14,
+          "spotCount": 12,
+          "dwellMs": 139476727,
+          "firstSeen": "2026-03-19",
+          "lastSeen": "2026-03-21",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1856215",
+          "name": "Nagano",
+          "admin": "",
+          "countryCode": "JP",
+          "country": "Japan",
+          "flag": "🇯🇵",
+          "lat": 36.65,
+          "lng": 138.1833,
+          "population": 360176,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1998575,
+          "firstSeen": "2026-03-16",
+          "lastSeen": "2026-03-16",
+          "years": [
+            "2026"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "MX",
+      "name": "Mexico",
+      "flag": "🇲🇽",
+      "visitCount": 7,
+      "dwellMs": 317394308,
+      "firstSeen": "2022-05-24",
+      "lastSeen": "2022-05-28",
+      "cities": [
+        {
+          "id": "3531673",
+          "name": "Cancún",
+          "admin": "",
+          "countryCode": "MX",
+          "country": "Mexico",
+          "flag": "🇲🇽",
+          "lat": 21.1743,
+          "lng": -86.8466,
+          "population": 628306,
+          "visitCount": 6,
+          "spotCount": 4,
+          "dwellMs": 289781520,
+          "firstSeen": "2022-05-24",
+          "lastSeen": "2022-05-28",
+          "years": [
+            "2022"
+          ]
+        },
+        {
+          "id": "3521342",
+          "name": "Playa del Carmen",
+          "admin": "",
+          "countryCode": "MX",
+          "country": "Mexico",
+          "flag": "🇲🇽",
+          "lat": 20.6274,
+          "lng": -87.0799,
+          "population": 149923,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 27612788,
+          "firstSeen": "2022-05-27",
+          "lastSeen": "2022-05-27",
+          "years": [
+            "2022"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "TH",
+      "name": "Thailand",
+      "flag": "🇹🇭",
+      "visitCount": 10,
+      "dwellMs": 221360885,
+      "firstSeen": "2026-08-28",
+      "lastSeen": "2026-08-31",
+      "cities": [
+        {
+          "id": "1609350",
+          "name": "Bangkok",
+          "admin": "",
+          "countryCode": "TH",
+          "country": "Thailand",
+          "flag": "🇹🇭",
+          "lat": 13.754,
+          "lng": 100.5014,
+          "population": 5104476,
+          "visitCount": 10,
+          "spotCount": 6,
+          "dwellMs": 221360885,
+          "firstSeen": "2026-08-28",
+          "lastSeen": "2026-08-31",
+          "years": [
+            "2026"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "flag": "🇮🇹",
+      "visitCount": 29,
+      "dwellMs": 215600811,
+      "firstSeen": "2025-05-19",
+      "lastSeen": "2025-05-24",
+      "cities": [
+        {
+          "id": "3173529",
+          "name": "Mestre",
+          "admin": "",
+          "countryCode": "IT",
+          "country": "Italy",
+          "flag": "🇮🇹",
+          "lat": 45.4917,
+          "lng": 12.2454,
+          "population": 147662,
+          "visitCount": 10,
+          "spotCount": 8,
+          "dwellMs": 127197845,
+          "firstSeen": "2025-05-19",
+          "lastSeen": "2025-05-21",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "3176959",
+          "name": "Florence",
+          "admin": "",
+          "countryCode": "IT",
+          "country": "Italy",
+          "flag": "🇮🇹",
+          "lat": 43.7793,
+          "lng": 11.2463,
+          "population": 349296,
+          "visitCount": 10,
+          "spotCount": 10,
+          "dwellMs": 65944638,
+          "firstSeen": "2025-05-21",
+          "lastSeen": "2025-05-22",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "3169070",
+          "name": "Rome",
+          "admin": "",
+          "countryCode": "IT",
+          "country": "Italy",
+          "flag": "🇮🇹",
+          "lat": 41.8919,
+          "lng": 12.5113,
+          "population": 2318895,
+          "visitCount": 6,
+          "spotCount": 6,
+          "dwellMs": 15547635,
+          "firstSeen": "2025-05-23",
+          "lastSeen": "2025-05-24",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "3182884",
+          "name": "Arezzo",
+          "admin": "",
+          "countryCode": "IT",
+          "country": "Italy",
+          "flag": "🇮🇹",
+          "lat": 43.4628,
+          "lng": 11.8807,
+          "population": 76346,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 4013050,
+          "firstSeen": "2025-05-23",
+          "lastSeen": "2025-05-23",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "3170504",
+          "name": "Poggibonsi",
+          "admin": "",
+          "countryCode": "IT",
+          "country": "Italy",
+          "flag": "🇮🇹",
+          "lat": 43.4706,
+          "lng": 11.148,
+          "population": 21692,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1742644,
+          "firstSeen": "2025-05-22",
+          "lastSeen": "2025-05-22",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "3166548",
+          "name": "Siena",
+          "admin": "",
+          "countryCode": "IT",
+          "country": "Italy",
+          "flag": "🇮🇹",
+          "lat": 43.3182,
+          "lng": 11.3306,
+          "population": 42867,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 1154999,
+          "firstSeen": "2025-05-22",
+          "lastSeen": "2025-05-22",
+          "years": [
+            "2025"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "flag": "🇪🇸",
+      "visitCount": 26,
+      "dwellMs": 214699850,
+      "firstSeen": "2025-05-11",
+      "lastSeen": "2025-05-14",
+      "cities": [
+        {
+          "id": "3117735",
+          "name": "Madrid",
+          "admin": "",
+          "countryCode": "ES",
+          "country": "Spain",
+          "flag": "🇪🇸",
+          "lat": 40.4165,
+          "lng": -3.7026,
+          "population": 3255944,
+          "visitCount": 12,
+          "spotCount": 11,
+          "dwellMs": 128649307,
+          "firstSeen": "2025-05-11",
+          "lastSeen": "2025-05-13",
+          "years": [
+            "2025"
+          ]
+        },
+        {
+          "id": "3128760",
+          "name": "Barcelona",
+          "admin": "",
+          "countryCode": "ES",
+          "country": "Spain",
+          "flag": "🇪🇸",
+          "lat": 41.3888,
+          "lng": 2.159,
+          "population": 1621537,
+          "visitCount": 14,
+          "spotCount": 13,
+          "dwellMs": 86050543,
+          "firstSeen": "2025-05-13",
+          "lastSeen": "2025-05-14",
+          "years": [
+            "2025"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "CH",
+      "name": "Switzerland",
+      "flag": "🇨🇭",
+      "visitCount": 11,
+      "dwellMs": 164585002,
+      "firstSeen": "2025-05-17",
+      "lastSeen": "2025-05-19",
+      "cities": [
+        {
+          "id": "2658377",
+          "name": "Thun",
+          "admin": "BE",
+          "countryCode": "CH",
+          "country": "Switzerland",
+          "flag": "🇨🇭",
+          "lat": 46.7512,
+          "lng": 7.6217,
+          "population": 42136,
+          "visitCount": 11,
+          "spotCount": 8,
+          "dwellMs": 164585002,
+          "firstSeen": "2025-05-17",
+          "lastSeen": "2025-05-19",
+          "years": [
+            "2025"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "VN",
+      "name": "Vietnam",
+      "flag": "🇻🇳",
+      "visitCount": 14,
+      "dwellMs": 132348807,
+      "firstSeen": "2026-08-31",
+      "lastSeen": "2026-09-02",
+      "cities": [
+        {
+          "id": "1587919",
+          "name": "Bỉm Sơn",
+          "admin": "",
+          "countryCode": "VN",
+          "country": "Vietnam",
+          "flag": "🇻🇳",
+          "lat": 20.0781,
+          "lng": 105.8603,
+          "population": 53754,
+          "visitCount": 5,
+          "spotCount": 3,
+          "dwellMs": 69678845,
+          "firstSeen": "2026-09-01",
+          "lastSeen": "2026-09-02",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1581130",
+          "name": "Hanoi",
+          "admin": "",
+          "countryCode": "VN",
+          "country": "Vietnam",
+          "flag": "🇻🇳",
+          "lat": 21.0245,
+          "lng": 105.8412,
+          "population": 1431270,
+          "visitCount": 9,
+          "spotCount": 7,
+          "dwellMs": 62669962,
+          "firstSeen": "2026-08-31",
+          "lastSeen": "2026-09-01",
+          "years": [
+            "2026"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "flag": "🇦🇺",
+      "visitCount": 1,
+      "dwellMs": 120578324,
+      "firstSeen": "2022-11-06",
+      "lastSeen": "2022-11-08",
+      "cities": [
+        {
+          "id": "2147714",
+          "name": "Sydney",
+          "admin": "",
+          "countryCode": "AU",
+          "country": "Australia",
+          "flag": "🇦🇺",
+          "lat": -33.8678,
+          "lng": 151.2073,
+          "population": 4627345,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 120578324,
+          "firstSeen": "2022-11-06",
+          "lastSeen": "2022-11-08",
+          "years": [
+            "2022"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "flag": "🇫🇷",
+      "visitCount": 6,
+      "dwellMs": 83101861,
+      "firstSeen": "2025-05-15",
+      "lastSeen": "2025-05-16",
+      "cities": [
+        {
+          "id": "2988507",
+          "name": "Paris",
+          "admin": "",
+          "countryCode": "FR",
+          "country": "France",
+          "flag": "🇫🇷",
+          "lat": 48.8534,
+          "lng": 2.3488,
+          "population": 2138551,
+          "visitCount": 6,
+          "spotCount": 6,
+          "dwellMs": 83101861,
+          "firstSeen": "2025-05-15",
+          "lastSeen": "2025-05-16",
+          "years": [
+            "2025"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "VA",
+      "name": "Vatican City",
+      "flag": "🇻🇦",
+      "visitCount": 1,
+      "dwellMs": 10196568,
+      "firstSeen": "2025-05-23",
+      "lastSeen": "2025-05-23",
+      "cities": [
+        {
+          "id": "3169070",
+          "name": "Rome",
+          "admin": "",
+          "countryCode": "VA",
+          "country": "Vatican City",
+          "flag": "🇻🇦",
+          "lat": 41.8919,
+          "lng": 12.5113,
+          "population": 2318895,
+          "visitCount": 1,
+          "spotCount": 1,
+          "dwellMs": 10196568,
+          "firstSeen": "2025-05-23",
+          "lastSeen": "2025-05-23",
+          "years": [
+            "2025"
+          ]
+        }
+      ]
+    }
+  ]
+}

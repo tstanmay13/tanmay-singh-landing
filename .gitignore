@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# travel ingest (raw Timeline, home GPS, unpublished spots)
+/travel-studio
