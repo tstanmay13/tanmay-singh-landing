@@ -23,5 +23,12 @@ export default function TravelLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className={`${display.variable} ${sans.variable}`}>{children}</div>;
+  return (
+    <div
+      className={`${display.variable} ${sans.variable}`}
+      style={{ background: "#140f0c", minHeight: "calc(100dvh - 4rem)" }}
+    >
+      {children}
+    </div>
+  );
 }

@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows, OrbitControls, useTexture } from "@react-three/drei";
-import { BackSide, Quaternion, Vector3 } from "three";
+import { BackSide, Quaternion, SRGBColorSpace, Vector3 } from "three";
 import type { CatalogCity } from "@/content/travel/types";
 import {
   GLOBE_RADIUS,
@@ -31,11 +31,16 @@ export default function SouvenirGlobe(props: GlobeProps) {
       camera={{ position: [2.4, 1.1, 3.6], fov: 38 }}
       gl={{ antialias: true, alpha: true }}
       dpr={[1, 1.75]}
+      style={{ background: "transparent" }}
+      onCreated={({ gl }) => {
+        gl.setClearColor(0x000000, 0);
+        gl.toneMappingExposure = 1.35;
+      }}
     >
-      <color attach="background" args={["#00000000"]} />
-      <ambientLight intensity={0.32} />
-      <directionalLight position={[4.2, 3.2, 2.4]} intensity={1.55} color="#f3e0b8" />
-      <directionalLight position={[-3.5, -0.6, -2]} intensity={0.28} color="#5d7c88" />
+      <ambientLight intensity={0.95} />
+      <hemisphereLight args={["#f4ead0", "#243848", 0.85]} />
+      <directionalLight position={[3.2, 2.4, 4]} intensity={2.4} color="#fff6e4" />
+      <directionalLight position={[-3, 0.8, -2]} intensity={0.7} color="#7ea0b4" />
       <Scene {...props} />
     </Canvas>
   );
@@ -101,18 +106,14 @@ function LodWatch({ onBand }: { onBand: (band: LodBand) => void }) {
 
 function Earth() {
   const texture = useTexture("/travel/earth.jpg");
+  texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = 8;
 
   return (
     <group>
       <mesh>
         <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
-        <meshStandardMaterial
-          map={texture}
-          color="#e2d2b0"
-          roughness={0.52}
-          metalness={0.06}
-        />
+        <meshStandardMaterial map={texture} roughness={0.42} metalness={0} />
       </mesh>
       <mesh scale={1.035}>
         <sphereGeometry args={[GLOBE_RADIUS, 48, 48]} />
@@ -173,7 +174,7 @@ function CityPin({
   }, [city.lat, city.lng]);
 
   const scale = pinScale(city.dwellMs, selected);
-  const head = selected ? "#c94a3a" : "#9a2f2f";
+  const head = selected ? "#ff5a48" : "#e23b32";
 
   return (
     <group position={position} quaternion={quaternion} scale={scale}>
@@ -199,9 +200,10 @@ function CityPin({
         <sphereGeometry args={[0.026, 14, 14]} />
         <meshStandardMaterial
           color={head}
-          emissive={selected ? "#5a1010" : "#1a0505"}
-          roughness={0.35}
-          metalness={0.2}
+          emissive={selected ? "#ff2a18" : "#8a1410"}
+          emissiveIntensity={selected ? 0.7 : 0.35}
+          roughness={0.32}
+          metalness={0.15}
         />
       </mesh>
       <mesh position={[0, -0.036, 0]}>

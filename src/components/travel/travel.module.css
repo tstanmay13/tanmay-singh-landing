@@ -14,7 +14,8 @@
   --font-sans: var(--font-travel-sans), "Gill Sans", "Trebuchet MS", sans-serif;
 
   position: relative;
-  min-height: calc(100dvh - 4.25rem);
+  isolation: isolate;
+  min-height: calc(100dvh - 4rem);
   overflow: hidden;
   color: var(--travel-ticket);
   background:
@@ -27,6 +28,7 @@
 .globeSlot {
   position: absolute;
   inset: 0;
+  background: transparent;
 }
 
 .globeFallback,
