@@ -1,26 +1,27 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import ClientLayout from "@/components/ClientLayout";
 import "./globals.css";
 
 const DESCRIPTION =
-  "Tanmay Singh’s nighttime portfolio: software, daily games, odd tools, engineering stories, and a 33-game browser arcade.";
+  "Senior software engineer in NYC. I build SDK generators and agent tooling at Fern (acquired by Postman); before that, passkeys and auth at Amazon Identity. Also: a 33-game retro arcade.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tanmay-singh.com"),
-  title: "Tanmay Singh — Software, Games, Side Quests",
+  title: "Tanmay Singh — Senior Software Engineer",
   description: DESCRIPTION,
   keywords: [
     "Tanmay Singh",
-    "software engineer",
-    "browser games",
-    "creative coding",
-    "side projects",
+    "Senior Software Engineer",
+    "SDK generation",
+    "developer experience",
+    "AI agent tooling",
+    "Fern",
+    "Postman",
     "NYC",
   ],
   authors: [{ name: "Tanmay Singh" }],
   creator: "Tanmay Singh",
   openGraph: {
-    title: "Tanmay Singh — Software, Games, Side Quests",
+    title: "Tanmay Singh — Senior Software Engineer",
     description: DESCRIPTION,
     url: "https://tanmay-singh.com",
     siteName: "Tanmay Singh",
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tanmay Singh — Software, Games, Side Quests",
+    title: "Tanmay Singh — Senior Software Engineer",
     description: DESCRIPTION,
     creator: "@tanmaysingh",
   },
@@ -37,12 +38,6 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-};
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
 };
 
 // Structured data so AI sourcing tools and crawlers get the facts without
@@ -61,10 +56,10 @@ const personJsonLd = {
     "https://linkedin.com/in/tsingh13",
   ],
   knowsAbout: [
-    "Browser games",
-    "Creative coding",
-    "Software tools",
-    "Real-time multiplayer games",
+    "SDK code generation",
+    "developer experience",
+    "AI agent tooling",
+    "authentication and identity",
     "real-time streaming (WebSockets, SSE)",
   ],
 };
@@ -76,7 +71,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="scanlines crt-vignette antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}

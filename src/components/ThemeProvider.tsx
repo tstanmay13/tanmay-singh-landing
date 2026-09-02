@@ -20,6 +20,7 @@ export function useTheme() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     // Dark is the brand; first-time visitors get it regardless of OS
@@ -28,16 +29,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       setTheme(saved);
     }
+    setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }, []);
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#0a0a0f]" />;
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
