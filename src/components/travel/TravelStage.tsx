@@ -1,11 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { globeCities, travelCatalog } from "@/content/travel/catalog";
-import { stillsFor } from "@/content/travel/stills";
-import type { CatalogCity } from "@/content/travel/types";
-import { countryTitle, type AtlasView } from "@/lib/travel/geo";
-import PixelMap from "./PixelMap";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useTheme } from "@/components/ThemeProvider";
+import {
+  HUB_DEFINITIONS,
+  getCurrentHome,
+  getTravelPlace,
+  travelCatalog,
+  travelPlaces,
+} from "@/content/travel/catalog";
+import type {
+  TravelHub,
+  TravelHubId,
+  TravelPlace,
+} from "@/content/travel/types";
+import { countryTitle } from "@/lib/travel/geo";
+import {
+  getHubMembers,
+  hasActualVisitData,
+  type TravelFilterMode,
+} from "@/lib/travel/semantic";
+import {
+  deriveContextualTravelStats,
+  type TravelStatsContext,
+} from "@/lib/travel/stats";
+import PixelMap, { type TravelMapView } from "./PixelMap";
+import PlaceCard from "./PlaceCard";
 import styles from "./travel.module.css";
 
 const WORLD_SHORT: Record<string, string> = {
@@ -22,6 +48,27 @@ const WORLD_SHORT: Record<string, string> = {
   VA: "VATICAN",
 };
 
+const EMPTY_VIEW: TravelMapView = {
+  band: "world",
+  kicker: "OVERWORLD",
+  title: "WORLD MAP",
+  continent: null,
+  countryCode: null,
+  cityId: null,
+  visibleCountryCodes: [],
+  hubId: null,
+};
+
+const FILTERS: ReadonlyArray<{
+  id: TravelFilterMode;
+  label: string;
+  description: string;
+}> = [
+  { id: "all", label: "ALL", description: "Show every travel story" },
+  { id: "lived", label: "LIVED", description: "Emphasize home chapters" },
+  { id: "visited", label: "VISITED", description: "Emphasize travel history" },
+];
+
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
 
@@ -36,44 +83,103 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-const EMPTY_VIEW: AtlasView = {
-  band: "world",
-  kicker: "OVERWORLD",
-  title: "WORLD MAP",
-  continent: null,
-  countryCode: null,
-  cityId: null,
-  visibleCountryCodes: [],
-};
+function selectedKicker(place: TravelPlace) {
+  if (place.relationship === "current_home") return "CURRENT HOME";
+  if (place.relationship === "lived") return "LIVED HERE";
+  if (place.category === "hub") return "TRAVEL HUB";
+  return countryTitle(place.countryCode, place.country);
+}
 
 export default function TravelStage() {
-  const cities = useMemo(() => globeCities(), []);
-  const citiesById = useMemo(
-    () => new Map(cities.map((city) => [city.id, city])),
-    [cities],
+  const places = useMemo(() => travelPlaces(), []);
+  const placesById = useMemo(
+    () => new Map(places.map((place) => [place.id, place])),
+    [places],
   );
+  const hubsById = useMemo(
+    () =>
+      new Map(
+        HUB_DEFINITIONS.map((hub) => [hub.id, hub] as const),
+      ) as ReadonlyMap<TravelHubId, TravelHub>,
+    [],
+  );
+  const hubMembersById = useMemo(
+    () =>
+      new Map(
+        HUB_DEFINITIONS.map((hub) => [
+          hub.id,
+          getHubMembers(places, hub.id),
+        ]),
+      ),
+    [places],
+  );
+  const currentHome = useMemo(() => getCurrentHome(), []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [focusCountry, setFocusCountry] = useState<string | null>(null);
   const [focusTick, setFocusTick] = useState(0);
-  const [atlas, setAtlas] = useState<AtlasView>(EMPTY_VIEW);
+  const [mode, setMode] = useState<TravelFilterMode>("all");
+  const [atlas, setAtlas] = useState<TravelMapView>(EMPTY_VIEW);
   const [mounted, setMounted] = useState(false);
-  const reducedMotion = usePrefersReducedMotion();
   const stripRef = useRef<HTMLElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  const { theme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const selected = selectedId ? citiesById.get(selectedId) ?? null : null;
-  const hereId = useMemo(() => {
-    const latest = cities.reduce(
-      (best, city) => (city.lastSeen > best.lastSeen ? city : best),
-      cities[0],
-    );
-    return latest?.id ?? null;
-  }, [cities]);
+  const selected = selectedId ? placesById.get(selectedId) ?? null : null;
+  const selectedHub = selected?.hubId
+    ? hubsById.get(selected.hubId) ?? null
+    : null;
+  const selectedHubMembers = selected?.hubId
+    ? hubMembersById.get(selected.hubId) ?? []
+    : [];
+
+  const closePlace = useCallback(() => {
+    const closingId = selectedId;
+    setSelectedId(null);
+    if (!closingId) return;
+    requestAnimationFrame(() => {
+      const pin = document.querySelector<HTMLElement>(
+        `[data-place-id="${CSS.escape(closingId)}"]`,
+      );
+      pin?.focus();
+    });
+  }, [selectedId]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !selectedId) return;
+      event.preventDefault();
+      closePlace();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [closePlace, selectedId]);
+
+  const pickWorld = useCallback((code: string) => {
+    setSelectedId(null);
+    setFocusCountry(code);
+    setFocusTick((tick) => tick + 1);
+  }, []);
+
+  const pickPlace = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+      const place = placesById.get(id);
+      if (place) setFocusCountry(place.countryCode);
+    },
+    [placesById],
+  );
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search).get("city");
+    if (!query) return;
+    const match = getTravelPlace(query);
+    if (match) pickPlace(match.id);
+  }, [pickPlace]);
 
   const stripCountry =
     highlightCountry ??
@@ -82,112 +188,167 @@ export default function TravelStage() {
     selected?.countryCode;
 
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setSelectedId(null);
-        setHighlightCountry(null);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
     if (!stripCountry || !stripRef.current) return;
     const root = stripRef.current;
     const node = root.querySelector(`[data-world="${stripCountry}"]`);
     if (!(node instanceof HTMLElement)) return;
-    const left = node.offsetLeft - root.clientWidth / 2 + node.offsetWidth / 2;
+    const left =
+      node.offsetLeft - root.clientWidth / 2 + node.offsetWidth / 2;
     root.scrollTo({
       left: Math.max(0, left),
       behavior: reducedMotion ? "auto" : "smooth",
     });
   }, [reducedMotion, stripCountry]);
 
-  const pickWorld = (code: string) => {
-    setSelectedId(null);
-    setFocusCountry(code);
-    setFocusTick((tick) => tick + 1);
-  };
-
-  const pickCity = (id: string) => {
-    setSelectedId(id);
-    const city = citiesById.get(id);
-    if (city) setFocusCountry(city.countryCode);
-  };
-
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search).get("city");
-    if (!query) return;
-    const match = cities.find(
-      (city) =>
-        city.id === query || city.name.toLowerCase() === query.toLowerCase(),
-    );
-    if (match) pickCity(match.id);
-    // Open deep links once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const headerTitle = selected ? selected.name.toUpperCase() : atlas.title;
+  const statsContext: TravelStatsContext =
+    mode === "lived"
+      ? { kind: "lived" }
+      : atlas.hubId
+        ? { kind: "hub", hubId: atlas.hubId }
+        : atlas.countryCode
+          ? { kind: "country", countryCode: atlas.countryCode }
+          : { kind: "world" };
+  const contextualStats = deriveContextualTravelStats(
+    places,
+    statsContext,
+    HUB_DEFINITIONS,
+  );
+  const visitedScope = atlas.hubId
+    ? hubMembersById.get(atlas.hubId) ?? []
+    : atlas.countryCode
+      ? places.filter((place) => place.countryCode === atlas.countryCode)
+      : places;
+  const visitedCount = visitedScope.filter(hasActualVisitData).length;
+  const stats =
+    mode === "visited"
+      ? (contextualStats?.hud ?? []).map((stat) =>
+          stat.id === "homes" || stat.id === "lived"
+            ? { id: "visited", label: "VISITED", value: visitedCount }
+            : stat,
+        )
+      : contextualStats?.hud ?? [];
+  const activeHub = atlas.hubId
+    ? hubsById.get(atlas.hubId) ?? null
+    : null;
+  const headerTitle = selected
+    ? (selected.displayTitle ?? selected.name).toLocaleUpperCase("en-US")
+    : mode === "lived"
+      ? "LIFE PATH"
+      : activeHub
+        ? activeHub.name.toLocaleUpperCase("en-US")
+      : atlas.title;
   const headerKicker = selected
-    ? countryTitle(selected.countryCode, selected.country)
-    : atlas.kicker;
+    ? selectedKicker(selected)
+    : mode === "lived"
+      ? "HOME CHAPTERS"
+      : activeHub
+        ? "METRO"
+      : atlas.kicker;
 
   return (
-    <div className={styles.root}>
+    <div
+      className={styles.root}
+      data-map-mode={mode}
+      data-theme={theme}
+    >
       <div className={styles.stage}>
         {mounted ? (
           <PixelMap
-            cities={cities}
+            places={places}
             selectedId={selectedId}
-            hoveredId={hoveredId}
-            hereId={hereId}
+            currentHomeId={currentHome.id}
+            mode={mode}
             highlightCountry={highlightCountry}
             focusCountry={focusCountry}
             focusTick={focusTick}
             reducedMotion={reducedMotion}
-            onSelect={pickCity}
-            onHover={setHoveredId}
+            theme={theme}
+            onSelect={pickPlace}
             onView={setAtlas}
           />
         ) : (
           <p className={styles.mapBoot}>LOADING WORLD…</p>
         )}
 
-        <header className={styles.hud}>
-          <div>
+        <header className={styles.hud} aria-live="polite">
+          <div className={styles.heading}>
             <p className={styles.kicker}>{headerKicker}</p>
             <h1 className={styles.title}>{headerTitle}</h1>
           </div>
           <dl className={styles.stats}>
-            <div>
-              <dt>PLACES</dt>
-              <dd>×{travelCatalog.stats.cities}</dd>
-            </div>
-            <div>
-              <dt>COUNTRIES</dt>
-              <dd>×{travelCatalog.stats.countries}</dd>
-            </div>
-            <div>
-              <dt>YEARS</dt>
-              <dd>13–26</dd>
-            </div>
+            {stats.map((stat) => (
+              <div key={stat.id} data-stat={stat.id}>
+                <dt>{stat.label}</dt>
+                <dd title={String(stat.value)}>{stat.value}</dd>
+              </div>
+            ))}
           </dl>
         </header>
 
-        <nav ref={stripRef} className={styles.worlds} aria-label="Countries">
+        <div className={styles.storyChrome} data-layer="chrome">
+          <div
+            className={styles.filters}
+            role="group"
+            aria-label="Travel story filter"
+          >
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={`${styles.filterBtn} ${
+                  mode === filter.id ? styles.filterBtnOn : ""
+                }`}
+                aria-pressed={mode === filter.id}
+                aria-label={`${filter.label}: ${filter.description}`}
+                onClick={() => setMode(filter.id)}
+                data-filter={filter.id}
+                data-interactive
+              >
+                <span className={styles.filterGlyph} aria-hidden="true" />
+                {filter.label}
+              </button>
+            ))}
+          </div>
+          <ul className={styles.legend} aria-label="Map marker legend">
+            <li>
+              <span className={styles.legendCurrent} aria-hidden="true" />
+              HOME
+            </li>
+            <li>
+              <span className={styles.legendLived} aria-hidden="true" />
+              LIVED
+            </li>
+            <li>
+              <span className={styles.legendVisited} aria-hidden="true" />
+              VISITED
+            </li>
+          </ul>
+        </div>
+
+        <nav
+          ref={stripRef}
+          className={styles.worlds}
+          aria-label="Countries"
+          data-layer="chrome"
+        >
           {travelCatalog.countries.map((country, index) => {
-            const on = country.code === stripCountry;
+            const active = country.code === stripCountry;
             const inView = atlas.visibleCountryCodes.includes(country.code);
             return (
               <button
                 key={country.code}
                 type="button"
-                className={`${styles.worldBtn} ${on ? styles.worldBtnOn : ""} ${inView ? styles.worldBtnIn : ""}`}
+                className={`${styles.worldBtn} ${
+                  active ? styles.worldBtnOn : ""
+                } ${inView ? styles.worldBtnIn : ""}`}
                 data-world={country.code}
+                aria-label={`Focus map on ${country.name}`}
+                aria-current={active ? "true" : undefined}
                 onClick={() => pickWorld(country.code)}
                 onPointerEnter={() => setHighlightCountry(country.code)}
                 onPointerLeave={() => setHighlightCountry(null)}
+                onFocus={() => setHighlightCountry(country.code)}
+                onBlur={() => setHighlightCountry(null)}
                 data-interactive
               >
                 <span className={styles.worldNum}>
@@ -202,62 +363,15 @@ export default function TravelStage() {
         </nav>
 
         {selected ? (
-          <PlaceCard key={selected.id} city={selected} onClose={() => setSelectedId(null)} />
+          <PlaceCard
+            key={selected.id}
+            place={selected}
+            hub={selectedHub}
+            hubMembers={selectedHubMembers}
+            onClose={closePlace}
+          />
         ) : null}
       </div>
     </div>
-  );
-}
-
-function PlaceCard({
-  city,
-  onClose,
-}: {
-  city: CatalogCity;
-  onClose: () => void;
-}) {
-  const shots = stillsFor(city);
-  const closeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    closeRef.current?.focus();
-  }, []);
-
-  return (
-    <aside
-      className={styles.card}
-      role="dialog"
-      aria-modal="false"
-      aria-label={`${city.name} place card`}
-    >
-      <div className={styles.cardHead}>
-        <p className={styles.cardWorld}>PLACE</p>
-        <button
-          ref={closeRef}
-          type="button"
-          className={styles.close}
-          onClick={onClose}
-          aria-label="Close place"
-        >
-          ×
-        </button>
-      </div>
-      <h2 className={styles.cardName}>{city.name}</h2>
-      <p className={styles.cardMeta}>
-        {city.flag} {city.country}
-        {city.admin ? ` · ${city.admin}` : ""}
-      </p>
-
-      <p className={styles.filmTag}>STILLS</p>
-      <div className={styles.album}>
-        {shots.map((shot, index) => (
-          <figure key={`${shot.src}-${index}`} className={styles.shot}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={shot.src} alt="" />
-            <figcaption>{shot.caption}</figcaption>
-          </figure>
-        ))}
-      </div>
-    </aside>
   );
 }
