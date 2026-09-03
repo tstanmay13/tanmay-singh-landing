@@ -1,263 +1,145 @@
-# Travel globe — product and architecture
+# Travel life atlas
 
-Personal travel atlas on tanmay-singh.com. This page is allowed to look unlike the rest of the site; the site can later be adapted *to* this, not the other way around.
+`/travel` is an explorable 8-bit world for two related stories:
 
-Status: ingest transform exists (`npm run travel:timeline`). Public globe is still unbuilt.
+- places Tanmay has visited;
+- places that are home chapters.
 
-## What it is
+It is a pixel overworld, not a conventional map product. The terrain is a
+low-resolution equirectangular raster so markers still align with recognizable
+geography.
 
-A **souvenir globe** you spin. Pins are **places you’ve been**. Zoomed out you only see cities; zooming in reveals more specific spots, with a hard cap so the globe never becomes confetti. Click a pin and a **place story** lifts off: header, curated photos/videos, and visit chapters if you went back years later.
+## Public place model
 
-Photos and videos come from your life dump (Google Photos). **Google Timeline** tells us *where you were* at the time a file was shot. AI picks the good ones, lightly enhances winners, and you approve in chat (“use this picture for Kyoto”). Visitors never see GPS crumbs, rejects, or the dump.
+The generated Timeline aggregate remains in
+`src/content/travel/catalog.json`. It contains visit counts, dwell aggregates,
+city coordinates, and observed visit years.
 
-Polarsteps is out of scope. Timeline is enough for location.
+Editorial meaning lives separately in
+`src/content/travel/curatedPlaces.ts`. That layer owns:
 
----
+- canonical aliases;
+- explicit importance and featured status;
+- world/country/metro visibility;
+- visited, lived, and current-home relationships;
+- residence order;
+- editable hub membership;
+- empty media arrays ready for future real photos.
 
-## Gemini and Google Photos
+`src/content/travel/catalog.ts` merges generated and manual records, resolves
+aliases, and returns one canonical `TravelPlace` per location. A residence can
+retain independent travel years without creating a second city record. Austin
+is the reference case: one canonical place, a past-home relationship, and the
+Austin/Central Texas hub center.
 
-Yes: **Gemini can view Google Photos** — inside Google’s products.
+## Residence chronology
 
-- **Ask Photos** in the Google Photos app (Gemini-powered search/chat over your library).
-- **Gemini app** with Google Photos connected (`@Google Photos`). It can find “Kyoto 2024” shots and show them *in Gemini*.
+The public life-path for this release has four chapters:
 
-That does **not** give this website a library dump.
+1. Murphy, Texas — past home
+2. Richardson, Texas — past home
+3. Austin, Texas — past home and travel hub
+4. New York City, New York — current home
 
-- Since 31 Mar 2025, third-party apps cannot read a user’s full Photos library. The old `photoslibrary.readonly` path is gone.
-- The remaining **Picker API** is “user selects some albums in Google’s UI.” Fine for a few extras, useless for “all photos ever.”
-- Gemini chat export does **not** include the photos. On Android you can sometimes drag **one** image at a time out of Gemini.
-- There is no Google Photos → S3 bucket. Drive is the wrong tool. GCS/R2 would just be “you uploaded Takeout somewhere that isn’t your laptop.”
+No residence dates are encoded. Timeline `firstSeen` and `lastSeen` values are
+visit evidence and must never be presented as residence dates.
 
-**Use Gemini as a human scout if you want** (“best shrine photos from Kyoto”), not as the ingest pipeline.
+Earlier personal history mentioned outside this four-marker release
+(Uttar Pradesh, Boston, and Bengaluru) is not part of the current path. It can
+be added without changing the model after the intended Uttar Pradesh
+granularity is chosen.
 
-**Actual ingest:** Google Takeout of Photos (original quality) + Timeline export from your phone (`Timeline.json` via Maps → Your Timeline → Export). Originals stay on disk. The site only stores published winners.
+## Explicit travel hubs
 
----
+Hub membership is curated rather than inferred from population or distance.
+The current hubs are:
 
-## Glossary
+- Dallas–Fort Worth, including Murphy and Richardson as distinct home
+  chapters at metro zoom;
+- Austin / Central Texas, with Austin as both home and hub center;
+- Houston.
 
-| Term | Meaning |
-|------|---------|
-| **Place** | Public pin. A city by default; a neighborhood/spot only when it deserves its own story. Identity is the location, not the trip. Tokyo 2022 and Tokyo 2025 are the same Place. |
-| **Visit** | One time you were at that Place. Stacked inside the pin. “Tuesday 2pm, ramen in Kyoto” is a Visit (or a finer Place once you zoom in). |
-| **Media** | A photo or video attached to a Visit (and thus a Place). |
-| **Dump** | Private originals: Takeout + Timeline. Never public. |
-| **Candidate** | A dump file time-matched to a Place/Visit, not yet published. |
-| **Winner** | Media you approved for the public story. Lightly enhanced derivative. |
-| **Studio** | Not a web admin. Your laptop + this chat (later: “use this picture”). |
-| **Globe** | The public page: a desk-object Earth with pins and lifting story cards. |
+World view summarizes hub members. Country view keeps the hub dominant while
+showing small member markers. Metro view expands members and separates dense
+markers deterministically.
 
----
+## Semantic zoom and labels
 
-## Locked decisions
+The semantic levels are world, country, and metro. Place metadata controls the
+first level at which a place is eligible.
 
-1. **Audience:** Hybrid. Public curated globe; private dump/GPS/AI.
-2. **Pin:** Place, not trip, not GPS point.
-3. **Revisits:** One pin per place; visits stack inside.
-4. **Density:** Zoom LOD + cluster/cap. Photos never create pins.
-5. **Click:** Place story (header + curated media + visit chapters).
-6. **Look:** Souvenir globe, not a map app. Real-ish coastlines so Kyoto is on Japan; no Google chrome.
-7. **Location source:** Google Timeline only (no Polarsteps).
-8. **Photo source:** Takeout (and/or a local copy). Match to Timeline **by time**.
-9. **Originals:** Local disk (cheapest way for AI to see everything). Cheap bucket only if it physically doesn’t fit. Published winners on **Vercel Blob**.
-10. **AI:** Sees local **thumbnails**, not 12MP API uploads. Heuristics first (blur, near-dup), then vision on remaining candidates.
-11. **Enhance:** Light exposure / color / crop on **winners only**. No generative fill, no face-restore. Videos: pick, don’t “enhance.”
-12. **Approval UI:** None. Chat later (“use this one”). You are the privacy filter for other people in frame.
-13. **This page’s visual system** is independent of the current pixel/CRT site.
+Labels are resolved in screen space without DOM measurement. Candidates are
+sorted by selected place, current home, past homes, hover/focus, featured hub,
+significant destination, then minor place. A label is accepted only when its
+rectangle fits the viewport and avoids prior labels, reserved chrome/card
+rectangles, and a small collision pad. World view keeps a tight persistent
+label budget. Country view shows lived markers without permanently labeling
+every DFW satellite. Metro view expands those chapters.
 
----
+A compact marker legend sits under the ALL / LIVED / VISITED filter so lived
+and visited places remain distinguishable by shape, not only color.
 
-## Public product
+## Interaction and camera
 
-**Route (proposed):** `/travel`
+Camera state is ref-driven and rendered through `requestAnimationFrame`.
+Pointer interaction has an explicit six-pixel drag threshold. Dragging uses
+pointer capture, freezes hover, and consumes the resulting synthetic click.
+Hover and selection remain separate.
 
-**Page object:** A stylized Earth you grab and spin (Three.js / R3F). Sparse land/water, themeable later. Pins are physical tacks. Camera dollies in on zoom: city pins at low zoom, spot pins past a threshold, with clustering so on-screen pin count stays bounded.
+Wheel and pinch zoom preserve the world point under their screen-space anchor.
+Buttons zoom around viewport center. Camera flights use short interruptible
+400–700 ms easing. New pointer input cancels a flight immediately. Labels hide
+during motion and return after a short settle delay.
 
-**Story card:** Lifts off the pin (not a 2D map overlay chrome dump).
+The filters are intentionally small:
 
-- Place name, maybe first/last year
-- Hero media
-- If multiple visits: chapters (2022 / 2025)
-- Small set of photos + videos per visit, not the cluster
+- `ALL` keeps the current camera;
+- `LIVED` frames the four chapters and shows the dotted chronology path;
+- `VISITED` emphasizes actual travel history;
+- leaving `LIVED` restores the prior camera.
 
-**Not public:** Timeline paths, raw coordinates list, rejected shots, EXIF dumps, “Tuesday 2:03:17 PM” unless you wrote it into the story.
+## Terrain and ambient motion
 
-**Nav:** New item when this ships. Don’t restyle Drive/Work/Games to match until you say so.
+`terrainPaint.ts` quantizes the source earth raster with theme-backed colors,
+then adds restrained land shades, dryland cactus speckle, vegetation groves,
+coast bands, and sparse water glints without changing the land/water boundary.
+Hub markers use chunky SNES-style buttons; lived chapters keep diamond and
+house shapes so the distinction is not color-only.
 
----
+`terrainRipple.ts` affects only the terrain canvas. It keeps at most three
+short-lived, pixel-quantized ripples and writes bounded dirty rectangles from
+an immutable base raster. Pins, labels, routes, panels, and navigation are
+never part of the displaced canvas.
 
-## Data model (published)
+Ambient movement pauses while the document is hidden. Reduced-motion mode
+removes nonessential ocean, cloud, marker, camera, and ripple animation.
 
-Git-friendly catalog. Media bytes are not in git.
+## Media
 
-```
-Place
-  id, slug, name
-  grain: country | city | spot
-  lat, lng
-  minZoom            // LOD
-  firstSeen, lastSeen
-  visits[]
-    id, startedAt, endedAt
-    title?, body?     // optional story text
-    media[]
-      id, type: photo | video
-      blobUrl          // enhanced public file
-      posterUrl?       // video
-      capturedAt
-      caption?
-```
+Real photos are intentionally not part of this release. Every place starts
+with empty `photos` and `media` arrays. Cards render
+`STILLS // COMING SOON` and never borrow another city’s placeholder image.
 
-Store published catalog as JSON (or MDX later) under something like `src/content/travel/`. The globe reads this at build/request time. Editing a pin in chat = edit this catalog + upload/replace Blob.
+The future publishing path remains: approved real media can be attached to the
+canonical place without changing marker identity, residence history, hubs, or
+visit counts.
 
-Private matching state (dump paths, scores, rejects) lives **only on disk**, e.g. `travel-studio/` gitignored, never deployed.
+## Validation
 
----
-
-## Pipeline (local, not a web app)
-
-### Timeline → countries / cities (done)
-
-Do **not** keep 27k raw segments in the app. The script loads Timeline once, then throws it away.
+Run:
 
 ```bash
-npm run travel:timeline -- ~/Downloads/Timeline.json
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run test:e2e
+npm run build
 ```
 
-What it does:
+Browser tests cover drag/click suppression, hover/selection separation, hub
+expansion, residence chronology, contextual cards, anchored zoom, camera
+interruption, stacking hit-tests, Escape, reduced motion, touch pinch, and
+console errors.
 
-1. Reads visits only (ignores GPS path crumbs).
-2. Dedupes by Google `placeID` (~2k unique spots).
-3. Country from `@rapideditor/country-coder` (offline polygons).
-4. City from an in-memory world-cities index (`all-the-cities`, 135k places): most populous city ≥15k people within 25km, else nearest named place.
-5. Writes `travel-studio/timeline-places.json` (gitignored — it includes home GPS).
-
-The JSON is `countries[] → cities[]` in `src/content/travel/catalog.json` (committed, city centroids only). Re-run the script after a new Timeline export and the globe updates. Full spots with GPS stay in gitignored `travel-studio/`. India is omitted until you add Banaras by hand in `src/content/travel/manualCities.ts`.
-
-Your export is a flat JSON array of `{ startTime, endTime, visit | activity | timelinePath }`, not the older Takeout `semanticSegments` wrapper.
-
-```
-Takeout photos/videos + Timeline.json
-        │
-        ▼
-  1. Index dump (hash, size, EXIF time, duration)
-        │
-        ▼
-  2. Parse Timeline (on-device Timeline.json and/or legacy Takeout)
-        │      visits / path points with time + lat/lng (+ place name if present)
-        ▼
-  3. Time-match: media timestamp → overlapping visit or nearest point
-        │      timezone + clock-skew rules
-        ▼
-  4. Cluster matches into Place drafts (city default; spots only if dense + named)
-        │
-        ▼
-  5. Rank media per place (cheap local, then AI on thumbnails)
-        │
-        ▼
-  6. You approve in chat → light enhance → Vercel Blob
-        │
-        ▼
-  7. Write published catalog → deploy → globe pins update
-```
-
-### Timeline formats to support
-
-Google moved Timeline on-device. Desktop Takeout often **no longer** has it.
-
-- **Current:** phone export `Timeline.json` (`semanticSegments`, visits, path).
-- **Legacy:** Takeout `Records.json` / monthly `timelineObjects` if you still have an old archive.
-
-Parser should sniff the file, not assume one schema.
-
-### Time matching
-
-- Prefer `DateTimeOriginal` / `CreateDate` from EXIF; fall back carefully (WhatsApp strips EXIF; screenshots lie).
-- Convert to UTC with the file’s offset if present; otherwise assume the Timeline local time of that day.
-- Match window: photo time inside a visit segment, else nearest path point within ~15–30 minutes (tunable).
-- Bursts: collapse near-dups with perceptual hash before AI sees them.
-- Unmatched files: private “unknown place” bucket — do not pin.
-
-### Place promotion
-
-- Reverse-geocode (or Timeline semantic place names) → city/country.
-- City Places are the default public pins.
-- A spot Place is created only when a cluster is tight, named, and you (or later chat) promote it.
-- Zoom LOD uses `grain` / `minZoom`.
-
-### AI pick
-
-1. Local: laplacian blur, exposure clip, phash duplicates, tiny files, screenshots.
-2. Vision on small JPEGs: keep / maybe / no; hero vs supporting; closed eyes; landmark vs dinner-table spam.
-3. Per Place, keep a short ranked list (e.g. 8–20 candidates). You pick winners in chat.
-4. Same idea for video: sample frames + duration, pick clips, don’t transcode the whole dump until a clip is a winner.
-
-Optional scout: you use Gemini Ask Photos to name albums/moments; we still need the files on disk to publish.
-
-### Enhance (winners only)
-
-- Autocrop / straighten, mild exposure and color.
-- Keep the original in the dump; Blob gets the derivative.
-- Never run this on the full library.
-
----
-
-## Site architecture (when we build)
-
-Fits the existing Next.js 15 app without forcing the pixel design system onto this route.
-
-| Piece | Choice | Why |
-|-------|--------|-----|
-| Public UI | `src/app/travel/` client globe | Isolated visual system |
-| Catalog | `src/content/travel/` | You already seed homepage content from `src/content/` |
-| Media CDN | Vercel Blob (public) | Published files only; originals never go here |
-| Ingest | Local scripts under `scripts/travel/` | Serverless is the wrong place for 200GB Takeout |
-| AI | Local thumbs → cheap vision (AI Gateway / existing keys later) | Don’t upload originals |
-| Auth | None | Studio is the laptop + git |
-| Supabase | Not used for this | That’s games. Don’t overload the free project with a media library |
-
-Globe tech (proposed): React Three Fiber + a simple Earth mesh, custom pins, camera dolly. Avoid Mapbox/MapLibre so it does not become a map app.
-
-Cron/keep-alive and game tables stay untouched.
-
----
-
-## Privacy and cost
-
-- Dump and Timeline never ship to Vercel.
-- Public media is only what you approved.
-- Faces of other people: no auto-blur; approval is the filter. Be careful with kids/strangers.
-- Cost stays low if AI sees thumbnails and Blob stores winners only. The failure mode is “upload Google Photos to the internet twice.”
-
----
-
-## Phased build (later)
-
-**Not starting until you say go.**
-
-1. **Globe shell** — spin, mock city pins, one story card, zoom LOD with fake data.
-2. **Catalog format** — real JSON, Blob upload helper, a couple of hand-approved places.
-3. **Ingest index + Timeline parser + time-match** — run locally against a small slice first, then full Takeout.
-4. **Rank + AI pick** — candidates file you can talk to in chat.
-5. **Enhance + publish** — winners → Blob → catalog.
-6. **Video** — same match/pick path, web-friendly poster + playback on the card.
-7. Optional: Photos Picker for “add three shots from last weekend” without another Takeout.
-
----
-
-## What you need on disk before ingest is real
-
-1. **Timeline:** from the phone, not the desktop Takeout (unless you still have a pre-migration archive).
-2. **Photos/videos:** Google Takeout, original quality, or any complete local copy.
-3. Disk space for the dump + a `travel-studio/` working directory.
-
-Until those exist, the only honest thing to build is the globe with mock pins.
-
----
-
-## Open, non-blocking
-
-- Exact pin/story-card motion and materials (brass tack vs photo chip on the globe).
-- Whether visit chapters show clock times or just dates.
-- `/travel` vs another slug.
-- Whether a published Place can be unpublished without deleting Blob objects.
+Raw Timeline data, home GPS, unpublished spots, and original media remain
+private under the ignored local travel-studio workflow.
