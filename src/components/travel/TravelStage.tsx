@@ -1,16 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  courseNumber,
-  formatDwell,
-  globeCities,
-  travelCatalog,
-  worldNumber,
-} from "@/content/travel/catalog";
+import { globeCities, travelCatalog } from "@/content/travel/catalog";
 import { stillsFor } from "@/content/travel/stills";
 import type { CatalogCity } from "@/content/travel/types";
-import { visibleCities, type LodBand } from "@/lib/travel/geo";
+import { countryTitle, type AtlasView } from "@/lib/travel/geo";
 import PixelMap from "./PixelMap";
 import styles from "./travel.module.css";
 
@@ -28,12 +22,6 @@ const WORLD_SHORT: Record<string, string> = {
   VA: "VATICAN",
 };
 
-const LOD_COPY: Record<LodBand, string> = {
-  world: "SCROLL PANS · PINCH OR + − ZOOMS",
-  region: "NEARBY STOPS SHARE A NODE",
-  close: "HOVER A NODE FOR ITS NAME",
-};
-
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
 
@@ -48,6 +36,16 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+const EMPTY_VIEW: AtlasView = {
+  band: "world",
+  kicker: "OVERWORLD",
+  title: "WORLD MAP",
+  continent: null,
+  countryCode: null,
+  cityId: null,
+  visibleCountryCodes: [],
+};
+
 export default function TravelStage() {
   const cities = useMemo(() => globeCities(), []);
   const citiesById = useMemo(
@@ -56,18 +54,19 @@ export default function TravelStage() {
   );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
   const [focusCountry, setFocusCountry] = useState<string | null>(null);
   const [focusTick, setFocusTick] = useState(0);
-  const [band, setBand] = useState<LodBand>("world");
+  const [atlas, setAtlas] = useState<AtlasView>(EMPTY_VIEW);
   const [mounted, setMounted] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
+  const stripRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const selected = selectedId ? citiesById.get(selectedId) ?? null : null;
-  const pins = visibleCities(cities, band, selectedId);
   const hereId = useMemo(() => {
     const latest = cities.reduce(
       (best, city) => (city.lastSeen > best.lastSeen ? city : best),
@@ -76,18 +75,34 @@ export default function TravelStage() {
     return latest?.id ?? null;
   }, [cities]);
 
-  const activeCountry = selected?.countryCode ?? focusCountry;
+  const stripCountry =
+    highlightCountry ??
+    (atlas.band === "world" ? focusCountry : atlas.countryCode) ??
+    focusCountry ??
+    selected?.countryCode;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSelectedId(null);
-        setFocusCountry(null);
+        setHighlightCountry(null);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!stripCountry || !stripRef.current) return;
+    const root = stripRef.current;
+    const node = root.querySelector(`[data-world="${stripCountry}"]`);
+    if (!(node instanceof HTMLElement)) return;
+    const left = node.offsetLeft - root.clientWidth / 2 + node.offsetWidth / 2;
+    root.scrollTo({
+      left: Math.max(0, left),
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  }, [reducedMotion, stripCountry]);
 
   const pickWorld = (code: string) => {
     setSelectedId(null);
@@ -113,21 +128,27 @@ export default function TravelStage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const headerTitle = selected ? selected.name.toUpperCase() : atlas.title;
+  const headerKicker = selected
+    ? countryTitle(selected.countryCode, selected.country)
+    : atlas.kicker;
+
   return (
     <div className={styles.root}>
       <div className={styles.stage}>
         {mounted ? (
           <PixelMap
-            cities={pins}
+            cities={cities}
             selectedId={selectedId}
             hoveredId={hoveredId}
             hereId={hereId}
+            highlightCountry={highlightCountry}
             focusCountry={focusCountry}
             focusTick={focusTick}
             reducedMotion={reducedMotion}
             onSelect={pickCity}
             onHover={setHoveredId}
-            onBand={setBand}
+            onView={setAtlas}
           />
         ) : (
           <p className={styles.mapBoot}>LOADING WORLD…</p>
@@ -135,16 +156,16 @@ export default function TravelStage() {
 
         <header className={styles.hud}>
           <div>
-            <p className={styles.kicker}>COURSE SELECT</p>
-            <h1 className={styles.title}>WORLD MAP</h1>
+            <p className={styles.kicker}>{headerKicker}</p>
+            <h1 className={styles.title}>{headerTitle}</h1>
           </div>
           <dl className={styles.stats}>
             <div>
-              <dt>CITIES</dt>
+              <dt>PLACES</dt>
               <dd>×{travelCatalog.stats.cities}</dd>
             </div>
             <div>
-              <dt>WORLDS</dt>
+              <dt>COUNTRIES</dt>
               <dd>×{travelCatalog.stats.countries}</dd>
             </div>
             <div>
@@ -154,15 +175,19 @@ export default function TravelStage() {
           </dl>
         </header>
 
-        <nav className={styles.worlds} aria-label="Worlds">
+        <nav ref={stripRef} className={styles.worlds} aria-label="Countries">
           {travelCatalog.countries.map((country, index) => {
-            const on = country.code === activeCountry;
+            const on = country.code === stripCountry;
+            const inView = atlas.visibleCountryCodes.includes(country.code);
             return (
               <button
                 key={country.code}
                 type="button"
-                className={`${styles.worldBtn} ${on ? styles.worldBtnOn : ""}`}
+                className={`${styles.worldBtn} ${on ? styles.worldBtnOn : ""} ${inView ? styles.worldBtnIn : ""}`}
+                data-world={country.code}
                 onClick={() => pickWorld(country.code)}
+                onPointerEnter={() => setHighlightCountry(country.code)}
+                onPointerLeave={() => setHighlightCountry(null)}
                 data-interactive
               >
                 <span className={styles.worldNum}>
@@ -177,34 +202,21 @@ export default function TravelStage() {
         </nav>
 
         {selected ? (
-          <LevelCard
-            city={selected}
-            cities={cities}
-            onClose={() => setSelectedId(null)}
-          />
+          <PlaceCard key={selected.id} city={selected} onClose={() => setSelectedId(null)} />
         ) : null}
-
-        <footer className={styles.dock}>
-          <p>TWO-FINGER SCROLL PANS</p>
-          <p>{LOD_COPY[band]}</p>
-        </footer>
       </div>
     </div>
   );
 }
 
-function LevelCard({
+function PlaceCard({
   city,
-  cities,
   onClose,
 }: {
   city: CatalogCity;
-  cities: CatalogCity[];
   onClose: () => void;
 }) {
   const shots = stillsFor(city);
-  const world = worldNumber(city.countryCode);
-  const course = courseNumber(city, cities);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -215,19 +227,17 @@ function LevelCard({
     <aside
       className={styles.card}
       role="dialog"
-      aria-modal="true"
-      aria-label={`${city.name} course card`}
+      aria-modal="false"
+      aria-label={`${city.name} place card`}
     >
       <div className={styles.cardHead}>
-        <p className={styles.cardWorld}>
-          WORLD {world} · COURSE {course}
-        </p>
+        <p className={styles.cardWorld}>PLACE</p>
         <button
           ref={closeRef}
           type="button"
           className={styles.close}
           onClick={onClose}
-          aria-label="Close course"
+          aria-label="Close place"
         >
           ×
         </button>
@@ -238,7 +248,7 @@ function LevelCard({
         {city.admin ? ` · ${city.admin}` : ""}
       </p>
 
-      <p className={styles.filmTag}>PLACEHOLDER FILM</p>
+      <p className={styles.filmTag}>STILLS</p>
       <div className={styles.album}>
         {shots.map((shot, index) => (
           <figure key={`${shot.src}-${index}`} className={styles.shot}>
@@ -248,26 +258,6 @@ function LevelCard({
           </figure>
         ))}
       </div>
-
-      <dl className={styles.cardStats}>
-        <div>
-          <dt>TIME</dt>
-          <dd>{formatDwell(city.dwellMs)}</dd>
-        </div>
-        <div>
-          <dt>VISITS</dt>
-          <dd>×{city.visitCount}</dd>
-        </div>
-        <div>
-          <dt>STOPS</dt>
-          <dd>×{city.spotCount}</dd>
-        </div>
-      </dl>
-      <p className={styles.years}>
-        {city.years.map((year) => (
-          <span key={year}>{year.slice(2)}</span>
-        ))}
-      </p>
     </aside>
   );
 }
