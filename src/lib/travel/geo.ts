@@ -9,6 +9,9 @@ export const MAP_ROWS = 160;
 
 export const MIN_SCALE = 0.42;
 export const MAX_SCALE = 6.8;
+/** CSS pixels per 320×160 world texel. Beyond this, swap to a regional layer. */
+export const GLOBAL_RASTER_MAX_MAGNIFICATION = 6.5;
+export const WORLD_UNITS_PER_TEXEL = MAP_WIDTH / MAP_COLS;
 
 export type LodBand = "world" | "region" | "country" | "city";
 
@@ -444,5 +447,69 @@ export function clampCam(cam: Camera, viewW: number, viewH: number): Camera {
       MAP_HEIGHT * cam.scale <= viewH
         ? MAP_HEIGHT / 2
         : clamp(cam.y, marginY, MAP_HEIGHT - marginY),
+  };
+}
+
+export function globalTexelCssSize(scale: number) {
+  return scale * WORLD_UNITS_PER_TEXEL;
+}
+
+export type WorldRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export function visibleWorldRect(
+  camera: Camera,
+  viewW: number,
+  viewH: number,
+  pad = 0.28,
+): WorldRect {
+  const halfW = viewW / (2 * Math.max(camera.scale, 1e-6));
+  const halfH = viewH / (2 * Math.max(camera.scale, 1e-6));
+  return {
+    x: camera.x - halfW * (1 + pad),
+    y: camera.y - halfH * (1 + pad),
+    width: halfW * 2 * (1 + pad),
+    height: halfH * 2 * (1 + pad),
+  };
+}
+
+export function clampWorldRectToMap(rect: WorldRect): WorldRect {
+  const x = clamp(rect.x, 0, MAP_WIDTH - 8);
+  const y = clamp(rect.y, 0, MAP_HEIGHT - 8);
+  return {
+    x,
+    y,
+    width: clamp(rect.width, 8, MAP_WIDTH - x),
+    height: clamp(rect.height, 8, MAP_HEIGHT - y),
+  };
+}
+
+export function worldRectToSourceRect(
+  rect: WorldRect,
+  sourceWidth: number,
+  sourceHeight: number,
+) {
+  return {
+    x: (rect.x / MAP_WIDTH) * sourceWidth,
+    y: (rect.y / MAP_HEIGHT) * sourceHeight,
+    width: (rect.width / MAP_WIDTH) * sourceWidth,
+    height: (rect.height / MAP_HEIGHT) * sourceHeight,
+  };
+}
+
+export function regionalRasterSize(
+  sourceRect: { width: number; height: number },
+  maxEdge = 768,
+) {
+  const srcW = Math.max(16, sourceRect.width);
+  const srcH = Math.max(16, sourceRect.height);
+  const scale = Math.min(1, maxEdge / Math.max(srcW, srcH));
+  return {
+    width: Math.max(16, Math.round(srcW * scale)),
+    height: Math.max(16, Math.round(srcH * scale)),
   };
 }

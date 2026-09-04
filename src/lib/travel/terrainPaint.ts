@@ -55,6 +55,16 @@ export interface TerrainPaintOptions {
   /** Changes detail placement without changing geography. */
   readonly seed?: number;
   /**
+   * Crop of the source image, in source-image pixels. Omit to paint the
+   * full source down to `width`×`height`.
+   */
+  readonly sourceRect?: {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+  };
+  /**
    * Useful in tests or runtimes where neither OffscreenCanvas nor document is
    * available. The factory must return a 2D-capable canvas of the given size.
    */
@@ -419,6 +429,7 @@ export function paintTerrain({
   height,
   palette,
   seed = 0x51f15e,
+  sourceRect,
   createCanvas,
 }: TerrainPaintOptions): TerrainPaintResult {
   if (!Number.isInteger(width) || !Number.isInteger(height)) {
@@ -434,7 +445,21 @@ export function paintTerrain({
   const context = context2d(canvas);
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, width, height);
-  context.drawImage(source, 0, 0, width, height);
+  if (sourceRect) {
+    context.drawImage(
+      source,
+      sourceRect.x,
+      sourceRect.y,
+      sourceRect.width,
+      sourceRect.height,
+      0,
+      0,
+      width,
+      height,
+    );
+  } else {
+    context.drawImage(source, 0, 0, width, height);
+  }
 
   const sourceImage = context.getImageData(0, 0, width, height);
   const sourceData = sourceImage.data;

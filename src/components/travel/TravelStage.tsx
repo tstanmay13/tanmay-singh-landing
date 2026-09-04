@@ -222,8 +222,6 @@ export default function TravelStage() {
     ? (selected.displayTitle ?? selected.name).toLocaleUpperCase("en-US")
     : mode === "lived"
       ? "LIFE PATH"
-      : focusCountry && !activeHub
-        ? (WORLD_SHORT[focusCountry] ?? focusCountry)
       : activeHub
         ? activeHub.name.toLocaleUpperCase("en-US")
       : atlas.title;
@@ -233,7 +231,7 @@ export default function TravelStage() {
       ? "HOME CHAPTERS"
       : activeHub
         ? "METRO"
-        : focusCountry
+        : atlas.countryCode
           ? "COUNTRY"
           : atlas.kicker;
 

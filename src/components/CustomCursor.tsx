@@ -18,9 +18,14 @@ export default function CustomCursor() {
   const moveFrameRef = useRef(0);
 
   useEffect(() => {
-    // Only show custom cursor on non-touch devices
     const isTouchDevice = "ontouchstart" in window;
     if (isTouchDevice) return;
+
+    const style = document.createElement("style");
+    style.textContent =
+      "a, button, input, textarea, select, [role='button'] { cursor: none !important; }";
+    document.head.appendChild(style);
+    document.body.style.cursor = "none";
 
     const handleMove = (e: MouseEvent) => {
       positionRef.current = { x: e.clientX, y: e.clientY };
@@ -51,15 +56,44 @@ export default function CustomCursor() {
       setVisible(true);
     };
 
-    // Track hover state on interactive elements
     const handleOverCapture = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const isInteractive =
-        target.closest("a, button, [role='button'], input, textarea, select, [data-interactive]");
-      const next = Boolean(isInteractive);
-      if (next === hoveringRef.current) return;
-      hoveringRef.current = next;
-      setHovering(next);
+      const onTravel = pathname.startsWith("/travel");
+      const overTravelChrome = Boolean(
+        onTravel &&
+          target.closest(
+            "header, nav, [data-map-chrome], [role='dialog'], a, input, textarea, select",
+          ) &&
+          !target.closest("[data-layer='pins']"),
+      );
+      if (overTravelChrome) {
+        document.body.style.cursor = "";
+        style.textContent = "";
+        if (visibleRef.current) {
+          visibleRef.current = false;
+          setVisible(false);
+        }
+        hoveringRef.current = false;
+        setHovering(false);
+        return;
+      }
+      if (onTravel) {
+        document.body.style.cursor = "none";
+        style.textContent =
+          "a, button, input, textarea, select, [role='button'] { cursor: none !important; }";
+      }
+      if (!visibleRef.current) {
+        visibleRef.current = true;
+        setVisible(true);
+      }
+      const isInteractive = Boolean(
+        target.closest(
+          "a, button, [role='button'], input, textarea, select, [data-interactive]",
+        ),
+      );
+      if (isInteractive === hoveringRef.current) return;
+      hoveringRef.current = isInteractive;
+      setHovering(isInteractive);
     };
 
     window.addEventListener("mousemove", handleMove);
@@ -68,12 +102,6 @@ export default function CustomCursor() {
     document.addEventListener("mouseleave", handleLeave);
     document.addEventListener("mouseenter", handleEnter);
     document.addEventListener("mouseover", handleOverCapture);
-
-    // Hide default cursor
-    document.body.style.cursor = "none";
-    const style = document.createElement("style");
-    style.textContent = "a, button, input, textarea, select, [role='button'] { cursor: none !important; }";
-    document.head.appendChild(style);
 
     return () => {
       window.removeEventListener("mousemove", handleMove);
@@ -86,7 +114,7 @@ export default function CustomCursor() {
       document.body.style.cursor = "";
       style.remove();
     };
-  }, []);
+  }, [pathname]);
 
   if (!visible) return null;
 
@@ -95,19 +123,19 @@ export default function CustomCursor() {
       {/* Main cursor - pixel crosshair */}
       <div
         ref={cursorRef}
-        className="fixed pointer-events-none z-[9999] transition-transform duration-75"
+        className="fixed pointer-events-none z-[9999]"
         style={{
           left: positionRef.current.x,
           top: positionRef.current.y,
           transform: hovering
-            ? `translate(-10px, -2px) scale(${clicking ? 0.8 : 1.4})`
-            : `scale(${clicking ? 0.8 : 1})`,
+            ? `translate(-8px, -2px) scale(${clicking ? 0.85 : 1})`
+            : `scale(${clicking ? 0.85 : 1})`,
         }}
       >
         {/* Pixel art cursor */}
         <svg
-          width="24"
-          height="24"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           style={{ imageRendering: "pixelated" }}

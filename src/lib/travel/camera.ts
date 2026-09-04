@@ -28,10 +28,11 @@ export type MapBounds = {
 
 export type EasingFunction = (progress: number) => number;
 
-export const MIN_CAMERA_DURATION_MS = 350;
+export const MIN_CAMERA_DURATION_MS = 450;
 export const MAX_CAMERA_DURATION_MS = 650;
 export const BUTTON_ZOOM_FACTOR = 1.18;
 export const LABEL_SETTLE_MS = 180;
+export const CAMERA_TRANSITION_MS = 520;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -98,6 +99,69 @@ export function zoomAtViewportCenter(
     { x: viewport.width / 2, y: viewport.height / 2 },
     viewport,
   );
+}
+
+export function usableViewportCenter(
+  viewport: Viewport,
+  insets?: Partial<ViewInsets>,
+): Point {
+  const resolved = resolveInsets(insets);
+  const width = Math.max(1, viewport.width - resolved.left - resolved.right);
+  const height = Math.max(1, viewport.height - resolved.top - resolved.bottom);
+  return {
+    x: resolved.left + width / 2,
+    y: resolved.top + height / 2,
+  };
+}
+
+/**
+ * Button zoom must keep the usable map center — not the geometric viewport
+ * center under the HUD — stable in world space.
+ */
+export function zoomAtUsableCenter(
+  camera: Camera,
+  nextScale: number,
+  viewport: Viewport,
+  insets?: Partial<ViewInsets>,
+): Camera {
+  return zoomAtScreenPoint(
+    camera,
+    nextScale,
+    usableViewportCenter(viewport, insets),
+    viewport,
+  );
+}
+
+/**
+ * Interpolates scale and the world point under a screen anchor. Linearly
+ * mixing camera.x/y/scale independently drifts that anchor during zoom.
+ */
+export function interpolateCameraAboutAnchor(
+  from: Camera,
+  to: Camera,
+  progress: number,
+  viewport: Viewport,
+  anchor: Point,
+  easing: EasingFunction = easeOutCubic,
+): Camera {
+  requirePositiveScale(from.scale);
+  requirePositiveScale(to.scale);
+  const eased = easing(clamp(progress, 0, 1));
+  const worldFrom = screenToWorld(anchor, from, viewport);
+  const worldTo = screenToWorld(anchor, to, viewport);
+  const scale = Math.max(
+    1e-6,
+    from.scale + (to.scale - from.scale) * eased,
+  );
+  const world = {
+    x: worldFrom.x + (worldTo.x - worldFrom.x) * eased,
+    y: worldFrom.y + (worldTo.y - worldFrom.y) * eased,
+  };
+  return {
+    x: world.x - (anchor.x - viewport.width / 2) / scale,
+    y: world.y - (anchor.y - viewport.height / 2) / scale,
+    scale,
+  };
 }
 
 /**

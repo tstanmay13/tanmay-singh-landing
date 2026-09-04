@@ -90,22 +90,26 @@ pointer capture, freezes hover, and consumes the resulting synthetic click.
 Hover and selection remain separate.
 
 Wheel and pinch zoom preserve the world point under their screen-space anchor.
-Buttons zoom around viewport center. Camera flights use short interruptible
-400–700 ms easing. New pointer input cancels a flight immediately. Labels hide
-during motion and return after a short settle delay.
+Buttons zoom around the usable map center, excluding the HUD and country rail.
+Camera flights interpolate that same anchor for 450–650 ms and are cancelled
+by new pan, wheel, pinch, country, or hub input. Title, statistics, and
+semantic zoom update only after the camera settles. Labels hide during
+meaningful motion and return 150–220 ms after the last movement frame.
 
-The filters are intentionally small:
+The header switches between two story modes:
 
-- `ALL` keeps the current camera;
-- `LIVED` frames the four chapters and shows the dotted chronology path;
-- `VISITED` emphasizes actual travel history;
-- leaving `LIVED` restores the prior camera.
+- `TRAVEL MAP` shows every destination;
+- `LIFE PATH` frames the four home chapters with explicit `01`–`04` markers.
+
+Leaving LIFE PATH restores the prior camera.
 
 ## Terrain and ambient motion
 
-`terrainPaint.ts` quantizes the source earth raster with theme-backed colors,
-then adds restrained land shades, dryland cactus speckle, vegetation groves,
-coast bands, and sparse water glints without changing the land/water boundary.
+`terrainPaint.ts` quantizes `earth.jpg` into a 320×160 world raster. Country
+and metro views swap in a higher-resolution crop of the same source so Japan
+and Texas keep recognizable coastlines instead of magnifying world texels
+beyond about 6.5×. The world layer stays pixelated; regional layers add source
+information rather than smoothing.
 Hub markers use chunky SNES-style buttons; lived chapters keep diamond and
 house shapes so the distinction is not color-only.
 

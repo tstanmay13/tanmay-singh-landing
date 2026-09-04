@@ -141,6 +141,15 @@
   background: var(--travel-water);
 }
 
+.regionEarth {
+  position: absolute;
+  z-index: 1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  transition: opacity 180ms linear;
+}
+
 .ocean {
   opacity: 0.08;
   background: repeating-linear-gradient(
@@ -184,9 +193,18 @@
 .lifePath {
   stroke: var(--travel-path);
   stroke-width: 1;
-  stroke-dasharray: none;
+  stroke-dasharray: 2 6;
   stroke-linecap: square;
-  opacity: 0.42;
+  stroke-linejoin: miter;
+  opacity: 0.55;
+}
+
+.lifePathTick {
+  stroke: var(--travel-path);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: crispEdges;
+  opacity: 0.7;
 }
 
 .hubRoad {
@@ -358,13 +376,16 @@
 }
 
 .pin:focus-visible {
-  outline: 3px solid var(--travel-current);
-  outline-offset: -2px;
+  outline: 2px dotted var(--travel-text);
+  outline-offset: 3px;
 }
 
 .pinOn .node {
   animation: pin-flash 180ms steps(2, end);
-  filter: brightness(1.22);
+  filter: none;
+  box-shadow:
+    0 0 0 2px var(--travel-panel),
+    0 0 0 4px var(--travel-current);
 }
 
 .pinDim {
@@ -511,6 +532,30 @@
   right: calc(100% + 3px);
   left: auto;
   transform: translateY(-50%);
+}
+
+.pinLabelOn {
+  border-color: var(--travel-current);
+  background: var(--travel-panel);
+  color: var(--travel-text);
+}
+
+.pinTooltip {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  z-index: 12;
+  width: max-content;
+  padding: 0.18rem 0.3rem;
+  border: 2px solid var(--travel-text);
+  background: color-mix(in srgb, var(--travel-text) 92%, var(--travel-panel));
+  color: var(--travel-panel);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .pinLabelHot {

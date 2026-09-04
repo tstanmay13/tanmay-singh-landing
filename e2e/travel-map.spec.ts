@@ -60,6 +60,16 @@ async function openReadyMap(page: Page) {
   return map;
 }
 
+async function readAnchor(map: Locator): Promise<{ x: number; y: number }> {
+  const raw = await map.getAttribute("data-anchor");
+  if (!raw) throw new Error("Travel map did not publish data-anchor.");
+  const [x, y] = raw.split(",").map(Number);
+  if (![x, y].every(Number.isFinite)) {
+    throw new Error(`Invalid travel map anchor: ${raw}`);
+  }
+  return { x, y };
+}
+
 async function readCamera(map: Locator): Promise<Camera> {
   const raw = await map.getAttribute("data-camera");
   if (!raw) throw new Error("Travel map did not publish data-camera.");
@@ -130,14 +140,8 @@ test("DFW hub expands canonical homes without duplicate markers", async ({
   const austin = map.locator(
     'button[data-place-id][data-hub-id="austin"][data-relationship="lived"]',
   );
-  await expect(austin).toHaveCount(1);
-  await expect(austin).toHaveAccessibleName(
-    "Austin, TX, past home and travel hub.",
-  );
-
-  expect(
-    await map.locator('button[data-current-home="true"]').count(),
-  ).toBeLessThanOrEqual(1);
+  await expect(austin).toHaveCount(0);
+  await expect(map.locator('button[data-current-home="true"]')).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
     map.locator('button[aria-pressed="true"][data-relationship="lived"]'),
@@ -218,28 +222,34 @@ test("wheel anchors its pointer and zoom controls anchor the center", async ({
     anchorAfter.y - anchorBefore.y,
   )).toBeLessThan(0.15);
 
-  const centerBeforeControls = await readCamera(map);
+  const beforePlus = await readCamera(map);
+  const centerBeforeControls = await readAnchor(map);
   await page.getByRole("button", { name: "Zoom in" }).click();
   await expect
     .poll(async () => (await readCamera(map)).scale, { timeout: 1_000 })
-    .toBeGreaterThan(centerBeforeControls.scale);
+    .toBeGreaterThan(beforePlus.scale);
   await waitForSettled(map);
-  const afterPlus = await readCamera(map);
-  expect(Math.hypot(
-    afterPlus.x - centerBeforeControls.x,
-    afterPlus.y - centerBeforeControls.y,
-  )).toBeLessThan(0.05);
+  const afterPlusAnchor = await readAnchor(map);
+  expect(
+    Math.hypot(
+      afterPlusAnchor.x - centerBeforeControls.x,
+      afterPlusAnchor.y - centerBeforeControls.y,
+    ),
+  ).toBeLessThan(0.8);
 
+  const beforeMinus = await readCamera(map);
   await page.getByRole("button", { name: "Zoom out" }).click();
   await expect
     .poll(async () => (await readCamera(map)).scale, { timeout: 1_000 })
-    .toBeLessThan(afterPlus.scale);
+    .toBeLessThan(beforeMinus.scale);
   await waitForSettled(map);
-  const afterMinus = await readCamera(map);
-  expect(Math.hypot(
-    afterMinus.x - afterPlus.x,
-    afterMinus.y - afterPlus.y,
-  )).toBeLessThan(0.05);
+  const afterMinusAnchor = await readAnchor(map);
+  expect(
+    Math.hypot(
+      afterMinusAnchor.x - afterPlusAnchor.x,
+      afterMinusAnchor.y - afterPlusAnchor.y,
+    ),
+  ).toBeLessThan(0.8);
 });
 
 test("drag interrupts a country flight and settles promptly", async ({
@@ -461,6 +471,8 @@ test("Japan focus fits the islands and hides Hanoi", async ({ page }) => {
   const map = await openReadyMap(page);
   const before = await readCamera(map);
   await page.locator('button[data-world="JP"]').click();
+  await expect(map).toHaveAttribute("data-busy", "1");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("WORLD MAP");
   await expect
     .poll(async () => (await readCamera(map)).scale, { timeout: 1_200 })
     .toBeGreaterThan(before.scale);
@@ -470,6 +482,7 @@ test("Japan focus fits the islands and hides Hanoi", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("JAPAN");
   await expect(page.locator("[data-kicker]")).toHaveText("COUNTRY");
   await expect(page.locator('[data-stat="major-hubs"] dd')).not.toHaveText("0");
+  await expect(map.locator("[data-regional-terrain='1']")).toHaveCount(1);
   await expect(map.getByText("HANOI")).toHaveCount(0);
   await expect(
     page.locator('button[data-world="VN"][aria-current="true"]'),
@@ -481,27 +494,34 @@ test("button zoom stays near 1.18x and LIFE PATH clusters DFW homes", async ({
 }) => {
   const map = await openReadyMap(page);
   const before = await readCamera(map);
+  const beforeAnchor = await readAnchor(map);
   await page.getByRole("button", { name: "Zoom in" }).click();
   await waitForSettled(map);
   const after = await readCamera(map);
+  const afterAnchor = await readAnchor(map);
   expect(after.scale / before.scale).toBeGreaterThan(1.14);
   expect(after.scale / before.scale).toBeLessThan(1.21);
-  expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeLessThan(0.05);
+  expect(
+    Math.hypot(afterAnchor.x - beforeAnchor.x, afterAnchor.y - beforeAnchor.y),
+  ).toBeLessThan(0.8);
 
   await page.locator('button[data-filter="lived"]').click();
   await waitForSettled(map);
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   const cluster = map.locator('[data-entity-id="cluster:dfw-lived"]');
   await expect(cluster).toBeVisible();
+  await expect(cluster).toHaveAccessibleName(/01–02 DFW/);
 
   await cluster.click();
   await waitForSettled(map);
   await expect(
     map.getByRole("button", { name: "Murphy, TX, past home." }),
   ).toBeVisible();
+  await expect(map.getByText("01 MURPHY")).toBeVisible();
   await expect(
     map.getByRole("button", { name: "Richardson, TX, past home." }),
   ).toBeVisible();
+  await expect(map.getByText("02 RICHARDSON")).toBeVisible();
 });
 
 test("boot is skippable and does not replay in the same session", async ({
