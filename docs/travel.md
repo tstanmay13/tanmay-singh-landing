@@ -121,7 +121,7 @@ removes nonessential ocean, cloud, marker, camera, and ripple animation.
 
 Real photos are intentionally not part of this release. Every place starts
 with empty `photos` and `media` arrays. Cards render
-`STILLS // COMING SOON` and never borrow another city’s placeholder image.
+`PHOTOS COMING LATER` and never borrow another city’s placeholder image.
 
 The future publishing path remains: approved real media can be attached to the
 canonical place without changing marker identity, residence history, hubs, or
