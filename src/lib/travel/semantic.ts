@@ -10,7 +10,10 @@ import type {
 } from "@/content/travel/types";
 import { cityPoint, type LodBand, type MapPoint } from "./geo";
 
-export type TravelFilterMode = "all" | "lived" | "visited";
+export type TravelFilterMode = "all" | "lived";
+
+export const DFW_LIVED_CLUSTER_ID = "cluster:dfw-lived";
+export const DFW_LIVED_CLUSTER_LABEL = "MURPHY + RICHARDSON · 01–02";
 
 export type SemanticMapLevel = "world" | "country" | "metro";
 
@@ -27,11 +30,12 @@ export type TravelMapEntity = {
   /** The canonical places represented by this marker. */
   members: readonly TravelPlace[];
   hubId: TravelHubId | null;
-  kind: "place" | "hub";
+  kind: "place" | "hub" | "cluster";
   count: number;
   livedCount: number;
   x: number;
   y: number;
+  label?: string;
   selectionId: string;
   selected: boolean;
   emphasis: TravelVisualEmphasis;
@@ -42,6 +46,7 @@ export type BuildTravelEntitiesOptions = {
   level: SemanticMapLevel | LodBand;
   filterMode?: TravelFilterMode;
   selectedId?: string | null;
+  focusedHubId?: TravelHubId | null;
   project?: ProjectTravelPlace;
   hubs?: readonly TravelHub[];
 };
@@ -173,9 +178,6 @@ export function filterVisualEmphasis(
   if (mode === "lived") {
     return place.relationship === "visited" ? "dimmed" : "emphasized";
   }
-  if (mode === "visited") {
-    return hasActualVisitData(place) ? "emphasized" : "dimmed";
-  }
   return "normal";
 }
 
@@ -193,6 +195,10 @@ export function isPlaceVisibleAtLevel(
 
   const level = normalizeSemanticLevel(options.level);
   const mode = options.filterMode ?? "all";
+
+  if (mode === "lived" && level !== "metro") {
+    return place.relationship !== "visited";
+  }
 
   if (level === "metro") return true;
   if (level === "country") {
@@ -439,6 +445,63 @@ function createPlaceEntity(
   };
 }
 
+export function dfwLivedChapters(
+  places: readonly TravelPlace[],
+): TravelPlace[] {
+  return uniqueTravelPlaces(places)
+    .filter(
+      (place) =>
+        place.hubId === "dfw" &&
+        place.relationship === "lived" &&
+        (place.residenceOrder === 1 || place.residenceOrder === 2),
+    )
+    .sort(
+      (left, right) =>
+        (left.residenceOrder ?? 99) - (right.residenceOrder ?? 99) ||
+        compareCanonicalPlaces(left, right),
+    );
+}
+
+export function shouldClusterDfwLivedChapters(
+  level: SemanticMapLevel | LodBand,
+  filterMode: TravelFilterMode = "all",
+): boolean {
+  return (
+    filterMode === "lived" && normalizeSemanticLevel(level) !== "metro"
+  );
+}
+
+function createDfwLivedCluster(
+  members: readonly TravelPlace[],
+  options: Required<
+    Pick<BuildTravelEntitiesOptions, "filterMode" | "selectedId">
+  > &
+    Pick<BuildTravelEntitiesOptions, "project">,
+): TravelMapEntity | null {
+  if (members.length < 2) return null;
+  const primary = members[0];
+  const points = members.map((place) => projectedPoint(place, options.project));
+  const selected = members.some((place) =>
+    matchesPlaceId(place, options.selectedId),
+  );
+  return {
+    id: DFW_LIVED_CLUSTER_ID,
+    place: primary,
+    members,
+    hubId: "dfw",
+    kind: "cluster",
+    count: members.length,
+    livedCount: members.length,
+    x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
+    y: points.reduce((sum, point) => sum + point.y, 0) / points.length,
+    label: DFW_LIVED_CLUSTER_LABEL,
+    selectionId: primary.id,
+    selected,
+    emphasis: "emphasized",
+    presentationTier: "major",
+  };
+}
+
 function createHubEntity(
   hub: TravelHub,
   root: TravelPlace,
@@ -566,6 +629,7 @@ export function buildTravelEntities(
   const level = normalizeSemanticLevel(options.level);
   const filterMode = options.filterMode ?? "all";
   const selectedId = options.selectedId ?? null;
+  const focusedHubId = options.focusedHubId ?? null;
   const hubs = options.hubs ?? DEFAULT_HUBS;
   const canonicalPlaces = uniqueTravelPlaces(places);
   const consumed = new Set<string>();
@@ -584,6 +648,18 @@ export function buildTravelEntities(
     entities.push(createPlaceEntity(place, entityOptions, kind));
   };
 
+  if (shouldClusterDfwLivedChapters(level, filterMode)) {
+    const chapters = dfwLivedChapters(canonicalPlaces);
+    const cluster = createDfwLivedCluster(
+      chapters,
+      entityOptions,
+    );
+    if (cluster) {
+      cluster.members.forEach((place) => consumed.add(place.canonicalKey));
+      entities.push(cluster);
+    }
+  }
+
   if (level === "world" && filterMode === "lived") {
     for (const place of canonicalPlaces) {
       if (place.relationship !== "visited") addPlace(place);
@@ -596,6 +672,7 @@ export function buildTravelEntities(
     const allMembers = getHubMembers(canonicalPlaces, hub.id, hubs);
     const root = getHubRoot(canonicalPlaces, hub.id, hubs);
     if (!root || allMembers.length === 0) continue;
+    if (filterMode === "lived" && root.relationship === "visited") continue;
 
     if (level === "world") {
       // A lived root (Austin) is already its own chronology marker.
@@ -636,6 +713,7 @@ export function buildTravelEntities(
         );
         entities.push({
           ...hubEntity,
+          id: `hub:${hub.id}`,
           count: allMembers.length,
           livedCount: allMembers.filter(
             (place) => place.relationship !== "visited",
@@ -652,8 +730,16 @@ export function buildTravelEntities(
           }),
         });
       }
-      for (const member of allMembers) {
-        if (member.canonicalKey !== root.canonicalKey) addPlace(member);
+      if (focusedHubId === hub.id) {
+        for (const member of allMembers) {
+          if (member.canonicalKey !== root.canonicalKey) addPlace(member);
+        }
+      } else {
+        for (const member of allMembers) {
+          if (member.canonicalKey !== root.canonicalKey) {
+            consumed.add(member.canonicalKey);
+          }
+        }
       }
       continue;
     }

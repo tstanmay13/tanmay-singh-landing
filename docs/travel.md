@@ -57,7 +57,9 @@ The current hubs are:
 - Dallas–Fort Worth, including Murphy and Richardson as distinct home
   chapters at metro zoom;
 - Austin / Central Texas, with Austin as both home and hub center;
-- Houston.
+- Houston;
+- Tokyo;
+- Kansai, grouping Osaka and Kyoto.
 
 World view summarizes hub members. Country view keeps the hub dominant while
 showing small member markers. Metro view expands members and separates dense
@@ -76,8 +78,9 @@ rectangles, and a small collision pad. World view keeps a tight persistent
 label budget. Country view shows lived markers without permanently labeling
 every DFW satellite. Metro view expands those chapters.
 
-A compact marker legend sits under the ALL / LIVED / VISITED filter so lived
-and visited places remain distinguishable by shape, not only color.
+The header switches between TRAVEL MAP and LIFE PATH. Lived and visited
+places stay distinguishable by marker shape, not only color. LIFE PATH
+clusters Murphy and Richardson at broad zoom.
 
 ## Interaction and camera
 
@@ -118,7 +121,7 @@ removes nonessential ocean, cloud, marker, camera, and ripple animation.
 
 Real photos are intentionally not part of this release. Every place starts
 with empty `photos` and `media` arrays. Cards render
-`STILLS // COMING SOON` and never borrow another city’s placeholder image.
+`PHOTOS COMING LATER` and never borrow another city’s placeholder image.
 
 The future publishing path remains: approved real media can be attached to the
 canonical place without changing marker identity, residence history, hubs, or

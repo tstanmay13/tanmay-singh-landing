@@ -56,12 +56,16 @@ describe("travel catalog curation", () => {
         "New Braunfels",
       ],
       houston: ["Houston", "Cypress", "The Woodlands"],
+      tokyo: ["Tokyo"],
+      kansai: ["Osaka", "Kyoto"],
     } satisfies Record<TravelHubId, readonly string[]>;
 
     expect(HUB_DEFINITIONS.map((hub) => hub.id)).toEqual([
       "dfw",
       "austin",
       "houston",
+      "tokyo",
+      "kansai",
     ]);
 
     for (const hub of HUB_DEFINITIONS) {

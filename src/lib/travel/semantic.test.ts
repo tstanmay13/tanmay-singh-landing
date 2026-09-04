@@ -10,11 +10,14 @@ import type {
   TravelPlaceReference,
 } from "@/content/travel/types";
 import {
+  DFW_LIVED_CLUSTER_ID,
+  DFW_LIVED_CLUSTER_LABEL,
   buildTravelEntities,
   compareTravelEntities,
   isPlaceVisibleAtLevel,
   isShowAtZoomVisible,
   placeSemanticPriority,
+  shouldClusterDfwLivedChapters,
   spreadDenseEntities,
   type TravelMapEntity,
 } from "./semantic";
@@ -63,7 +66,7 @@ function requireMinorDestination(): TravelPlace {
 }
 
 describe("semantic hub grouping", () => {
-  it("uses only the three explicit hubs at world/all with compact counts", () => {
+  it("uses only the explicit hubs at world/all with compact counts", () => {
     const entities = buildTravelEntities(places, {
       level: "world",
       filterMode: "all",
@@ -102,6 +105,20 @@ describe("semantic hub grouping", () => {
         count: 3,
         selectionId: usPlace("Houston", "TX").id,
       },
+      {
+        id: "hub:kansai",
+        hubId: "kansai",
+        name: "Osaka",
+        count: 2,
+        selectionId: requirePlace({ countryCode: "JP", name: "Osaka" }).id,
+      },
+      {
+        id: "hub:tokyo",
+        hubId: "tokyo",
+        name: "Tokyo",
+        count: 1,
+        selectionId: requirePlace({ countryCode: "JP", name: "Tokyo" }).id,
+      },
     ]);
   });
 
@@ -121,11 +138,23 @@ describe("semantic hub grouping", () => {
     expect(worldAll.some((entity) => entity.id === murphy.id)).toBe(false);
     expect(worldAll.some((entity) => entity.id === richardson.id)).toBe(false);
 
-    for (const level of ["country", "metro"] as const) {
-      const entities = buildTravelEntities(places, {
-        level,
-        filterMode: "all",
-      });
+    const country = buildTravelEntities(places, {
+      level: "country",
+      filterMode: "all",
+    });
+    expect(country.some((entity) => entity.id === murphy.id)).toBe(false);
+    expect(country.some((entity) => entity.id === richardson.id)).toBe(false);
+
+    const expanded = buildTravelEntities(places, {
+      level: "country",
+      filterMode: "all",
+      focusedHubId: "dfw",
+    });
+    const metro = buildTravelEntities(places, {
+      level: "metro",
+      filterMode: "all",
+    });
+    for (const entities of [expanded, metro]) {
       for (const home of [murphy, richardson]) {
         const entity = requireEntity(entities, home);
         expect(entity).toMatchObject({
@@ -141,18 +170,11 @@ describe("semantic hub grouping", () => {
       level: "world",
       filterMode: "lived",
     });
-    for (const home of [murphy, richardson]) {
-      expect(requireEntity(worldLived, home)).toMatchObject({
-        id: home.id,
-        kind: "place",
-        count: 1,
-        emphasis: "emphasized",
-      });
-    }
-    expect(worldLived.find((entity) => entity.id === "hub:dfw")).toMatchObject({
-      count: 13,
-      kind: "hub",
+    expect(worldLived.find((entity) => entity.id === DFW_LIVED_CLUSTER_ID)).toMatchObject({
+      kind: "cluster",
+      count: 2,
     });
+    expect(worldLived.find((entity) => entity.id === "hub:dfw")).toBeUndefined();
   });
 
   it("keeps Austin canonical while presenting its lived and hub roles once", () => {
@@ -189,7 +211,7 @@ describe("semantic hub grouping", () => {
       austin,
     );
     expect(countryAll).toMatchObject({
-      id: austin.id,
+      id: "hub:austin",
       kind: "hub",
       count: 5,
       place: austin,
@@ -309,14 +331,14 @@ describe("semantic visibility and emphasis", () => {
 
   it("changes visual emphasis without dropping canonical metro records", () => {
     const byMode = Object.fromEntries(
-      (["all", "lived", "visited"] as const).map((filterMode) => [
+      (["all", "lived"] as const).map((filterMode) => [
         filterMode,
         buildTravelEntities(places, {
           level: "metro",
           filterMode,
         }),
       ]),
-    ) as Record<"all" | "lived" | "visited", TravelMapEntity[]>;
+    ) as Record<"all" | "lived", TravelMapEntity[]>;
     const canonicalKeys = [...places]
       .map((place) => place.canonicalKey)
       .sort();
@@ -338,11 +360,8 @@ describe("semantic visibility and emphasis", () => {
 
     expect(requireEntity(byMode.all, murphy).emphasis).toBe("normal");
     expect(requireEntity(byMode.lived, murphy).emphasis).toBe("emphasized");
-    expect(requireEntity(byMode.visited, murphy).emphasis).toBe("dimmed");
     expect(requireEntity(byMode.lived, dallas).emphasis).toBe("dimmed");
-    expect(requireEntity(byMode.visited, dallas).emphasis).toBe("emphasized");
     expect(requireEntity(byMode.lived, austin).emphasis).toBe("emphasized");
-    expect(requireEntity(byMode.visited, austin).emphasis).toBe("emphasized");
   });
 
   it("prioritizes current and past homes over minor destinations", () => {
@@ -405,5 +424,64 @@ describe("dense marker spreading", () => {
         expect(screenDistance).toBeGreaterThanOrEqual(40 - 1e-9);
       }
     }
+  });
+
+  it("clusters Murphy and Richardson on LIFE PATH until metro zoom", () => {
+    expect(shouldClusterDfwLivedChapters("world", "lived")).toBe(true);
+    expect(shouldClusterDfwLivedChapters("country", "lived")).toBe(true);
+    expect(shouldClusterDfwLivedChapters("metro", "lived")).toBe(false);
+    expect(shouldClusterDfwLivedChapters("world", "all")).toBe(false);
+
+    const broad = buildTravelEntities(places, {
+      level: "country",
+      filterMode: "lived",
+    });
+    const cluster = broad.find((entity) => entity.id === DFW_LIVED_CLUSTER_ID);
+    expect(cluster).toMatchObject({
+      kind: "cluster",
+      label: DFW_LIVED_CLUSTER_LABEL,
+      count: 2,
+    });
+    expect(cluster?.members.map((place) => place.name)).toEqual([
+      "Murphy",
+      "Richardson",
+    ]);
+    expect(
+      broad.filter((entity) =>
+        ["Murphy", "Richardson"].includes(entity.place.name),
+      ),
+    ).toHaveLength(1);
+
+    const metro = buildTravelEntities(places, {
+      level: "metro",
+      filterMode: "lived",
+    });
+    expect(
+      metro.find((entity) => entity.id === DFW_LIVED_CLUSTER_ID),
+    ).toBeUndefined();
+    expect(requireEntity(metro, usPlace("Murphy", "TX")).kind).toBe("place");
+    expect(requireEntity(metro, usPlace("Richardson", "TX")).kind).toBe(
+      "place",
+    );
+  });
+
+  it("keeps Dallas selectable instead of expanding Murphy at country zoom", () => {
+    const country = buildTravelEntities(places, {
+      level: "country",
+      filterMode: "all",
+    });
+    const dallas = requireEntity(country, usPlace("Dallas", "TX"));
+    expect(dallas.kind).toBe("hub");
+    expect(dallas.selectionId).toBe(usPlace("Dallas", "TX").id);
+    expect(
+      country.find((entity) => entity.place.name === "Murphy"),
+    ).toBeUndefined();
+
+    const expanded = buildTravelEntities(places, {
+      level: "country",
+      filterMode: "all",
+      focusedHubId: "dfw",
+    });
+    expect(requireEntity(expanded, usPlace("Murphy", "TX")).kind).toBe("place");
   });
 });

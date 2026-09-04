@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BUTTON_ZOOM_FACTOR,
   MAX_CAMERA_DURATION_MS,
   MIN_CAMERA_DURATION_MS,
   clampCameraDuration,
   clampCameraToBounds,
   easeOutCubic,
+  fitCameraToBounds,
   interpolateCamera,
+  nextButtonZoomScale,
   panByScreenDelta,
   screenToWorld,
   worldToScreen,
@@ -143,13 +146,47 @@ describe("camera animation", () => {
     );
   });
 
-  it("clamps animation duration to 400–700 milliseconds", () => {
-    expect(MIN_CAMERA_DURATION_MS).toBe(400);
-    expect(MAX_CAMERA_DURATION_MS).toBe(700);
-    expect(clampCameraDuration(399)).toBe(400);
-    expect(clampCameraDuration(400)).toBe(400);
-    expect(clampCameraDuration(550)).toBe(550);
-    expect(clampCameraDuration(700)).toBe(700);
-    expect(clampCameraDuration(701)).toBe(700);
+  it("clamps animation duration to 350–650 milliseconds", () => {
+    expect(MIN_CAMERA_DURATION_MS).toBe(350);
+    expect(MAX_CAMERA_DURATION_MS).toBe(650);
+    expect(clampCameraDuration(349)).toBe(350);
+    expect(clampCameraDuration(350)).toBe(350);
+    expect(clampCameraDuration(520)).toBe(520);
+    expect(clampCameraDuration(650)).toBe(650);
+    expect(clampCameraDuration(651)).toBe(650);
+  });
+
+  it("keeps button zoom near 1.18 and preserves the geographic center", () => {
+    expect(BUTTON_ZOOM_FACTOR).toBe(1.18);
+    expect(nextButtonZoomScale(2.8, 1)).toBeCloseTo(3.304, 5);
+    expect(nextButtonZoomScale(2.8, 1) / 2.8).toBeLessThan(1.21);
+    expect(nextButtonZoomScale(2.8, -1)).toBeCloseTo(2.8 / 1.18, 5);
+
+    const zoomed = zoomAtViewportCenter(
+      camera,
+      nextButtonZoomScale(camera.scale, 1),
+      viewport,
+    );
+    expect(zoomed.x).toBeCloseTo(camera.x);
+    expect(zoomed.y).toBeCloseTo(camera.y);
+  });
+
+  it("fits a country into the usable viewport beneath the header", () => {
+    const fitted = fitCameraToBounds(
+      { minX: 100, maxX: 500, minY: 80, maxY: 240 },
+      { width: 1280, height: 720 },
+      {
+        insets: { top: 128, right: 20, bottom: 64, left: 16 },
+        padding: 0.2,
+        minScale: 1.35,
+        maxScale: 6.4,
+      },
+    );
+    const usableCenterY = 128 + (720 - 128 - 64) / 2;
+    const worldAtUsableCenter =
+      fitted.y + (usableCenterY - 360) / fitted.scale;
+    expect(worldAtUsableCenter).toBeCloseTo(160, 5);
+    expect(fitted.scale).toBeGreaterThanOrEqual(1.35);
+    expect(fitted.scale).toBeLessThanOrEqual(6.4);
   });
 });

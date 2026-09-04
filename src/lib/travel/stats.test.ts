@@ -143,6 +143,15 @@ describe("canonical contextual travel statistics", () => {
     });
   });
 
+  it("counts Tokyo as a Japanese major hub", () => {
+    const japan = deriveCountryStats(places, "JP");
+    expect(japan.majorHubCount).toBeGreaterThanOrEqual(1);
+    expect(japan.majorHubs.map((hub) => hub.id)).toEqual(
+      expect.arrayContaining(["tokyo"]),
+    );
+    expect(japan.majorHubs.some((hub) => hub.id === "tokyo")).toBe(true);
+  });
+
   it("reports DFW's grouped places, lived homes, and relevant years", () => {
     const dfw = deriveHubStats(places, "dfw");
 

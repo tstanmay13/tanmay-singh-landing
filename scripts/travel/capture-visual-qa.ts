@@ -81,7 +81,7 @@ async function capture(browser: Browser, options: CaptureOptions) {
   }
 }
 
-async function clickFilter(page: Page, mode: "all" | "lived" | "visited") {
+async function clickFilter(page: Page, mode: "all" | "lived") {
   await page.locator(`[data-filter="${mode}"]`).click();
 }
 
@@ -111,9 +111,9 @@ async function main() {
       prepare: (page) => clickFilter(page, "lived"),
     });
     await capture(browser, {
-      name: "desktop-world-visited",
+      name: "desktop-japan",
       viewport: desktop,
-      prepare: (page) => clickFilter(page, "visited"),
+      prepare: (page) => clickWorld(page, "JP"),
     });
     await capture(browser, {
       name: "desktop-usa",
@@ -136,6 +136,11 @@ async function main() {
       path: "/travel?city=Paris",
     });
     await capture(browser, { name: "mobile-world", viewport: mobile });
+    await capture(browser, {
+      name: "mobile-lived",
+      viewport: mobile,
+      prepare: (page) => clickFilter(page, "lived"),
+    });
     await capture(browser, {
       name: "mobile-dfw",
       viewport: mobile,

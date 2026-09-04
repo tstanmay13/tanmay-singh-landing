@@ -23,7 +23,6 @@ import type {
 import { countryTitle } from "@/lib/travel/geo";
 import {
   getHubMembers,
-  hasActualVisitData,
   type TravelFilterMode,
 } from "@/lib/travel/semantic";
 import {
@@ -64,9 +63,8 @@ const FILTERS: ReadonlyArray<{
   label: string;
   description: string;
 }> = [
-  { id: "all", label: "ALL", description: "Show every travel story" },
-  { id: "lived", label: "LIVED", description: "Emphasize home chapters" },
-  { id: "visited", label: "VISITED", description: "Emphasize travel history" },
+  { id: "all", label: "TRAVEL MAP", description: "Show every destination" },
+  { id: "lived", label: "LIFE PATH", description: "Show home chapters" },
 ];
 
 function usePrefersReducedMotion() {
@@ -182,10 +180,13 @@ export default function TravelStage() {
   }, [pickPlace]);
 
   const stripCountry =
-    highlightCountry ??
-    (atlas.band === "world" ? focusCountry : atlas.countryCode) ??
     focusCountry ??
-    selected?.countryCode;
+    selected?.countryCode ??
+    (mode === "lived"
+      ? "US"
+      : atlas.band === "world"
+        ? null
+        : atlas.countryCode);
 
   useEffect(() => {
     if (!stripCountry || !stripRef.current) return;
@@ -213,20 +214,7 @@ export default function TravelStage() {
     statsContext,
     HUB_DEFINITIONS,
   );
-  const visitedScope = atlas.hubId
-    ? hubMembersById.get(atlas.hubId) ?? []
-    : atlas.countryCode
-      ? places.filter((place) => place.countryCode === atlas.countryCode)
-      : places;
-  const visitedCount = visitedScope.filter(hasActualVisitData).length;
-  const stats =
-    mode === "visited"
-      ? (contextualStats?.hud ?? []).map((stat) =>
-          stat.id === "homes" || stat.id === "lived"
-            ? { id: "visited", label: "VISITED", value: visitedCount }
-            : stat,
-        )
-      : contextualStats?.hud ?? [];
+  const stats = contextualStats?.hud ?? [];
   const activeHub = atlas.hubId
     ? hubsById.get(atlas.hubId) ?? null
     : null;
@@ -234,6 +222,8 @@ export default function TravelStage() {
     ? (selected.displayTitle ?? selected.name).toLocaleUpperCase("en-US")
     : mode === "lived"
       ? "LIFE PATH"
+      : focusCountry && !activeHub
+        ? (WORLD_SHORT[focusCountry] ?? focusCountry)
       : activeHub
         ? activeHub.name.toLocaleUpperCase("en-US")
       : atlas.title;
@@ -243,7 +233,9 @@ export default function TravelStage() {
       ? "HOME CHAPTERS"
       : activeHub
         ? "METRO"
-      : atlas.kicker;
+        : focusCountry
+          ? "COUNTRY"
+          : atlas.kicker;
 
   return (
     <div
@@ -258,7 +250,7 @@ export default function TravelStage() {
             selectedId={selectedId}
             currentHomeId={currentHome.id}
             mode={mode}
-            highlightCountry={highlightCountry}
+            highlightCountry={focusCountry ? null : highlightCountry}
             focusCountry={focusCountry}
             focusTick={focusTick}
             reducedMotion={reducedMotion}
@@ -272,8 +264,38 @@ export default function TravelStage() {
 
         <header className={styles.hud} aria-live="polite">
           <div className={styles.heading}>
-            <p className={styles.kicker}>{headerKicker}</p>
+            <p className={styles.kicker} data-kicker>
+              {headerKicker}
+            </p>
             <h1 className={styles.title}>{headerTitle}</h1>
+          </div>
+          <div
+            className={styles.modes}
+            role="group"
+            aria-label="Map story mode"
+          >
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                className={`${styles.filterBtn} ${
+                  mode === filter.id ? styles.filterBtnOn : ""
+                }`}
+                aria-pressed={mode === filter.id}
+                aria-label={`${filter.label}: ${filter.description}`}
+                onClick={() => {
+                  setMode(filter.id);
+                  if (filter.id === "lived") {
+                    setSelectedId(null);
+                    setFocusCountry(null);
+                  }
+                }}
+                data-filter={filter.id}
+                data-interactive
+              >
+                {filter.label}
+              </button>
+            ))}
           </div>
           <dl className={styles.stats}>
             {stats.map((stat) => (
@@ -285,46 +307,6 @@ export default function TravelStage() {
           </dl>
         </header>
 
-        <div className={styles.storyChrome} data-layer="chrome">
-          <div
-            className={styles.filters}
-            role="group"
-            aria-label="Travel story filter"
-          >
-            {FILTERS.map((filter) => (
-              <button
-                key={filter.id}
-                type="button"
-                className={`${styles.filterBtn} ${
-                  mode === filter.id ? styles.filterBtnOn : ""
-                }`}
-                aria-pressed={mode === filter.id}
-                aria-label={`${filter.label}: ${filter.description}`}
-                onClick={() => setMode(filter.id)}
-                data-filter={filter.id}
-                data-interactive
-              >
-                <span className={styles.filterGlyph} aria-hidden="true" />
-                {filter.label}
-              </button>
-            ))}
-          </div>
-          <ul className={styles.legend} aria-label="Map marker legend">
-            <li>
-              <span className={styles.legendCurrent} aria-hidden="true" />
-              HOME
-            </li>
-            <li>
-              <span className={styles.legendLived} aria-hidden="true" />
-              LIVED
-            </li>
-            <li>
-              <span className={styles.legendVisited} aria-hidden="true" />
-              VISITED
-            </li>
-          </ul>
-        </div>
-
         <nav
           ref={stripRef}
           className={styles.worlds}
@@ -333,7 +315,9 @@ export default function TravelStage() {
         >
           {travelCatalog.countries.map((country, index) => {
             const active = country.code === stripCountry;
-            const inView = atlas.visibleCountryCodes.includes(country.code);
+            const inView =
+              !focusCountry &&
+              atlas.visibleCountryCodes.includes(country.code);
             return (
               <button
                 key={country.code}

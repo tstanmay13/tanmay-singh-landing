@@ -73,6 +73,20 @@ export const HUB_DEFINITIONS = [
       place("US", "The Woodlands", "TX"),
     ],
   },
+  {
+    id: "tokyo",
+    name: "Tokyo",
+    center: { lat: 35.6895, lng: 139.6917 },
+    centerPlace: place("JP", "Tokyo"),
+    members: [place("JP", "Tokyo")],
+  },
+  {
+    id: "kansai",
+    name: "Kansai",
+    center: { lat: 34.6937, lng: 135.5022 },
+    centerPlace: place("JP", "Osaka"),
+    members: [place("JP", "Osaka"), place("JP", "Kyoto")],
+  },
 ] as const satisfies readonly TravelHub[];
 
 /** Short alias retained for consumers that prefer the domain name. */
@@ -221,17 +235,19 @@ export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
   [key("JP", "Tokyo")]: {
     importance: 100,
     featured: true,
+    category: "hub",
     showAtZoom: "world",
   },
   [key("JP", "Kyoto")]: {
     importance: 98,
     featured: true,
-    showAtZoom: "world",
+    showAtZoom: "country",
   },
   [key("JP", "Osaka")]: {
-    importance: 92,
+    importance: 96,
     featured: true,
-    showAtZoom: "country",
+    category: "hub",
+    showAtZoom: "world",
   },
   [key("JP", "Ōmachi")]: {
     importance: 82,

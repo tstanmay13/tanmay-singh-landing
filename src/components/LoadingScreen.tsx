@@ -1,17 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const BOOT_SESSION_KEY = "boot-complete";
+const BOOT_LINE_MS = 160;
+const BOOT_MAX_MS = 800;
+export const BOOT_TIMING_BUDGET_MS = 900;
 
 const bootMessages = [
   "BIOS v1.0 - TANMAY OS",
-  "Checking memory... 16GB OK",
   "Loading pixel assets...",
-  "Initializing creativity engine...",
-  "Compiling portfolio data...",
-  "Mounting game modules...",
-  "Establishing neural link...",
   "SYSTEM READY.",
 ];
+
+function skipBoot(onComplete: () => void) {
+  sessionStorage.setItem(BOOT_SESSION_KEY, "1");
+  onComplete();
+}
 
 export default function LoadingScreen({
   onComplete,
@@ -19,66 +24,85 @@ export default function LoadingScreen({
   onComplete: () => void;
 }) {
   const [currentLine, setCurrentLine] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [phase, setPhase] = useState<"boot" | "progress" | "done">("boot");
+  const [phase, setPhase] = useState<"boot" | "done">("boot");
+  const startedAt = useRef(
+    typeof performance !== "undefined" ? performance.now() : 0,
+  );
+  const completed = useRef(false);
+
+  const finish = useCallback(() => {
+    if (completed.current) return;
+    completed.current = true;
+    sessionStorage.setItem(BOOT_SESSION_KEY, "1");
+    onComplete();
+  }, [onComplete]);
 
   useEffect(() => {
-    // Skip loading screen if already seen this session
-    if (sessionStorage.getItem("boot-complete")) {
-      onComplete();
+    if (sessionStorage.getItem(BOOT_SESSION_KEY)) {
+      finish();
       return;
     }
 
-    // Boot text phase
-    const bootInterval = setInterval(() => {
+    const bootInterval = window.setInterval(() => {
       setCurrentLine((prev) => {
         if (prev >= bootMessages.length - 1) {
-          clearInterval(bootInterval);
-          setPhase("progress");
+          window.clearInterval(bootInterval);
+          setPhase("done");
           return prev;
         }
         return prev + 1;
       });
-    }, 200);
+    }, BOOT_LINE_MS);
 
-    return () => clearInterval(bootInterval);
-  }, [onComplete]);
+    const hardCap = window.setTimeout(finish, BOOT_MAX_MS);
 
-  useEffect(() => {
-    if (phase !== "progress") return;
-
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          setPhase("done");
-          return 100;
-        }
-        return prev + 4;
-      });
-    }, 40);
-
-    return () => clearInterval(progressInterval);
-  }, [phase]);
+    return () => {
+      window.clearInterval(bootInterval);
+      window.clearTimeout(hardCap);
+    };
+  }, [finish]);
 
   useEffect(() => {
     if (phase !== "done") return;
-    const timeout = setTimeout(() => {
-      sessionStorage.setItem("boot-complete", "1");
-      onComplete();
-    }, 400);
-    return () => clearTimeout(timeout);
-  }, [phase, onComplete]);
+    const timeout = window.setTimeout(finish, 80);
+    return () => window.clearTimeout(timeout);
+  }, [finish, phase]);
+
+  useEffect(() => {
+    const skip = (event: Event) => {
+      if (event instanceof KeyboardEvent) {
+        if (!["Enter", " ", "Escape"].includes(event.key)) return;
+        event.preventDefault();
+      }
+      finish();
+    };
+
+    window.addEventListener("pointerdown", skip);
+    window.addEventListener("keydown", skip);
+    return () => {
+      window.removeEventListener("pointerdown", skip);
+      window.removeEventListener("keydown", skip);
+    };
+  }, [finish]);
+
+  const elapsed = Math.round(
+    (typeof performance !== "undefined" ? performance.now() : 0) -
+      startedAt.current,
+  );
 
   return (
     <div
-      className={`fixed inset-0 z-[10000] bg-[#0a0a0f] flex items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[10000] bg-[#0a0a0f] flex items-center justify-center transition-opacity duration-150 ${
         phase === "done" ? "opacity-0" : "opacity-100"
       }`}
+      data-boot="1"
+      data-boot-ms={elapsed}
+      data-boot-budget={BOOT_TIMING_BUDGET_MS}
+      role="dialog"
+      aria-label="System boot"
     >
       <div className="max-w-lg w-full px-6">
-        {/* Boot text */}
-        <div className="mb-8 font-mono text-sm space-y-1">
+        <div className="mb-2 font-mono text-sm space-y-1">
           {bootMessages.slice(0, currentLine + 1).map((msg, i) => (
             <div
               key={i}
@@ -94,34 +118,6 @@ export default function LoadingScreen({
             </div>
           ))}
         </div>
-
-        {/* Progress bar */}
-        {phase !== "boot" && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-mono text-[#00ff88]/70">
-              <span>LOADING</span>
-              <span>{Math.min(progress, 100)}%</span>
-            </div>
-            <div className="h-3 border-2 border-[#00ff88]/50 relative overflow-hidden">
-              <div
-                className="h-full bg-[#00ff88] transition-all duration-75"
-                style={{ width: `${progress}%` }}
-              />
-              {/* Pixel segments */}
-              <div className="absolute inset-0 flex">
-                {Array.from({ length: 20 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 border-r border-[#0a0a0f]/30 last:border-0"
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="text-center text-xs font-mono text-[#00ff88]/50 mt-4">
-              PRESS START or wait...
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

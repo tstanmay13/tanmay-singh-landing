@@ -138,6 +138,11 @@ test("DFW hub expands canonical homes without duplicate markers", async ({
   expect(
     await map.locator('button[data-current-home="true"]').count(),
   ).toBeLessThanOrEqual(1);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    map.locator('button[aria-pressed="true"][data-relationship="lived"]'),
+  ).toHaveCount(0);
+
   await page.locator('button[data-filter="lived"]').click();
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   await waitForSettled(map);
@@ -158,32 +163,16 @@ test("filters preserve camera and canonical residence chapters", async ({
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   await waitForSettled(map);
 
-  const residences = map.locator(
-    'button[data-place-id]:is([data-relationship="lived"], [data-relationship="current_home"])',
-  );
-  await expect(residences).toHaveCount(4);
-  for (const residence of await residences.all()) {
-    await expect(residence).toBeVisible();
-  }
-  const chapters = await residences.evaluateAll((buttons) =>
-    buttons
-      .map((button) => {
-        const badge = [...button.querySelectorAll('span[aria-hidden="true"]')]
-          .map((span) => span.textContent?.trim() ?? "")
-          .find((text) => /^[1-4]$/.test(text));
-        return {
-          badge: Number(badge),
-          label: button.getAttribute("aria-label"),
-        };
-      })
-      .sort((left, right) => left.badge - right.badge),
-  );
-  expect(chapters).toEqual([
-    { badge: 1, label: "Murphy, TX, past home." },
-    { badge: 2, label: "Richardson, TX, past home." },
-    { badge: 3, label: "Austin, TX, past home and travel hub." },
-    { badge: 4, label: "New York City, NY, current home." },
-  ]);
+  await expect(
+    map.locator('[data-entity-id="cluster:dfw-lived"]'),
+  ).toHaveCount(1);
+  await expect(
+    map.getByRole("button", { name: "Murphy, TX, past home." }),
+  ).toHaveCount(0);
+  await expect(
+    map.locator('button[data-hub-id="austin"][data-relationship="lived"]'),
+  ).toHaveCount(1);
+  await expect(map.locator('button[data-current-home="true"]')).toHaveCount(1);
 
   await page.locator('button[data-filter="all"]').click();
   await expect(map.locator("[data-life-path]")).toHaveCount(0);
@@ -191,29 +180,11 @@ test("filters preserve camera and canonical residence chapters", async ({
     timeout: 2_500,
   });
   await waitForSettled(map);
-
-  const restoredCamera = await map.getAttribute("data-camera");
-  await page.locator('button[data-filter="visited"]').click();
-  await expect(page.locator('button[data-filter="visited"]')).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(map).toHaveAttribute("data-camera", restoredCamera ?? "");
-  await expect(map.locator("[data-life-path]")).toHaveCount(0);
   await expect(
     map.getByRole("button", {
       name: /Dallas travel hub, 15 places, including 2 home chapters/,
     }),
   ).toHaveCount(1);
-  await expect(
-    map.locator('button[data-hub-id="austin"][data-relationship="lived"]'),
-  ).toHaveCount(1);
-  await expect(map.locator('button[data-current-home="true"]')).toHaveCount(1);
-
-  await page.locator('button[data-filter="lived"]').click();
-  await expect(map.locator("[data-life-path]")).toHaveCount(1);
-  await waitForSettled(map);
-  await expect(residences).toHaveCount(4);
 });
 
 test("wheel anchors its pointer and zoom controls anchor the center", async ({
@@ -365,7 +336,7 @@ test("Austin and visited cards expose correct facts without images", async ({
   await expect(card.getByText("CHAPTER 03 // PAST HOME")).toBeVisible();
   await expect(card.getByText(/^VISIT YEARS \/\/ \d{4}/)).toBeVisible();
   await expect(card.locator("img")).toHaveCount(0);
-  await expect(card.getByText("STILLS // COMING SOON")).toBeVisible();
+  await expect(card.getByText("PHOTOS COMING LATER")).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(card).toHaveCount(0);
@@ -440,9 +411,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   const map = await openReadyMap(page);
   await expect(page.locator('[data-stat="places"] dd')).toHaveText("111");
   await expect(page.locator('[data-stat="countries"] dd')).toHaveText("11");
-  await expect(
-    page.getByRole("list", { name: "Map marker legend" }),
-  ).toBeVisible();
+  await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
   const beforeZoom = await readCamera(map);
   await map.focus();
@@ -459,6 +428,11 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   await waitForSettled(map);
   await expect(page.locator('[data-stat="places"] dd')).toHaveText("89");
   await expect(page.locator('[data-stat="major-hubs"] dd')).toHaveText("3");
+  const hud = page.locator("header");
+  const usaHub = map.locator('button[data-entity-id="hub:dfw"]');
+  const hudBox = await requiredBox(hud);
+  const hubBox = await requiredBox(usaHub);
+  expect(hubBox.y + hubBox.height / 2).toBeGreaterThan(hudBox.y + hudBox.height);
 
   await page.locator('button[data-filter="lived"]').press("Enter");
   await expect(page.locator('button[data-filter="lived"]')).toHaveAttribute(
@@ -468,12 +442,83 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("LIFE PATH");
   await expect(page.locator('[data-stat="chapters"] dd')).toHaveText("4");
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
+  await expect(
+    page.locator('button[data-world="MX"][aria-current="true"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('button[data-world="US"][aria-current="true"]'),
+  ).toHaveCount(1);
 });
 
 test("loads without unexpected console or page errors", async ({ page }) => {
   const map = await openReadyMap(page);
   await expect(map).toHaveAttribute("data-band", "world");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("WORLD MAP");
+  await expect(map.locator("[class*='countryFrame']")).toHaveCount(0);
+});
+
+test("Japan focus fits the islands and hides Hanoi", async ({ page }) => {
+  const map = await openReadyMap(page);
+  const before = await readCamera(map);
+  await page.locator('button[data-world="JP"]').click();
+  await expect
+    .poll(async () => (await readCamera(map)).scale, { timeout: 1_200 })
+    .toBeGreaterThan(before.scale);
+  await waitForSettled(map, 1_200);
+  const after = await readCamera(map);
+  expect(after.scale).toBeGreaterThanOrEqual(3.2);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("JAPAN");
+  await expect(page.locator("[data-kicker]")).toHaveText("COUNTRY");
+  await expect(page.locator('[data-stat="major-hubs"] dd')).not.toHaveText("0");
+  await expect(map.getByText("HANOI")).toHaveCount(0);
+  await expect(
+    page.locator('button[data-world="VN"][aria-current="true"]'),
+  ).toHaveCount(0);
+});
+
+test("button zoom stays near 1.18x and LIFE PATH clusters DFW homes", async ({
+  page,
+}) => {
+  const map = await openReadyMap(page);
+  const before = await readCamera(map);
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await waitForSettled(map);
+  const after = await readCamera(map);
+  expect(after.scale / before.scale).toBeGreaterThan(1.14);
+  expect(after.scale / before.scale).toBeLessThan(1.21);
+  expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeLessThan(0.05);
+
+  await page.locator('button[data-filter="lived"]').click();
+  await waitForSettled(map);
+  await expect(map.locator("[data-life-path]")).toHaveCount(1);
+  const cluster = map.locator('[data-entity-id="cluster:dfw-lived"]');
+  await expect(cluster).toBeVisible();
+
+  await cluster.click();
+  await waitForSettled(map);
+  await expect(
+    map.getByRole("button", { name: "Murphy, TX, past home." }),
+  ).toBeVisible();
+  await expect(
+    map.getByRole("button", { name: "Richardson, TX, past home." }),
+  ).toBeVisible();
+});
+
+test("boot is skippable and does not replay in the same session", async ({
+  browser,
+}) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const boot = page.locator("[data-boot='1']");
+  const appeared = boot.waitFor({ state: "visible", timeout: 3_000 });
+  await page.goto("/travel", { waitUntil: "commit" });
+  await appeared;
+  await page.keyboard.press("Escape");
+  await expect(boot).toHaveCount(0, { timeout: 1_000 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(200);
+  await expect(page.locator("[data-boot='1']")).toHaveCount(0);
+  await context.close();
 });
 
 test("two-finger Chromium pinch zooms without opening a card", async ({

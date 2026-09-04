@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { TravelHub, TravelPlace } from "@/content/travel/types";
 import {
+  EMPTY_PHOTO_COPY,
   nearbyHubMembers,
   placeCardAriaLabel,
   placeCardLabels,
@@ -111,14 +112,7 @@ export default function PlaceCard({
       ) : null}
 
       {photoState === "empty" ? (
-        <div className={styles.emptyStills}>
-          <div className={styles.stillSlots} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </div>
-          STILLS // COMING SOON
-        </div>
+        <p className={styles.emptyStills}>{EMPTY_PHOTO_COPY}</p>
       ) : (
         <section aria-label={`${place.name} stills`}>
           <p className={styles.filmTag}>STILLS</p>

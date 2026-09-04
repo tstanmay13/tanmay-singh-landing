@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  EMPTY_PHOTO_COPY,
   placeCardLabels,
   placePhotoState,
   residenceChapterLabel,
@@ -28,6 +29,7 @@ describe("place card presentation", () => {
 
   it("treats an empty photo array as an intentional empty state", () => {
     expect(placePhotoState([])).toBe("empty");
+    expect(EMPTY_PHOTO_COPY).toBe("PHOTOS COMING LATER");
     expect(
       placePhotoState([
         { src: "/real-photo.jpg", alt: "A real travel photograph" },
