@@ -442,6 +442,12 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("LIFE PATH");
   await expect(page.locator('[data-stat="chapters"] dd')).toHaveText("4");
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
+  await expect(
+    page.locator('button[data-world="MX"][aria-current="true"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('button[data-world="US"][aria-current="true"]'),
+  ).toHaveCount(1);
 });
 
 test("loads without unexpected console or page errors", async ({ page }) => {
@@ -462,6 +468,7 @@ test("Japan focus fits the islands and hides Hanoi", async ({ page }) => {
   const after = await readCamera(map);
   expect(after.scale).toBeGreaterThanOrEqual(3.2);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("JAPAN");
+  await expect(page.locator("[data-kicker]")).toHaveText("COUNTRY");
   await expect(page.locator('[data-stat="major-hubs"] dd')).not.toHaveText("0");
   await expect(map.getByText("HANOI")).toHaveCount(0);
   await expect(

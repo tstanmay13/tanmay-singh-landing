@@ -180,9 +180,13 @@ export default function TravelStage() {
   }, [pickPlace]);
 
   const stripCountry =
-    atlas.countryCode ??
-    (atlas.band === "world" ? null : focusCountry) ??
-    selected?.countryCode;
+    focusCountry ??
+    selected?.countryCode ??
+    (mode === "lived"
+      ? "US"
+      : atlas.band === "world"
+        ? null
+        : atlas.countryCode);
 
   useEffect(() => {
     if (!stripCountry || !stripRef.current) return;
@@ -229,7 +233,9 @@ export default function TravelStage() {
       ? "HOME CHAPTERS"
       : activeHub
         ? "METRO"
-      : atlas.kicker;
+        : focusCountry
+          ? "COUNTRY"
+          : atlas.kicker;
 
   return (
     <div
@@ -258,7 +264,9 @@ export default function TravelStage() {
 
         <header className={styles.hud} aria-live="polite">
           <div className={styles.heading}>
-            <p className={styles.kicker}>{headerKicker}</p>
+            <p className={styles.kicker} data-kicker>
+              {headerKicker}
+            </p>
             <h1 className={styles.title}>{headerTitle}</h1>
           </div>
           <div
@@ -275,7 +283,13 @@ export default function TravelStage() {
                 }`}
                 aria-pressed={mode === filter.id}
                 aria-label={`${filter.label}: ${filter.description}`}
-                onClick={() => setMode(filter.id)}
+                onClick={() => {
+                  setMode(filter.id);
+                  if (filter.id === "lived") {
+                    setSelectedId(null);
+                    setFocusCountry(null);
+                  }
+                }}
                 data-filter={filter.id}
                 data-interactive
               >
