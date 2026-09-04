@@ -9,11 +9,14 @@ import {
   easeOutCubic,
   fitCameraToBounds,
   interpolateCamera,
+  interpolateCameraAboutAnchor,
   nextButtonZoomScale,
   panByScreenDelta,
   screenToWorld,
+  usableViewportCenter,
   worldToScreen,
   zoomAtScreenPoint,
+  zoomAtUsableCenter,
   zoomAtViewportCenter,
   type Camera,
   type Point,
@@ -146,29 +149,52 @@ describe("camera animation", () => {
     );
   });
 
-  it("clamps animation duration to 350–650 milliseconds", () => {
-    expect(MIN_CAMERA_DURATION_MS).toBe(350);
+  it("clamps animation duration to 450–650 milliseconds", () => {
+    expect(MIN_CAMERA_DURATION_MS).toBe(450);
     expect(MAX_CAMERA_DURATION_MS).toBe(650);
-    expect(clampCameraDuration(349)).toBe(350);
-    expect(clampCameraDuration(350)).toBe(350);
+    expect(clampCameraDuration(449)).toBe(450);
+    expect(clampCameraDuration(450)).toBe(450);
     expect(clampCameraDuration(520)).toBe(520);
     expect(clampCameraDuration(650)).toBe(650);
     expect(clampCameraDuration(651)).toBe(650);
   });
 
-  it("keeps button zoom near 1.18 and preserves the geographic center", () => {
+  it("keeps button zoom near 1.18 and preserves the usable map center", () => {
     expect(BUTTON_ZOOM_FACTOR).toBe(1.18);
     expect(nextButtonZoomScale(2.8, 1)).toBeCloseTo(3.304, 5);
     expect(nextButtonZoomScale(2.8, 1) / 2.8).toBeLessThan(1.21);
     expect(nextButtonZoomScale(2.8, -1)).toBeCloseTo(2.8 / 1.18, 5);
 
-    const zoomed = zoomAtViewportCenter(
+    const insets = { top: 128, right: 20, bottom: 64, left: 16 };
+    const zoomed = zoomAtUsableCenter(
       camera,
       nextButtonZoomScale(camera.scale, 1),
       viewport,
+      insets,
     );
-    expect(zoomed.x).toBeCloseTo(camera.x);
-    expect(zoomed.y).toBeCloseTo(camera.y);
+    const anchor = usableViewportCenter(viewport, insets);
+    expectPointWithin(
+      screenToWorld(anchor, zoomed, viewport),
+      screenToWorld(anchor, camera, viewport),
+    );
+    expect(zoomed.scale / camera.scale).toBeCloseTo(BUTTON_ZOOM_FACTOR, 5);
+  });
+
+  it("does not drift the zoom anchor while interpolating scale", () => {
+    const insets = { top: 128, right: 20, bottom: 64, left: 16 };
+    const anchor = usableViewportCenter(viewport, insets);
+    const zoomed = zoomAtUsableCenter(camera, camera.scale * 1.18, viewport, insets);
+    const world = screenToWorld(anchor, camera, viewport);
+    for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+      const frame = interpolateCameraAboutAnchor(
+        camera,
+        zoomed,
+        progress,
+        viewport,
+        anchor,
+      );
+      expectPointWithin(screenToWorld(anchor, frame, viewport), world, 1e-8);
+    }
   });
 
   it("fits a country into the usable viewport beneath the header", () => {

@@ -9,11 +9,12 @@ import type {
   TravelPlaceZoom,
 } from "@/content/travel/types";
 import { cityPoint, type LodBand, type MapPoint } from "./geo";
+import { chapterMarkerLabel } from "./lifePath";
 
 export type TravelFilterMode = "all" | "lived";
 
 export const DFW_LIVED_CLUSTER_ID = "cluster:dfw-lived";
-export const DFW_LIVED_CLUSTER_LABEL = "MURPHY + RICHARDSON · 01–02";
+export const DFW_LIVED_CLUSTER_LABEL = "01–02 DFW";
 
 export type SemanticMapLevel = "world" | "country" | "metro";
 
@@ -435,6 +436,10 @@ function createPlaceEntity(
     livedCount: place.relationship === "visited" ? 0 : 1,
     x: point.x,
     y: point.y,
+    label:
+      options.filterMode === "lived"
+        ? chapterMarkerLabel(place.residenceOrder, place.name)
+        : undefined,
     selectionId: place.id,
     selected,
     emphasis: entityEmphasis([place], options.filterMode, selected),

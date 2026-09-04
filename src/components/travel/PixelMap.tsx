@@ -17,17 +17,19 @@ import type {
   TravelPlace,
 } from "@/content/travel/types";
 import {
+  CAMERA_TRANSITION_MS,
   LABEL_SETTLE_MS,
   boundsFromPoints,
   clampCameraDuration,
   clampCameraToBounds,
   fitCameraToBounds,
-  interpolateCamera,
+  interpolateCameraAboutAnchor,
   nextButtonZoomScale,
   panByScreenDelta,
   screenToWorld,
+  usableViewportCenter,
   zoomAtScreenPoint,
-  zoomAtViewportCenter,
+  zoomAtUsableCenter,
   type Camera,
   type Point,
 } from "@/lib/travel/camera";
@@ -36,6 +38,7 @@ import {
   COUNTRY_FOCUS_MIN_SPAN_X,
   COUNTRY_FOCUS_MIN_SPAN_Y,
   COUNTRY_FOCUS_SCALE,
+  GLOBAL_RASTER_MAX_MAGNIFICATION,
   MAP_COLS,
   MAP_HEIGHT,
   MAP_ROWS,
@@ -44,9 +47,14 @@ import {
   MIN_SCALE,
   cityPoint,
   clamp,
+  clampWorldRectToMap,
   describeAtlasView,
+  globalTexelCssSize,
   lodBandFromScale,
+  regionalRasterSize,
   sparkleDelay,
+  visibleWorldRect,
+  worldRectToSourceRect,
   type AtlasView,
   type LodBand,
 } from "@/lib/travel/geo";
@@ -75,6 +83,11 @@ import {
   type TravelFilterMode,
   type TravelMapEntity,
 } from "@/lib/travel/semantic";
+import {
+  chapterTicks,
+  pixelSteppedPath,
+  polylinePoints,
+} from "@/lib/travel/lifePath";
 import {
   paintTerrain,
   type TerrainPalette,
@@ -109,6 +122,7 @@ type CameraAnimation = {
   start: number;
   duration: number;
   phase: CameraMotionPhase;
+  anchor: Point;
 };
 
 type DragMeta = {
@@ -131,8 +145,38 @@ const MAP_BOUNDS = {
   width: MAP_WIDTH,
   height: MAP_HEIGHT,
 } as const;
-const WHEEL_SETTLE_MS = 120;
-const COAST_STOP_SPEED = 0.08;
+const WHEEL_SETTLE_MS = 160;
+
+function chromeExclusionRects(viewport: HTMLElement): ScreenRect[] {
+  const origin = viewport.getBoundingClientRect();
+  const root =
+    viewport.closest("[data-map-mode]") ?? viewport.parentElement;
+  if (!root) return [];
+  return [...root.querySelectorAll(
+    "header, nav[data-layer='chrome'], [data-map-chrome], [role='dialog']",
+  )]
+    .map((node) => {
+      const box = node.getBoundingClientRect();
+      return {
+        x: box.left - origin.left,
+        y: box.top - origin.top,
+        width: box.width,
+        height: box.height,
+      };
+    })
+    .filter((rect) => rect.width > 4 && rect.height > 4);
+}
+
+function regionalOpacity(scale: number) {
+  const mag = globalTexelCssSize(scale);
+  if (mag <= GLOBAL_RASTER_MAX_MAGNIFICATION - 0.7) return 0;
+  if (mag >= GLOBAL_RASTER_MAX_MAGNIFICATION + 0.6) return 1;
+  return clamp(
+    (mag - (GLOBAL_RASTER_MAX_MAGNIFICATION - 0.7)) / 1.3,
+    0,
+    1,
+  );
+}
 
 function wheelShouldZoom(event: WheelEvent) {
   if (event.ctrlKey || event.metaKey) return true;
@@ -262,6 +306,8 @@ export default function PixelMap({
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const regionalCanvasRef = useRef<HTMLCanvasElement>(null);
+  const earthImageRef = useRef<HTMLImageElement | null>(null);
   const loopRef = useRef(0);
   const settleTimerRef = useRef<number | null>(null);
   const wheelTimerRef = useRef<number | null>(null);
@@ -297,6 +343,14 @@ export default function PixelMap({
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [focusedHubId, setFocusedHubId] = useState<TravelHubId | null>(null);
+  const [settledCountry, setSettledCountry] = useState<string | null>(null);
+  const [regionalLayer, setRegionalLayer] = useState({
+    x: 0,
+    y: 0,
+    width: MAP_WIDTH,
+    height: MAP_HEIGHT,
+    opacity: 0,
+  });
 
   placesRef.current = places;
   selectedRef.current = selectedId;
@@ -422,9 +476,20 @@ export default function PixelMap({
         "data-camera",
         `${camera.x.toFixed(4)},${camera.y.toFixed(4)},${camera.scale.toFixed(4)}`,
       );
+      viewportRef.current?.setAttribute(
+        "data-texel",
+        globalTexelCssSize(camera.scale).toFixed(2),
+      );
+      const insets = chromeInsets(width, Boolean(selectedRef.current));
+      const anchor = usableViewportCenter({ width, height }, insets);
+      const worldAnchor = screenToWorld(anchor, camera, { width, height });
+      viewportRef.current?.setAttribute(
+        "data-anchor",
+        `${worldAnchor.x.toFixed(3)},${worldAnchor.y.toFixed(3)}`,
+      );
       const band = lodBandFromScale(camera.scale);
       viewportRef.current?.setAttribute("data-band", band);
-      if (band !== bandRef.current) {
+      if (!animationRef.current && band !== bandRef.current) {
         bandRef.current = band;
         setLayoutScale(camera.scale);
       }
@@ -446,8 +511,12 @@ export default function PixelMap({
     }
     syncInteraction();
     setBusy(false);
+    setSettledCountry(focusCountryRef.current);
+    setFocusedHubId(focusedHubRef.current);
+    bandRef.current = lodBandFromScale(cameraRef.current.scale);
     bumpLayout();
     applyCamera(true);
+    paintRegionalForCamera(cameraRef.current);
   }, [applyCamera, bumpLayout, setBusy, syncInteraction]);
 
   const scheduleSettle = useCallback(() => {
@@ -485,31 +554,20 @@ export default function PixelMap({
     if (animation && interactionRef.current.phase !== "dragging") {
       const progress = Math.min(1, (now - animation.start) / animation.duration);
       cameraRef.current = clampCamera(
-        interpolateCamera(animation.from, animation.to, progress),
+        interpolateCameraAboutAnchor(
+          animation.from,
+          animation.to,
+          progress,
+          viewRef.current,
+          animation.anchor,
+        ),
       );
       if (progress >= 1) {
+        cameraRef.current = clampCamera(animation.to);
         animationRef.current = null;
         scheduleSettle();
       } else {
         keep = true;
-      }
-    } else if (
-      !dragRef.current &&
-      !pinchRef.current &&
-      Math.hypot(coastRef.current.x, coastRef.current.y) > COAST_STOP_SPEED
-    ) {
-      coastRef.current.x *= 0.84;
-      coastRef.current.y *= 0.84;
-      cameraRef.current = clampCamera(
-        panByScreenDelta(cameraRef.current, coastRef.current),
-      );
-      keep = true;
-      if (
-        Math.hypot(coastRef.current.x, coastRef.current.y) <=
-        COAST_STOP_SPEED
-      ) {
-        coastRef.current = { x: 0, y: 0 };
-        scheduleSettle();
       }
     }
 
@@ -560,7 +618,7 @@ export default function PixelMap({
   const startCameraAnimation = useCallback(
     (
       target: Camera,
-      duration = 480,
+      duration = CAMERA_TRANSITION_MS,
       phase: CameraMotionPhase = "camera-animating",
     ) => {
       cancelCameraMotion();
@@ -569,13 +627,21 @@ export default function PixelMap({
         scale: clamp(target.scale, MIN_SCALE, MAX_SCALE),
       });
       const from = { ...cameraRef.current };
+      const insets = chromeInsets(
+        viewRef.current.width,
+        Boolean(selectedRef.current),
+      );
+      const anchor = usableViewportCenter(viewRef.current, insets);
       const near =
         Math.hypot(from.x - to.x, from.y - to.y) < 1 &&
         Math.abs(from.scale - to.scale) < 0.005;
       if (near || reducedRef.current) {
         cameraRef.current = to;
+        animationRef.current = null;
         applyCamera(true);
         bumpLayout();
+        setSettledCountry(focusCountryRef.current);
+        setFocusedHubId(focusedHubRef.current);
         setBusy(false);
         return;
       }
@@ -585,8 +651,10 @@ export default function PixelMap({
         start: performance.now(),
         duration: clampCameraDuration(duration),
         phase,
+        anchor,
       };
       markMotion(phase);
+      paintRegionalForCamera(to);
       startLoop();
     },
     [
@@ -599,6 +667,48 @@ export default function PixelMap({
       startLoop,
     ],
   );
+
+  const paintRegionalForCamera = useCallback((camera: Camera) => {
+    const image = earthImageRef.current;
+    const canvas = regionalCanvasRef.current;
+    const { width, height } = viewRef.current;
+    if (!image || !canvas || width < 8 || height < 8) return;
+    const opacity = regionalOpacity(camera.scale);
+    if (opacity <= 0) {
+      setRegionalLayer((current) =>
+        current.opacity === 0 ? current : { ...current, opacity: 0 },
+      );
+      return;
+    }
+    const world = clampWorldRectToMap(
+      visibleWorldRect(camera, width, height, 0.32),
+    );
+    const sourceRect = worldRectToSourceRect(
+      world,
+      image.naturalWidth,
+      image.naturalHeight,
+    );
+    const raster = regionalRasterSize(sourceRect);
+    const result = paintTerrain({
+      source: image,
+      width: raster.width,
+      height: raster.height,
+      palette: terrainPalette(canvas.closest(`.${styles.root}`)),
+      sourceRect,
+    });
+    canvas.width = raster.width;
+    canvas.height = raster.height;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.putImageData(result.baseImageData, 0, 0);
+    setRegionalLayer({
+      x: world.x,
+      y: world.y,
+      width: world.width,
+      height: world.height,
+      opacity,
+    });
+  }, []);
 
   const spawnRipple = useCallback(
     (screenPoint: Point, strong: boolean) => {
@@ -660,6 +770,7 @@ export default function PixelMap({
     };
     image.onload = () => {
       if (!live) return;
+      earthImageRef.current = image;
       const result = paintTerrain({
         source: image,
         width: MAP_COLS,
@@ -678,6 +789,7 @@ export default function PixelMap({
         landMask: result.landMask,
         reducedMotion: reducedRef.current,
       });
+      paintRegionalForCamera(cameraRef.current);
       setReady(true);
     };
 
@@ -763,7 +875,6 @@ export default function PixelMap({
     const point = cityPoint(selected);
     if (selected.hubId) {
       focusedHubRef.current = selected.hubId;
-      setFocusedHubId(selected.hubId);
     }
     startCameraAnimation(
       clampCamera(
@@ -780,7 +891,7 @@ export default function PixelMap({
           },
         ),
       ),
-      460,
+      CAMERA_TRANSITION_MS,
     );
   }, [selectedId, startCameraAnimation, viewReady]);
 
@@ -795,7 +906,6 @@ export default function PixelMap({
     );
     if (!bounds) return;
     focusedHubRef.current = null;
-    setFocusedHubId(null);
     const naturalSpan = Math.max(
       bounds.maxX - bounds.minX,
       bounds.maxY - bounds.minY,
@@ -811,7 +921,7 @@ export default function PixelMap({
           minSpanY: COUNTRY_FOCUS_MIN_SPAN_Y,
         }),
       ),
-      480,
+      CAMERA_TRANSITION_MS,
     );
   }, [focusTick, startCameraAnimation, viewReady]);
 
@@ -829,7 +939,6 @@ export default function PixelMap({
       const minY = Math.min(...ys);
       const maxY = Math.max(...ys);
       focusedHubRef.current = null;
-      setFocusedHubId(null);
       startCameraAnimation(
         clampCamera(
           fitCameraToBounds(
@@ -843,12 +952,12 @@ export default function PixelMap({
             },
           ),
         ),
-        480,
+        CAMERA_TRANSITION_MS,
       );
       return;
     }
     if (previous === "lived" && mode !== "lived" && previousCameraRef.current) {
-      startCameraAnimation(previousCameraRef.current, 480);
+      startCameraAnimation(previousCameraRef.current, CAMERA_TRANSITION_MS);
       previousCameraRef.current = null;
       return;
     }
@@ -1121,20 +1230,10 @@ export default function PixelMap({
 
     if (
       wasDragging &&
-      !cancelled &&
-      !reducedRef.current &&
-      Math.hypot(drag.velocity.x, drag.velocity.y) > 0.42
+      !cancelled
     ) {
-      coastRef.current = drag.velocity;
-      interactionRef.current = interactionReducer(interactionRef.current, {
-        type: "CAMERA_MOTION_START",
-        motion: "coasting",
-      });
-      markMotion("coasting");
-      startLoop();
-    } else if (wasDragging) {
       scheduleSettle();
-    } else {
+    } else if (!wasDragging) {
       setBusy(false);
       applyCamera(true);
     }
@@ -1147,15 +1246,20 @@ export default function PixelMap({
       MIN_SCALE,
       MAX_SCALE,
     );
+    const insets = chromeInsets(
+      viewRef.current.width,
+      Boolean(selectedRef.current),
+    );
     startCameraAnimation(
       clampCamera(
-        zoomAtViewportCenter(
+        zoomAtUsableCenter(
           cameraRef.current,
           scale,
           viewRef.current,
+          insets,
         ),
       ),
-      420,
+      CAMERA_TRANSITION_MS,
       "zooming",
     );
   };
@@ -1204,7 +1308,6 @@ export default function PixelMap({
     const minY = Math.min(...ys);
     const maxY = Math.max(...ys);
     focusedHubRef.current = hubId;
-    setFocusedHubId(hubId);
     startCameraAnimation(
       clampCamera(
         fitCameraToBounds(
@@ -1218,7 +1321,7 @@ export default function PixelMap({
           },
         ),
       ),
-      460,
+      CAMERA_TRANSITION_MS,
     );
   };
 
@@ -1271,11 +1374,25 @@ export default function PixelMap({
     void layoutVersion;
     return allEntities.filter((entity) => {
       if (entity.selected) return true;
+      if (
+        focusedHubId &&
+        entity.hubId !== focusedHubId &&
+        level === "metro"
+      ) {
+        return false;
+      }
+      if (
+        settledCountry &&
+        level !== "world" &&
+        entity.place.countryCode !== settledCountry
+      ) {
+        return false;
+      }
       const x = width / 2 + (entity.x - camera.x) * camera.scale;
       const y = height / 2 + (entity.y - camera.y) * camera.scale;
       return x > -40 && x < width + 40 && y > -40 && y < height + 40;
     });
-  }, [allEntities, layoutVersion]);
+  }, [allEntities, focusedHubId, layoutVersion, level, settledCountry]);
 
   const labels = useMemo(() => {
     const camera = cameraRef.current;
@@ -1296,7 +1413,9 @@ export default function PixelMap({
       const pastLived =
         entity.kind === "place" && entity.place.relationship === "lived";
       const featuredHub =
-        entity.kind === "hub" || entity.place.category === "hub";
+        entity.kind === "hub" ||
+        entity.kind === "cluster" ||
+        entity.place.category === "hub";
       const significantDestination =
         entity.place.featured && entity.place.importance >= 90;
       const worldDestination =
@@ -1307,7 +1426,8 @@ export default function PixelMap({
           !entity.selected &&
           !hovered) ||
         (focusCountry &&
-          entity.place.countryCode !== focusCountry &&
+          settledCountry &&
+          entity.place.countryCode !== settledCountry &&
           !entity.selected &&
           !hovered)
       ) {
@@ -1361,26 +1481,32 @@ export default function PixelMap({
     }
 
     const mobile = width <= 820;
-    const reserved: ScreenRect[] = [
-      {
-        x: Math.max(6, width / 2 - Math.min(360, width / 2 - 6)),
-        y: 4,
-        width: Math.min(720, width - 12),
-        height: mobile ? 132 : 118,
-      },
-      {
-        x: 4,
-        y: Math.max(0, height - (mobile ? 60 : 54)),
-        width: Math.max(0, width - 4),
-        height: mobile ? 60 : 54,
-      },
-      {
-        x: Math.max(0, width - 58),
-        y: Math.max(0, height - 138),
-        width: 58,
-        height: 138,
-      },
-    ];
+    const measured = viewportRef.current
+      ? chromeExclusionRects(viewportRef.current)
+      : [];
+    const reserved: ScreenRect[] =
+      measured.length > 0
+        ? measured
+        : [
+            {
+              x: Math.max(6, width / 2 - Math.min(360, width / 2 - 6)),
+              y: 4,
+              width: Math.min(720, width - 12),
+              height: mobile ? 132 : 118,
+            },
+            {
+              x: 4,
+              y: Math.max(0, height - (mobile ? 60 : 54)),
+              width: Math.max(0, width - 4),
+              height: mobile ? 60 : 54,
+            },
+            {
+              x: Math.max(0, width - 58),
+              y: Math.max(0, height - 138),
+              width: 58,
+              height: 138,
+            },
+          ];
     if (selectedId) {
       reserved.push(
         mobile
@@ -1423,24 +1549,22 @@ export default function PixelMap({
     level,
     mode,
     selectedId,
+    settledCountry,
     view.height,
     view.width,
   ]);
 
+  const residenceChapters = useMemo(
+    () => getResidenceChapters().map((place) => cityPoint(place)),
+    [],
+  );
   const residencePath = useMemo(
-    () =>
-      getResidenceChapters()
-        .map((place) => {
-          const entity = allEntities.find(
-            (candidate) =>
-              candidate.kind === "place" &&
-              candidate.place.id === place.id,
-          );
-          const point = entity ?? cityPoint(place);
-          return `${point.x},${point.y}`;
-        })
-        .join(" "),
-    [allEntities],
+    () => polylinePoints(pixelSteppedPath(residenceChapters)),
+    [residenceChapters],
+  );
+  const residenceTicks = useMemo(
+    () => chapterTicks(residenceChapters),
+    [residenceChapters],
   );
   const focusedHub = focusedHubId
     ? HUB_DEFINITIONS.find((hub) => hub.id === focusedHubId) ?? null
@@ -1504,6 +1628,19 @@ export default function PixelMap({
             height={MAP_ROWS}
             aria-hidden="true"
           />
+          <canvas
+            ref={regionalCanvasRef}
+            className={styles.regionEarth}
+            style={{
+              left: regionalLayer.x,
+              top: regionalLayer.y,
+              width: regionalLayer.width,
+              height: regionalLayer.height,
+              opacity: regionalLayer.opacity,
+            }}
+            aria-hidden="true"
+            data-regional-terrain={regionalLayer.opacity > 0 ? "1" : "0"}
+          />
           {reducedMotion ? null : (
             <>
               <div className={styles.ocean} aria-hidden="true" />
@@ -1519,11 +1656,23 @@ export default function PixelMap({
           data-layer="routes"
         >
           {mode === "lived" ? (
-            <polyline
-              className={styles.lifePath}
-              points={residencePath}
-              data-life-path
-            />
+            <>
+              <polyline
+                className={styles.lifePath}
+                points={residencePath}
+                data-life-path
+              />
+              {residenceTicks.map((tick, index) => (
+                <line
+                  key={`tick-${index}`}
+                  className={styles.lifePathTick}
+                  x1={tick.x1}
+                  y1={tick.y1}
+                  x2={tick.x2}
+                  y2={tick.y2}
+                />
+              ))}
+            </>
           ) : null}
           {focusedHub && focusedHubRoot
             ? focusedHubMembers
@@ -1626,36 +1775,40 @@ export default function PixelMap({
                 }
                 onPointerEnter={() => setHoverTarget(entity.id)}
                 onPointerLeave={() => setHoverTarget(null)}
-                onFocus={() => setHoverTarget(entity.id)}
-                onBlur={() => setHoverTarget(null)}
               >
                 <span className={styles.node} aria-hidden="true" />
                 {selected ? (
                   <span className={styles.reticle} aria-hidden="true" />
                 ) : null}
-                {entity.kind === "hub" && entity.count > 1 ? (
+                {entity.kind === "hub" &&
+                entity.count > 1 &&
+                mode !== "lived" ? (
                   <span className={styles.clusterCount} aria-hidden="true">
                     {entity.count}
                   </span>
                 ) : null}
                 {chapter && entity.kind === "place" ? (
                   <span className={styles.chapterBadge} aria-hidden="true">
-                    {chapter}
+                    {String(chapter).padStart(2, "0")}
                   </span>
                 ) : null}
-                {label ? (
+                {hovered && !selected ? (
+                  <span className={styles.pinTooltip} role="tooltip">
+                    {entity.label ??
+                      entity.place.name.toLocaleUpperCase("en-US")}
+                  </span>
+                ) : null}
+                {label && (!hovered || selected) ? (
                   <span
                     className={`${styles.pinLabel} ${labelClass(
                       label.placement,
-                    )} ${
-                      hovered || selected || hotCountry
-                        ? styles.pinLabelHot
-                        : ""
-                    }`}
+                    )} ${selected ? styles.pinLabelOn : ""}`}
                   >
                     {entity.label ??
                       entity.place.name.toLocaleUpperCase("en-US")}
-                    {entity.kind === "hub" && entity.count > 1 ? (
+                    {entity.kind === "hub" &&
+                    entity.count > 1 &&
+                    mode !== "lived" ? (
                       <span className={styles.pinLabelCount}>
                         {entity.count} PLACES
                       </span>
