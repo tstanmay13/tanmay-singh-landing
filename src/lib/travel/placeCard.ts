@@ -47,6 +47,8 @@ export function visitYearsLabel(yearsVisited: readonly number[]): string | null 
   return years.length > 0 ? `VISIT YEARS // ${years.join(" · ")}` : null;
 }
 
+export const EMPTY_PHOTO_COPY = "PHOTOS COMING LATER";
+
 export function placePhotoState(
   photos: Pick<TravelPlace, "photos">["photos"],
 ): "empty" | "ready" {

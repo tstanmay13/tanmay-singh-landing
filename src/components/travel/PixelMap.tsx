@@ -17,9 +17,13 @@ import type {
   TravelPlace,
 } from "@/content/travel/types";
 import {
+  LABEL_SETTLE_MS,
+  boundsFromPoints,
   clampCameraDuration,
   clampCameraToBounds,
+  fitCameraToBounds,
   interpolateCamera,
+  nextButtonZoomScale,
   panByScreenDelta,
   screenToWorld,
   zoomAtScreenPoint,
@@ -29,6 +33,8 @@ import {
 } from "@/lib/travel/camera";
 import {
   COUNTRY_FOCUS_MIN_SCALE,
+  COUNTRY_FOCUS_MIN_SPAN_X,
+  COUNTRY_FOCUS_MIN_SPAN_Y,
   COUNTRY_FOCUS_SCALE,
   MAP_COLS,
   MAP_HEIGHT,
@@ -38,9 +44,7 @@ import {
   MIN_SCALE,
   cityPoint,
   clamp,
-  countryFrame,
   describeAtlasView,
-  fitScale,
   lodBandFromScale,
   sparkleDelay,
   type AtlasView,
@@ -127,7 +131,6 @@ const MAP_BOUNDS = {
   width: MAP_WIDTH,
   height: MAP_HEIGHT,
 } as const;
-const LABEL_SETTLE_MS = 180;
 const WHEEL_SETTLE_MS = 120;
 const COAST_STOP_SPEED = 0.08;
 
@@ -142,17 +145,6 @@ function wheelShouldZoom(event: WheelEvent) {
   return Math.abs(event.deltaY) > 0;
 }
 
-function canAffordIdleRipples() {
-  const nav = navigator as Navigator & {
-    connection?: { saveData?: boolean };
-    deviceMemory?: number;
-  };
-  if (nav.connection?.saveData) return false;
-  if ((nav.deviceMemory ?? 8) < 4) return false;
-  if ((nav.hardwareConcurrency ?? 8) <= 2) return false;
-  return true;
-}
-
 function pointDistance(left: Point, right: Point) {
   return Math.hypot(left.x - right.x, left.y - right.y);
 }
@@ -164,39 +156,46 @@ function midpoint(left: Point, right: Point): Point {
   };
 }
 
-function resolvedThemeColor(name: string) {
-  const color = getComputedStyle(document.documentElement)
+function resolvedThemeColor(name: string, root?: Element | null) {
+  const color = getComputedStyle(root ?? document.documentElement)
     .getPropertyValue(name)
     .trim();
   if (!color) throw new Error(`Missing travel terrain color token ${name}.`);
   return color;
 }
 
-function terrainPalette(): TerrainPalette {
-  const blue = resolvedThemeColor("--color-blue");
-  const cyan = resolvedThemeColor("--color-cyan");
-  const bg = resolvedThemeColor("--color-bg");
+function terrainPalette(root?: Element | null): TerrainPalette {
   return {
     water: {
-      deep: `color-mix(in srgb, ${blue} 62%, ${bg})`,
-      mid: blue,
-      shallow: cyan,
-      coast: cyan,
-      inland: cyan,
-      glint: resolvedThemeColor("--color-text"),
+      deep: resolvedThemeColor("--map-ocean-deep", root),
+      mid: resolvedThemeColor("--map-ocean-deep", root),
+      shallow: resolvedThemeColor("--map-ocean-coast", root),
+      coast: resolvedThemeColor("--map-ocean-coast", root),
+      inland: resolvedThemeColor("--map-ocean-inland", root),
+      glint: resolvedThemeColor("--map-ocean-glint", root),
     },
     land: {
-      shadow: resolvedThemeColor("--color-accent-secondary"),
-      low: resolvedThemeColor("--color-accent-secondary"),
-      mid: resolvedThemeColor("--color-green"),
-      high: resolvedThemeColor("--color-accent"),
-      coast: resolvedThemeColor("--color-accent-secondary"),
-      vegetation: resolvedThemeColor("--color-green"),
-      forest: resolvedThemeColor("--color-accent-secondary"),
-      dry: resolvedThemeColor("--color-orange"),
-      dryDetail: resolvedThemeColor("--color-yellow"),
-      snow: resolvedThemeColor("--color-text"),
+      shadow: resolvedThemeColor("--map-land-shadow", root),
+      low: resolvedThemeColor("--map-land-low", root),
+      mid: resolvedThemeColor("--map-land-mid", root),
+      high: resolvedThemeColor("--map-land-high", root),
+      coast: resolvedThemeColor("--map-land-coast", root),
+      vegetation: resolvedThemeColor("--map-land-vegetation", root),
+      forest: resolvedThemeColor("--map-land-forest", root),
+      dry: resolvedThemeColor("--map-land-dry", root),
+      dryDetail: resolvedThemeColor("--map-land-dry-detail", root),
+      snow: resolvedThemeColor("--map-land-snow", root),
     },
+  };
+}
+
+function chromeInsets(width: number, selected: boolean) {
+  const mobile = width <= 820;
+  return {
+    top: mobile ? 148 : 128,
+    right: selected && !mobile ? 300 : 20,
+    bottom: mobile ? 76 : 64,
+    left: 16,
   };
 }
 
@@ -216,6 +215,9 @@ function markerClass(
 }
 
 function entityA11yLabel(entity: TravelMapEntity) {
+  if (entity.kind === "cluster") {
+    return `${entity.label ?? entity.place.name} residence cluster. Activate to expand.`;
+  }
   if (entity.kind === "hub") {
     return `${entity.place.name} travel hub, ${entity.count} places${
       entity.livedCount
@@ -280,7 +282,6 @@ export default function PixelMap({
   const interactionRef = useRef<InteractionState>(createInteractionState());
   const rippleRef = useRef<TerrainRippleEngine | null>(null);
   const lastRippleRef = useRef({ x: 0, y: 0, time: 0 });
-  const idleRipplesRef = useRef(true);
   const previousCameraRef = useRef<Camera | null>(null);
   const previousModeRef = useRef<TravelFilterMode>(mode);
   const focusedHubRef = useRef<TravelHubId | null>(null);
@@ -339,10 +340,6 @@ export default function PixelMap({
     [syncInteraction],
   );
 
-  useEffect(() => {
-    idleRipplesRef.current = canAffordIdleRipples();
-  }, []);
-
   const clampCamera = useCallback((camera: Camera) => {
     return clampCameraToBounds(camera, viewRef.current, MAP_BOUNDS);
   }, []);
@@ -379,7 +376,7 @@ export default function PixelMap({
           setFocusedHubId(null);
         }
       }
-      if (!hubId) {
+      if (!hubId && !focusCountryRef.current) {
         hubId =
           resolveFocusedHub(placesRef.current, {
             selectedId: selectedRef.current,
@@ -667,7 +664,7 @@ export default function PixelMap({
         source: image,
         width: MAP_COLS,
         height: MAP_ROWS,
-        palette: terrainPalette(),
+        palette: terrainPalette(canvas.closest(`.${styles.root}`)),
       });
       const context = canvas.getContext("2d");
       if (!context) {
@@ -764,21 +761,25 @@ export default function PixelMap({
     );
     if (!selected) return;
     const point = cityPoint(selected);
-    const shift =
-      viewRef.current.width > 820
-        ? (viewRef.current.width * 0.08) /
-          Math.max(cameraRef.current.scale, 2.8)
-        : 0;
     if (selected.hubId) {
       focusedHubRef.current = selected.hubId;
       setFocusedHubId(selected.hubId);
     }
     startCameraAnimation(
-      {
-        x: point.x + shift,
-        y: point.y,
-        scale: Math.max(cameraRef.current.scale, 2.8),
-      },
+      clampCamera(
+        fitCameraToBounds(
+          { minX: point.x, maxX: point.x, minY: point.y, maxY: point.y },
+          viewRef.current,
+          {
+            insets: chromeInsets(viewRef.current.width, true),
+            padding: 0,
+            minScale: Math.max(cameraRef.current.scale, 3.1),
+            maxScale: MAX_SCALE,
+            minSpanX: 36,
+            minSpanY: 28,
+          },
+        ),
+      ),
       460,
     );
   }, [selectedId, startCameraAnimation, viewReady]);
@@ -787,29 +788,30 @@ export default function PixelMap({
     if (!viewReady || focusTick < 1 || selectedRef.current) return;
     const code = focusCountryRef.current;
     if (!code) return;
-    const frame = countryFrame(placesRef.current, code);
-    if (!frame) return;
+    const bounds = boundsFromPoints(
+      placesRef.current
+        .filter((place) => place.countryCode === code)
+        .map(cityPoint),
+    );
+    if (!bounds) return;
     focusedHubRef.current = null;
     setFocusedHubId(null);
+    const naturalSpan = Math.max(
+      bounds.maxX - bounds.minX,
+      bounds.maxY - bounds.minY,
+    );
     startCameraAnimation(
-      {
-        x: frame.minX + frame.w / 2,
-        y: frame.minY + frame.h / 2,
-        scale: clamp(
-          fitScale(
-            frame.minX,
-            frame.minX + frame.w,
-            frame.minY,
-            frame.minY + frame.h,
-            viewRef.current.width,
-            viewRef.current.height,
-            0.7,
-          ),
-          COUNTRY_FOCUS_MIN_SCALE,
-          COUNTRY_FOCUS_SCALE,
-        ),
-      },
-      520,
+      clampCamera(
+        fitCameraToBounds(bounds, viewRef.current, {
+          insets: chromeInsets(viewRef.current.width, false),
+          padding: 0.22,
+          minScale: COUNTRY_FOCUS_MIN_SCALE,
+          maxScale: naturalSpan > 140 ? 2.48 : COUNTRY_FOCUS_SCALE,
+          minSpanX: COUNTRY_FOCUS_MIN_SPAN_X,
+          minSpanY: COUNTRY_FOCUS_MIN_SPAN_Y,
+        }),
+      ),
+      480,
     );
   }, [focusTick, startCameraAnimation, viewReady]);
 
@@ -829,20 +831,19 @@ export default function PixelMap({
       focusedHubRef.current = null;
       setFocusedHubId(null);
       startCameraAnimation(
-        {
-          x: (minX + maxX) / 2,
-          y: (minY + maxY) / 2,
-          scale: fitScale(
-            minX,
-            maxX,
-            minY,
-            maxY,
-            viewRef.current.width,
-            viewRef.current.height,
-            0.9,
+        clampCamera(
+          fitCameraToBounds(
+            { minX, maxX, minY, maxY },
+            viewRef.current,
+            {
+              insets: chromeInsets(viewRef.current.width, false),
+              padding: 0.35,
+              minScale: 1.2,
+              maxScale: 2.45,
+            },
           ),
-        },
-        540,
+        ),
+        480,
       );
       return;
     }
@@ -1042,9 +1043,6 @@ export default function PixelMap({
 
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) {
-      if (event.pointerType === "mouse" && idleRipplesRef.current) {
-        spawnRipple(point, false);
-      }
       return;
     }
 
@@ -1145,7 +1143,7 @@ export default function PixelMap({
 
   const zoomFromCenter = (direction: 1 | -1) => {
     const scale = clamp(
-      cameraRef.current.scale * (direction > 0 ? 1.3 : 0.77),
+      nextButtonZoomScale(cameraRef.current.scale, direction),
       MIN_SCALE,
       MAX_SCALE,
     );
@@ -1208,22 +1206,18 @@ export default function PixelMap({
     focusedHubRef.current = hubId;
     setFocusedHubId(hubId);
     startCameraAnimation(
-      {
-        x: (minX + maxX) / 2,
-        y: (minY + maxY) / 2,
-        scale: Math.max(
-          2.85,
-          fitScale(
-            minX,
-            maxX,
-            minY,
-            maxY,
-            viewRef.current.width,
-            viewRef.current.height,
-            1.3,
-          ),
+      clampCamera(
+        fitCameraToBounds(
+          { minX, maxX, minY, maxY },
+          viewRef.current,
+          {
+            insets: chromeInsets(viewRef.current.width, false),
+            padding: 0.28,
+            minScale: 3.2,
+            maxScale: MAX_SCALE,
+          },
         ),
-      },
+      ),
       460,
     );
   };
@@ -1240,7 +1234,11 @@ export default function PixelMap({
     interactionRef.current = activation.state;
     syncInteraction();
     if (!activation.activated) return;
-    if (entity.kind === "hub" && bandRef.current !== "city" && entity.hubId) {
+    if (
+      (entity.kind === "hub" || entity.kind === "cluster") &&
+      bandRef.current !== "city" &&
+      entity.hubId
+    ) {
       focusHub(entity.hubId);
       return;
     }
@@ -1255,6 +1253,7 @@ export default function PixelMap({
         level,
         filterMode: mode,
         selectedId,
+        focusedHubId,
       });
       const minimumDistance =
         level === "world" ? 34 : level === "country" ? 28 : 32;
@@ -1264,7 +1263,7 @@ export default function PixelMap({
         minimumDistance,
       );
     },
-    [layoutScale, level, mode, places, selectedId],
+    [focusedHubId, layoutScale, level, mode, places, selectedId],
   );
   const entities = useMemo(() => {
     const camera = cameraRef.current;
@@ -1303,10 +1302,14 @@ export default function PixelMap({
       const worldDestination =
         entity.place.featured && entity.place.importance >= 94;
       if (
-        focusedHubId &&
-        entity.hubId !== focusedHubId &&
-        !entity.selected &&
-        !hovered
+        (focusedHubId &&
+          entity.hubId !== focusedHubId &&
+          !entity.selected &&
+          !hovered) ||
+        (focusCountry &&
+          entity.place.countryCode !== focusCountry &&
+          !entity.selected &&
+          !hovered)
       ) {
         continue;
       }
@@ -1341,7 +1344,9 @@ export default function PixelMap({
       candidates.push({
         id: entity.id,
         canonicalId: entity.place.canonicalKey,
-        name: entity.place.name.toLocaleUpperCase("en-US"),
+        name:
+          entity.label ??
+          entity.place.name.toLocaleUpperCase("en-US"),
         point: toScreen(entity),
         selected: entity.selected,
         currentHome,
@@ -1411,6 +1416,7 @@ export default function PixelMap({
   }, [
     currentHomeId,
     entities,
+    focusCountry,
     focusedHubId,
     hoveredId,
     layoutVersion,
@@ -1421,13 +1427,6 @@ export default function PixelMap({
     view.width,
   ]);
 
-  const frame = useMemo(
-    () =>
-      highlightCountry
-        ? countryFrame(places, highlightCountry)
-        : null,
-    [highlightCountry, places],
-  );
   const residencePath = useMemo(
     () =>
       getResidenceChapters()
@@ -1481,10 +1480,9 @@ export default function PixelMap({
     >
       <p id="travel-map-description" className={styles.srOnly}>
         Explore a pixel world map. Drag or use arrow keys to pan. Pinch, use
-        the mouse wheel, or press plus and minus to zoom. Use ALL, LIVED, or
-        VISITED to change which story is emphasized. Activate a travel hub to
-        reveal nearby places and activate a place to open its story. Escape
-        closes an open place card.
+        the mouse wheel, or press plus and minus to zoom.         Use TRAVEL MAP or LIFE PATH to change which story is emphasized.
+        Activate a travel hub to reveal nearby places and activate a place to
+        open its story. Escape closes an open place card.
       </p>
       {!ready ? <p className={styles.mapBoot}>LOADING WORLD…</p> : null}
 
@@ -1549,19 +1547,6 @@ export default function PixelMap({
                 })
             : null}
         </svg>
-
-        {frame ? (
-          <div
-            className={styles.countryFrame}
-            style={{
-              left: frame.minX,
-              top: frame.minY,
-              width: frame.w,
-              height: frame.h,
-            }}
-            aria-hidden="true"
-          />
-        ) : null}
 
         <div className={styles.pins} data-layer="pins">
           {entities.map((entity) => {
@@ -1653,7 +1638,7 @@ export default function PixelMap({
                     {entity.count}
                   </span>
                 ) : null}
-                {chapter ? (
+                {chapter && entity.kind === "place" ? (
                   <span className={styles.chapterBadge} aria-hidden="true">
                     {chapter}
                   </span>
@@ -1668,7 +1653,8 @@ export default function PixelMap({
                         : ""
                     }`}
                   >
-                    {entity.place.name.toLocaleUpperCase("en-US")}
+                    {entity.label ??
+                      entity.place.name.toLocaleUpperCase("en-US")}
                     {entity.kind === "hub" && entity.count > 1 ? (
                       <span className={styles.pinLabelCount}>
                         {entity.count} PLACES

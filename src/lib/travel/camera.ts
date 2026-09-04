@@ -28,8 +28,10 @@ export type MapBounds = {
 
 export type EasingFunction = (progress: number) => number;
 
-export const MIN_CAMERA_DURATION_MS = 400;
-export const MAX_CAMERA_DURATION_MS = 700;
+export const MIN_CAMERA_DURATION_MS = 350;
+export const MAX_CAMERA_DURATION_MS = 650;
+export const BUTTON_ZOOM_FACTOR = 1.18;
+export const LABEL_SETTLE_MS = 180;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -166,4 +168,98 @@ export function interpolateCamera(
 
 export function clampCameraDuration(durationMs: number): number {
   return clamp(durationMs, MIN_CAMERA_DURATION_MS, MAX_CAMERA_DURATION_MS);
+}
+
+export type ViewInsets = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+export type WorldBounds = {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+};
+
+export type FitCameraOptions = {
+  insets?: Partial<ViewInsets>;
+  padding?: number;
+  minScale?: number;
+  maxScale?: number;
+  /** Widens tiny country clusters so islands can fill the usable view. */
+  minSpanX?: number;
+  minSpanY?: number;
+};
+
+function resolveInsets(insets?: Partial<ViewInsets>): ViewInsets {
+  return {
+    top: insets?.top ?? 0,
+    right: insets?.right ?? 0,
+    bottom: insets?.bottom ?? 0,
+    left: insets?.left ?? 0,
+  };
+}
+
+export function boundsFromPoints(
+  points: readonly Point[],
+  pad = 0,
+): WorldBounds | null {
+  if (points.length === 0) return null;
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  return {
+    minX: Math.min(...xs) - pad,
+    maxX: Math.max(...xs) + pad,
+    minY: Math.min(...ys) - pad,
+    maxY: Math.max(...ys) + pad,
+  };
+}
+
+/**
+ * Fits world bounds into the usable viewport, keeping the geographic center
+ * in the inset-aware visual center rather than under the header.
+ */
+export function fitCameraToBounds(
+  bounds: WorldBounds,
+  viewport: Viewport,
+  options: FitCameraOptions = {},
+): Camera {
+  const insets = resolveInsets(options.insets);
+  const padding = options.padding ?? 0.2;
+  const usableWidth = Math.max(1, viewport.width - insets.left - insets.right);
+  const usableHeight = Math.max(1, viewport.height - insets.top - insets.bottom);
+  const naturalWidth = Math.max(1, bounds.maxX - bounds.minX);
+  const naturalHeight = Math.max(1, bounds.maxY - bounds.minY);
+  const spanX = Math.max(
+    options.minSpanX ?? 12,
+    naturalWidth * (1 + padding),
+  );
+  const spanY = Math.max(
+    options.minSpanY ?? 12,
+    naturalHeight * (1 + padding),
+  );
+  const scale = clamp(
+    Math.min(usableWidth / spanX, usableHeight / spanY),
+    options.minScale ?? 0.42,
+    options.maxScale ?? 6.4,
+  );
+  const worldCenterX = (bounds.minX + bounds.maxX) / 2;
+  const worldCenterY = (bounds.minY + bounds.maxY) / 2;
+  const usableCenterX = insets.left + usableWidth / 2;
+  const usableCenterY = insets.top + usableHeight / 2;
+
+  return {
+    x: worldCenterX - (usableCenterX - viewport.width / 2) / scale,
+    y: worldCenterY - (usableCenterY - viewport.height / 2) / scale,
+    scale,
+  };
+}
+
+export function nextButtonZoomScale(scale: number, direction: 1 | -1): number {
+  return direction > 0
+    ? scale * BUTTON_ZOOM_FACTOR
+    : scale / BUTTON_ZOOM_FACTOR;
 }

@@ -8,7 +8,7 @@ export const MAP_COLS = 320;
 export const MAP_ROWS = 160;
 
 export const MIN_SCALE = 0.42;
-export const MAX_SCALE = 5.2;
+export const MAX_SCALE = 6.8;
 
 export type LodBand = "world" | "region" | "country" | "city";
 
@@ -178,9 +178,11 @@ export function nextExplodeScale(scale: number) {
   return clamp(scale * 1.35, MIN_SCALE, MAX_SCALE);
 }
 
-/** Country strip fly-to stays in the country band, even for tiny countries. */
-export const COUNTRY_FOCUS_MIN_SCALE = 1.18;
-export const COUNTRY_FOCUS_SCALE = 2.12;
+/** Country strip fly-to stays readable without clipping the HUD. */
+export const COUNTRY_FOCUS_MIN_SCALE = 1.35;
+export const COUNTRY_FOCUS_SCALE = 6.4;
+export const COUNTRY_FOCUS_MIN_SPAN_X = 96;
+export const COUNTRY_FOCUS_MIN_SPAN_Y = 64;
 
 export function visibleCities(
   cities: CatalogCity[],
@@ -382,8 +384,9 @@ export function describeAtlasView(
     : null;
 
   let title = "WORLD MAP";
-  if (band === "city" && namedCity) title = namedCity.name.toUpperCase();
-  else if (
+  if (selectedId && namedCity && namedCity.id === selectedId) {
+    title = namedCity.name.toUpperCase();
+  } else if (
     countryCode &&
     country &&
     (band === "country" || band === "city" || focusCountry === countryCode)

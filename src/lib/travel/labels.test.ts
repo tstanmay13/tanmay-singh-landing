@@ -315,4 +315,25 @@ describe("label collision resolution", () => {
       }
     }
   });
+
+  it("reserves the full accepted label width instead of clipping it", () => {
+    const placed = resolveLabelCollisions(
+      [
+        candidate("KYOTO", { x: 200, y: 120 }, {
+          featuredHub: true,
+          dimensions: undefined,
+        }),
+      ],
+      {
+        viewport: { width: 640, height: 360 },
+        averageCharacterWidth: 8,
+        horizontalPadding: 8,
+        labelHeight: 22,
+      },
+    );
+
+    expect(placed).toHaveLength(1);
+    expect(placed[0]?.name).toBe("KYOTO");
+    expect(placed[0]?.width).toBeGreaterThanOrEqual("KYOTO".length * 8);
+  });
 });

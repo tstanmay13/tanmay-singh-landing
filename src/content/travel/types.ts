@@ -46,7 +46,7 @@ export type ManualCatalogCity = Omit<
   lastSeen: null;
 };
 
-export type TravelHubId = "dfw" | "austin" | "houston";
+export type TravelHubId = "dfw" | "austin" | "houston" | "tokyo" | "kansai";
 
 export type TravelPlaceCategory = "hub" | "destination" | "satellite";
 

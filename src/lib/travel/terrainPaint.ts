@@ -497,9 +497,8 @@ export function paintTerrain({
 
       if (inland || narrow) color = colors.water.inland;
       else if (distance <= 1) color = colors.water.coast;
-      else if (distance <= 3) color = colors.water.shallow;
-      else if (distance <= 6 || lightness[index] > 82) {
-        color = colors.water.mid;
+      else if (distance === 2 && (x + y) % 7 === 0) {
+        color = colors.water.coast;
       } else {
         color = colors.water.deep;
       }
@@ -507,58 +506,53 @@ export function paintTerrain({
       const glint =
         !inland &&
         !narrow &&
-        distance > 2 &&
-        hashUnit(x, y, seed ^ 0x2c9277b5) < 0.0036;
-      if (distance === 2 && (x + y) % 5 === 0) {
-        color = colors.water.coast;
-      }
+        distance > 4 &&
+        hashUnit(x, y, seed ^ 0x2c9277b5) < 0.0011;
       if (glint) color = colors.water.glint;
     } else {
       const light = lightness[index];
       const green = greenSignal[index];
       const dry = drySignal[index];
       const snowy =
-        light >= Math.max(highCut, 170) &&
-        chroma[index] < 34 &&
-        dry < 40;
+        light >= Math.max(highCut, 176) &&
+        chroma[index] < 28 &&
+        dry < 28;
+      const coastal = touchesWater(index, landMask, width, height);
+      const forestMark =
+        !coastal &&
+        green > 22 &&
+        hashUnit(x >> 2, y >> 2, seed ^ 0x6d2b79f5) < 0.07 &&
+        hashUnit(x, y, seed ^ 0x1b56c4e9) < 0.55;
+      const peakMark =
+        !coastal &&
+        !snowy &&
+        light > middleCut &&
+        dry > 8 &&
+        hashUnit(x >> 2, y >> 2, seed ^ 0x51c2a7d3) < 0.035 &&
+        hashUnit(x, y, seed ^ 0x7f4a7c15) < 0.42;
 
       if (snowy) {
         color = colors.land.snow;
-      } else if (touchesWater(index, landMask, width, height)) {
+      } else if (coastal) {
         color = colors.land.coast;
-      } else if (green > 18) {
-        const grove = hashUnit(x >> 3, y >> 3, seed ^ 0x6d2b79f5);
-        const canopy = hashUnit(x >> 1, y >> 1, seed ^ 0x1b56c4e9);
-        const blade = hashUnit(x, y, seed ^ 0x27d4eb2d);
-        if (grove < 0.46 && canopy < 0.4) {
-          color =
-            green > 40 && canopy < 0.16
-              ? colors.land.forest
-              : colors.land.vegetation;
-        } else if (blade < 0.07 && green > 28) {
-          color = colors.land.vegetation;
-        } else if (light < middleCut) {
-          color = colors.land.low;
-        } else {
-          color = colors.land.mid;
-        }
-      } else if (dry > 34) {
-        const cactus = hashUnit(x, y >> 1, seed ^ 0x51c2a7d3);
-        const speckle = hashUnit(x, y, seed ^ 0x7f4a7c15);
-        if (cactus < 0.05 && speckle < 0.62) {
-          color = colors.land.vegetation;
-        } else {
-          color =
-            speckle < 0.16 ? colors.land.dryDetail : colors.land.dry;
-        }
+      } else if (peakMark) {
+        color =
+          hashUnit(x, y, seed ^ 0x27d4eb2d) < 0.35
+            ? colors.land.high
+            : colors.land.snow;
+      } else if (forestMark) {
+        color = colors.land.forest;
+      } else if (dry > 42 && green < 16) {
+        color =
+          hashUnit(x, y, seed ^ 0x9e3779b1) < 0.12
+            ? colors.land.dryDetail
+            : colors.land.dry;
       } else if (light < lowCut) {
         color = colors.land.shadow;
-      } else if (light < middleCut) {
-        color = colors.land.low;
-      } else if (light < highCut) {
+      } else if (green > 14 || light < highCut) {
         color = colors.land.mid;
       } else {
-        color = colors.land.high;
+        color = colors.land.vegetation;
       }
     }
 
