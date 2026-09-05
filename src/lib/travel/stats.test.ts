@@ -46,13 +46,14 @@ describe("canonical contextual travel statistics", () => {
   it("reports the exact world totals, countries, visit years, and homes", () => {
     expect(deriveWorldStats(places)).toEqual({
       kind: "world",
-      placeCount: 111,
-      countryCount: 11,
+      placeCount: 114,
+      countryCount: 12,
       countries: [
         "AU",
         "CH",
         "ES",
         "FR",
+        "IN",
         "IT",
         "JP",
         "MX",
@@ -61,7 +62,7 @@ describe("canonical contextual travel statistics", () => {
         "VA",
         "VN",
       ],
-      homesCount: 4,
+      homesCount: 7,
       visitYearRange: { first: 2013, last: 2026 },
     });
   });
@@ -69,7 +70,7 @@ describe("canonical contextual travel statistics", () => {
   it("keeps residence chapters chronological and identifies current NYC", () => {
     const lived = deriveLivedStats(places);
 
-    expect(lived.chapterCount).toBe(4);
+    expect(lived.chapterCount).toBe(7);
     expect(
       lived.chapters.map(({ name, order, current, chapterTitle }) => ({
         name,
@@ -78,37 +79,20 @@ describe("canonical contextual travel statistics", () => {
         chapterTitle,
       })),
     ).toEqual([
-      {
-        name: "Murphy",
-        order: 1,
-        current: false,
-        chapterTitle: "Past home",
-      },
-      {
-        name: "Richardson",
-        order: 2,
-        current: false,
-        chapterTitle: "Past home",
-      },
-      {
-        name: "Austin",
-        order: 3,
-        current: false,
-        chapterTitle: "Past home",
-      },
-      {
-        name: "New York City",
-        order: 4,
-        current: true,
-        chapterTitle: "Current home",
-      },
+      { name: "Uttar Pradesh", order: 1, current: false, chapterTitle: "Where it began" },
+      { name: "Boston", order: 2, current: false, chapterTitle: "The next chapter" },
+      { name: "Bangalore", order: 3, current: false, chapterTitle: "Back to India" },
+      { name: "Richardson", order: 4, current: false, chapterTitle: "Past home" },
+      { name: "Murphy", order: 5, current: false, chapterTitle: "Past home" },
+      { name: "Austin", order: 6, current: false, chapterTitle: "Past home" },
+      { name: "New York City", order: 7, current: true, chapterTitle: "Current home" },
     ]);
     expect(lived.progression).toEqual(
       lived.chapters.map((chapter) => chapter.id),
     );
     expect(lived.currentHome).toMatchObject({
       name: "New York City",
-      order: 4,
+      order: 7,
       current: true,
       relationship: "current_home",
     });
@@ -119,7 +103,7 @@ describe("canonical contextual travel statistics", () => {
       kind: "country",
       countryCode: "US",
       countryName: "United States",
-      placeCount: 89,
+      placeCount: 90,
       majorHubCount: 3,
       majorHubs: [
         {
@@ -138,7 +122,7 @@ describe("canonical contextual travel statistics", () => {
           placeCount: 3,
         },
       ],
-      livedCount: 4,
+      livedCount: 5,
       visitYearRange: { first: 2013, last: 2026 },
     });
   });
@@ -186,7 +170,7 @@ describe("canonical contextual travel statistics", () => {
     ];
     const canonical = canonicalStatsPlaces(withDuplicates);
 
-    expect(canonical).toHaveLength(111);
+    expect(canonical).toHaveLength(114);
     expect(
       canonical.filter(
         (place) => place.canonicalKey === austin.canonicalKey,
@@ -243,19 +227,19 @@ describe("visit year derivation", () => {
 describe("compact contextual HUD statistics", () => {
   it("emits exact labels and compact values for each context", () => {
     expect(requireContext({ kind: "world" }).hud).toEqual([
-      { id: "places", label: "PLACES", value: 111 },
-      { id: "countries", label: "COUNTRIES", value: 11 },
+      { id: "places", label: "PLACES", value: 114 },
+      { id: "countries", label: "COUNTRIES", value: 12 },
       { id: "visit-years", label: "VISIT YEARS", value: "2013–2026" },
-      { id: "homes", label: "HOMES", value: 4 },
+      { id: "homes", label: "HOMES", value: 7 },
     ]);
 
     expect(
       requireContext({ kind: "country", countryCode: "US" }).hud,
     ).toEqual([
-      { id: "places", label: "PLACES", value: 89 },
+      { id: "places", label: "PLACES", value: 90 },
       { id: "major-hubs", label: "MAJOR HUBS", value: 3 },
       { id: "visit-years", label: "VISIT YEARS", value: "2013–2026" },
-      { id: "lived", label: "LIVED", value: 4 },
+      { id: "lived", label: "LIVED", value: 5 },
     ]);
 
     expect(requireContext({ kind: "hub", hubId: "dfw" }).hud).toEqual([
@@ -265,7 +249,7 @@ describe("compact contextual HUD statistics", () => {
     ]);
 
     expect(requireContext({ kind: "lived" }).hud).toEqual([
-      { id: "chapters", label: "CHAPTERS", value: 4 },
+      { id: "chapters", label: "CHAPTERS", value: 7 },
       {
         id: "current-home",
         label: "CURRENT HOME",
@@ -274,7 +258,7 @@ describe("compact contextual HUD statistics", () => {
       {
         id: "progression",
         label: "PROGRESSION",
-        value: "01 → 02 → 03 → 04",
+        value: "01 → 02 → 03 → 04 → 05 → 06 → 07",
       },
     ]);
   });

@@ -18,6 +18,7 @@ export default function CustomCursor() {
   const moveFrameRef = useRef(0);
 
   useEffect(() => {
+    if (pathname.startsWith("/travel")) return;
     const isTouchDevice = "ontouchstart" in window;
     if (isTouchDevice) return;
 
@@ -116,7 +117,7 @@ export default function CustomCursor() {
     };
   }, [pathname]);
 
-  if (!visible) return null;
+  if (!visible || pathname.startsWith("/travel")) return null;
 
   return (
     <>

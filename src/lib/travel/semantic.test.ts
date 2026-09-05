@@ -329,39 +329,18 @@ describe("semantic visibility and emphasis", () => {
     });
   });
 
-  it("changes visual emphasis without dropping canonical metro records", () => {
-    const byMode = Object.fromEntries(
-      (["all", "lived"] as const).map((filterMode) => [
-        filterMode,
-        buildTravelEntities(places, {
-          level: "metro",
-          filterMode,
-        }),
-      ]),
-    ) as Record<"all" | "lived", TravelMapEntity[]>;
-    const canonicalKeys = [...places]
-      .map((place) => place.canonicalKey)
-      .sort();
-
-    for (const entities of Object.values(byMode)) {
-      expect(entities).toHaveLength(places.length);
-      expect(
-        entities.map((entity) => entity.place.canonicalKey).sort(),
-      ).toEqual(canonicalKeys);
-      for (const entity of entities) {
-        expect(entity.members).toEqual([entity.place]);
-        expect(places).toContain(entity.place);
+  it("keeps story filters exclusive at every semantic level", () => {
+    for (const level of ["world", "country", "metro"] as const) {
+      for (const filterMode of ["lived", "visited"] as const) {
+        const entities = buildTravelEntities(places, { level, filterMode });
+        expect(entities.length).toBeGreaterThan(0);
+        for (const entity of entities) {
+          for (const place of entity.members) {
+            expect(place.relationship === "visited").toBe(filterMode === "visited");
+          }
+        }
       }
     }
-
-    const austin = usPlace("Austin", "TX");
-    const murphy = usPlace("Murphy", "TX");
-    const dallas = usPlace("Dallas", "TX");
-
-    expect(requireEntity(byMode.all, murphy).emphasis).toBe("normal");
-    expect(requireEntity(byMode.lived, murphy).emphasis).toBe("emphasized");
-    expect(requireEntity(byMode.lived, dallas).emphasis).toBe("dimmed");
-    expect(requireEntity(byMode.lived, austin).emphasis).toBe("emphasized");
   });
 
   it("prioritizes current and past homes over minor destinations", () => {
@@ -443,8 +422,8 @@ describe("dense marker spreading", () => {
       count: 2,
     });
     expect(cluster?.members.map((place) => place.name)).toEqual([
-      "Murphy",
       "Richardson",
+      "Murphy",
     ]);
     expect(
       broad.filter((entity) =>
