@@ -38,23 +38,15 @@ import {
   COUNTRY_FOCUS_MIN_SPAN_X,
   COUNTRY_FOCUS_MIN_SPAN_Y,
   COUNTRY_FOCUS_SCALE,
-  GLOBAL_RASTER_MAX_MAGNIFICATION,
-  MAP_COLS,
   MAP_HEIGHT,
-  MAP_ROWS,
   MAP_WIDTH,
   MAX_SCALE,
   MIN_SCALE,
   cityPoint,
   clamp,
-  clampWorldRectToMap,
   describeAtlasView,
-  globalTexelCssSize,
   lodBandFromScale,
-  regionalRasterSize,
   sparkleDelay,
-  visibleWorldRect,
-  worldRectToSourceRect,
   type AtlasView,
   type LodBand,
 } from "@/lib/travel/geo";
@@ -114,6 +106,8 @@ type PixelMapProps = {
   theme: "light" | "dark";
   onSelect: (id: string) => void;
   onView: (view: TravelMapView) => void;
+  onExplore: () => void;
+  onReset: () => void;
 };
 
 type CameraAnimation = {
@@ -153,7 +147,7 @@ function chromeExclusionRects(viewport: HTMLElement): ScreenRect[] {
     viewport.closest("[data-map-mode]") ?? viewport.parentElement;
   if (!root) return [];
   return [...root.querySelectorAll(
-    "header, nav[data-layer='chrome'], [data-map-chrome], [role='dialog']",
+    "header, nav[data-layer='chrome'], [data-layer='chrome'], [data-map-chrome], [role='dialog']",
   )]
     .map((node) => {
       const box = node.getBoundingClientRect();
@@ -165,17 +159,6 @@ function chromeExclusionRects(viewport: HTMLElement): ScreenRect[] {
       };
     })
     .filter((rect) => rect.width > 4 && rect.height > 4);
-}
-
-function regionalOpacity(scale: number) {
-  const mag = globalTexelCssSize(scale);
-  if (mag <= GLOBAL_RASTER_MAX_MAGNIFICATION - 0.7) return 0;
-  if (mag >= GLOBAL_RASTER_MAX_MAGNIFICATION + 0.6) return 1;
-  return clamp(
-    (mag - (GLOBAL_RASTER_MAX_MAGNIFICATION - 0.7)) / 1.3,
-    0,
-    1,
-  );
 }
 
 function wheelShouldZoom(event: WheelEvent) {
@@ -233,14 +216,22 @@ function terrainPalette(root?: Element | null): TerrainPalette {
   };
 }
 
-function chromeInsets(width: number, selected: boolean) {
+function chromeInsets(width: number, selected: boolean, height = 0) {
   const mobile = width <= 820;
   return {
-    top: mobile ? 148 : 128,
-    right: selected && !mobile ? 300 : 20,
-    bottom: mobile ? 76 : 64,
+    top: mobile ? (width <= 420 ? 220 : 192) : 152,
+    right: selected && !mobile ? 348 : 20,
+    bottom: selected && mobile ? height * 0.4 + 96 : mobile ? 76 : 64,
     left: 16,
   };
+}
+
+function overviewCamera(viewport: { width: number; height: number }): Camera {
+  const mobile = viewport.width <= 820;
+  return fitCameraToBounds(mobile
+    ? { minX: 490, maxX: 820, minY: 275, maxY: 560 }
+    : { minX: 220, maxX: 2380, minY: 160, maxY: 1000 }, viewport,
+    { insets: chromeInsets(viewport.width, false), padding: 0.08, minScale: MIN_SCALE, maxScale: mobile ? 1 : 0.75 });
 }
 
 function markerClass(
@@ -302,15 +293,19 @@ export default function PixelMap({
   theme,
   onSelect,
   onView,
+  onExplore,
+  onReset,
 }: PixelMapProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const regionalCanvasRef = useRef<HTMLCanvasElement>(null);
-  const earthImageRef = useRef<HTMLImageElement | null>(null);
+  const pinsRef = useRef<HTMLDivElement>(null);
+  const terrainViewportRef = useRef<HTMLCanvasElement>(null);
+  const terrainDrawKey = useRef("");
   const loopRef = useRef(0);
   const settleTimerRef = useRef<number | null>(null);
   const wheelTimerRef = useRef<number | null>(null);
+  const wheelGestureRef = useRef<{zoom: boolean; time: number} | null>(null);
   const viewRef = useRef({ width: 0, height: 0 });
   const bandRef = useRef<LodBand>("world");
   const viewKeyRef = useRef("");
@@ -325,11 +320,13 @@ export default function PixelMap({
   const dragRef = useRef<DragMeta | null>(null);
   const activePointersRef = useRef(new Map<number, Point>());
   const pinchRef = useRef<PinchMeta | null>(null);
+  const pinchedRef = useRef(false);
   const interactionRef = useRef<InteractionState>(createInteractionState());
   const rippleRef = useRef<TerrainRippleEngine | null>(null);
   const lastRippleRef = useRef({ x: 0, y: 0, time: 0 });
   const previousCameraRef = useRef<Camera | null>(null);
   const previousModeRef = useRef<TravelFilterMode>(mode);
+  const initializedRef = useRef(false);
   const focusedHubRef = useRef<TravelHubId | null>(null);
   const placesRef = useRef(places);
   const selectedRef = useRef(selectedId);
@@ -337,13 +334,16 @@ export default function PixelMap({
   const reducedRef = useRef(reducedMotion);
   const onSelectRef = useRef(onSelect);
   const onViewRef = useRef(onView);
+  const onExploreRef = useRef(onExplore);
+  onExploreRef.current = onExplore;
   const [ready, setReady] = useState(false);
+  const [terrainError, setTerrainError] = useState(false);
   const [view, setView] = useState({ width: 0, height: 0 });
   const [layoutScale, setLayoutScale] = useState(cameraRef.current.scale);
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [focusedHubId, setFocusedHubId] = useState<TravelHubId | null>(null);
-  const [settledCountry, setSettledCountry] = useState<string | null>(null);
+
   const [regionalLayer, setRegionalLayer] = useState({
     x: 0,
     y: 0,
@@ -466,21 +466,44 @@ export default function PixelMap({
       const { width, height } = viewRef.current;
       if (!node || width < 8) return;
       const camera = cameraRef.current;
+      const target = terrainViewportRef.current;
+      const source = regionalCanvasRef.current;
+      const drawKey = `${width},${height},${camera.x},${camera.y},${camera.scale},${ready}`;
+      if (target && source && ready && terrainDrawKey.current !== drawKey) {
+        terrainDrawKey.current = drawKey;
+        const w = Math.ceil(width / 2), h = Math.ceil(height / 2);
+        if (target.width !== w || target.height !== h) { target.width = w; target.height = h; }
+        const context = target.getContext("2d");
+        if (context) {
+          context.imageSmoothingEnabled = false;
+          context.clearRect(0, 0, w, h);
+          context.drawImage(source, (width / 2 - camera.x * camera.scale) / 2,
+            (height / 2 - camera.y * camera.scale) / 2,
+            MAP_WIDTH * camera.scale / 2, MAP_HEIGHT * camera.scale / 2);
+        }
+      }
       node.style.transform = `translate3d(${
         width / 2 - camera.x * camera.scale
       }px, ${height / 2 - camera.y * camera.scale}px, 0) scale(${
         camera.scale
       })`;
       node.style.setProperty("--map-scale", String(camera.scale));
+      // No inverse scaling: text and hit targets stay at native CSS resolution.
+      pinsRef.current?.querySelectorAll<HTMLElement>("[data-world-x]").forEach((pin) => {
+        const x = width / 2 + (Number(pin.dataset.worldX) - camera.x) * camera.scale;
+        const y = height / 2 + (Number(pin.dataset.worldY) - camera.y) * camera.scale;
+        pin.style.left = `${Math.round(x)}px`;
+        pin.style.top = `${Math.round(y)}px`;
+      });
       viewportRef.current?.setAttribute(
         "data-camera",
         `${camera.x.toFixed(4)},${camera.y.toFixed(4)},${camera.scale.toFixed(4)}`,
       );
       viewportRef.current?.setAttribute(
         "data-texel",
-        globalTexelCssSize(camera.scale).toFixed(2),
+        Math.max(2, MAP_WIDTH / 4096 * camera.scale).toFixed(2),
       );
-      const insets = chromeInsets(width, Boolean(selectedRef.current));
+      const insets = chromeInsets(width, Boolean(selectedRef.current), height);
       const anchor = usableViewportCenter({ width, height }, insets);
       const worldAnchor = screenToWorld(anchor, camera, { width, height });
       viewportRef.current?.setAttribute(
@@ -495,7 +518,7 @@ export default function PixelMap({
       }
       if (publish) publishView();
     },
-    [publishView],
+    [publishView, ready],
   );
 
   const bumpLayout = useCallback(() => {
@@ -511,12 +534,10 @@ export default function PixelMap({
     }
     syncInteraction();
     setBusy(false);
-    setSettledCountry(focusCountryRef.current);
     setFocusedHubId(focusedHubRef.current);
     bandRef.current = lodBandFromScale(cameraRef.current.scale);
     bumpLayout();
     applyCamera(true);
-    paintRegionalForCamera(cameraRef.current);
   }, [applyCamera, bumpLayout, setBusy, syncInteraction]);
 
   const scheduleSettle = useCallback(() => {
@@ -542,9 +563,10 @@ export default function PixelMap({
         });
       }
       syncInteraction();
+      setHoverTarget(null);
       setBusy(true);
     },
-    [setBusy, syncInteraction],
+    [setBusy, setHoverTarget, syncInteraction],
   );
 
   const tickRef = useRef<(now: number) => boolean>(() => false);
@@ -572,16 +594,16 @@ export default function PixelMap({
     }
 
     if (dragRef.current || pinchRef.current) keep = true;
-    applyCamera(false);
-
     const rippleFrame = rippleRef.current?.render(now);
     if (rippleFrame) {
       viewportRef.current?.setAttribute(
         "data-ripples",
         String(rippleFrame.activeCount),
       );
+      if (rippleFrame.dirtyRects.length) terrainDrawKey.current = "";
       if (rippleFrame.needsAnimationFrame) keep = true;
     }
+    applyCamera(false);
     return keep;
   };
 
@@ -630,6 +652,7 @@ export default function PixelMap({
       const insets = chromeInsets(
         viewRef.current.width,
         Boolean(selectedRef.current),
+        viewRef.current.height,
       );
       const anchor = usableViewportCenter(viewRef.current, insets);
       const near =
@@ -640,7 +663,6 @@ export default function PixelMap({
         animationRef.current = null;
         applyCamera(true);
         bumpLayout();
-        setSettledCountry(focusCountryRef.current);
         setFocusedHubId(focusedHubRef.current);
         setBusy(false);
         return;
@@ -654,7 +676,6 @@ export default function PixelMap({
         anchor,
       };
       markMotion(phase);
-      paintRegionalForCamera(to);
       startLoop();
     },
     [
@@ -668,52 +689,11 @@ export default function PixelMap({
     ],
   );
 
-  const paintRegionalForCamera = useCallback((camera: Camera) => {
-    const image = earthImageRef.current;
-    const canvas = regionalCanvasRef.current;
-    const { width, height } = viewRef.current;
-    if (!image || !canvas || width < 8 || height < 8) return;
-    const opacity = regionalOpacity(camera.scale);
-    if (opacity <= 0) {
-      setRegionalLayer((current) =>
-        current.opacity === 0 ? current : { ...current, opacity: 0 },
-      );
-      return;
-    }
-    const world = clampWorldRectToMap(
-      visibleWorldRect(camera, width, height, 0.32),
-    );
-    const sourceRect = worldRectToSourceRect(
-      world,
-      image.naturalWidth,
-      image.naturalHeight,
-    );
-    const raster = regionalRasterSize(sourceRect);
-    const result = paintTerrain({
-      source: image,
-      width: raster.width,
-      height: raster.height,
-      palette: terrainPalette(canvas.closest(`.${styles.root}`)),
-      sourceRect,
-    });
-    canvas.width = raster.width;
-    canvas.height = raster.height;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.putImageData(result.baseImageData, 0, 0);
-    setRegionalLayer({
-      x: world.x,
-      y: world.y,
-      width: world.width,
-      height: world.height,
-      opacity,
-    });
-  }, []);
 
   const spawnRipple = useCallback(
     (screenPoint: Point, strong: boolean) => {
       const engine = rippleRef.current;
-      if (!engine || reducedRef.current || document.hidden) return;
+      if (!engine || reducedRef.current || document.hidden || cameraRef.current.scale < 1.5) return;
       const now = performance.now();
       const previous = lastRippleRef.current;
       if (
@@ -729,17 +709,17 @@ export default function PixelMap({
         viewRef.current,
       );
       const sourcePoint = {
-        x: (world.x / MAP_WIDTH) * MAP_COLS,
-        y: (world.y / MAP_HEIGHT) * MAP_ROWS,
+        x: (world.x / MAP_WIDTH) * 4096,
+        y: (world.y / MAP_HEIGHT) * 2048,
       };
       const cssPixelsPerTexel =
-        (MAP_WIDTH / MAP_COLS) * cameraRef.current.scale;
+        (MAP_WIDTH / 4096) * cameraRef.current.scale;
       engine.add({
         x: sourcePoint.x,
         y: sourcePoint.y,
-        cssRadius: strong ? 84 : 60,
+        cssRadius: 60,
         cssPixelsPerSourceTexel: cssPixelsPerTexel,
-        ringCount: strong ? 3 : 2,
+        ringCount: 2,
       });
       viewportRef.current?.setAttribute(
         "data-ripples",
@@ -756,42 +736,31 @@ export default function PixelMap({
   );
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = regionalCanvasRef.current;
     if (!canvas) return;
     let live = true;
     setReady(false);
     rippleRef.current?.reset();
     rippleRef.current = null;
-
+    terrainDrawKey.current = "";
     const image = new Image();
-    image.src = "/travel/earth.jpg";
-    image.onerror = () => {
-      if (live) setReady(true);
-    };
     image.onload = () => {
       if (!live) return;
-      earthImageRef.current = image;
-      const result = paintTerrain({
-        source: image,
-        width: MAP_COLS,
-        height: MAP_ROWS,
-        palette: terrainPalette(canvas.closest(`.${styles.root}`)),
-      });
+      setTerrainError(false);
+      const terrain = paintTerrain({ source: image, width: 4096, height: 2048,
+        palette: terrainPalette(canvas.closest(`.${styles.root}`)) });
+      canvas.width = terrain.width;
+      canvas.height = terrain.height;
       const context = canvas.getContext("2d");
-      if (!context) {
-        setReady(true);
-        return;
-      }
-      context.putImageData(result.baseImageData, 0, 0);
-      rippleRef.current = createTerrainRippleEngine({
-        context,
-        baseImageData: result.baseImageData,
-        landMask: result.landMask,
-        reducedMotion: reducedRef.current,
-      });
-      paintRegionalForCamera(cameraRef.current);
+      if (!context) return;
+      context.putImageData(terrain.baseImageData, 0, 0);
+      rippleRef.current = createTerrainRippleEngine({ context, baseImageData: terrain.baseImageData,
+        landMask: terrain.landMask, reducedMotion: reducedRef.current, maxDisplacementTexels: 0.6 });
+      setRegionalLayer({ x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT, opacity: 1 });
       setReady(true);
     };
+    image.onerror = () => { if (live) setTerrainError(true); };
+    image.src = "/travel/earth.jpg";
 
     return () => {
       live = false;
@@ -816,6 +785,13 @@ export default function PixelMap({
       );
       if (hidden) {
         rippleRef.current?.pause();
+        activePointersRef.current.clear();
+        dragRef.current = null;
+        pinchRef.current = null;
+        animationRef.current = null;
+        interactionRef.current = createInteractionState({ selectedId: selectedRef.current });
+        setBusy(false);
+        syncInteraction();
         if (loopRef.current) {
           cancelAnimationFrame(loopRef.current);
           loopRef.current = 0;
@@ -828,7 +804,7 @@ export default function PixelMap({
     document.addEventListener("visibilitychange", onVisibility);
     onVisibility();
     return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [startLoop]);
+  }, [startLoop, setBusy, syncInteraction]);
 
   useEffect(() => {
     const node = viewportRef.current;
@@ -838,6 +814,10 @@ export default function PixelMap({
       const next = { width: rect.width, height: rect.height };
       viewRef.current = next;
       setView(next);
+      if (!initializedRef.current && next.width > 80) {
+        initializedRef.current = true;
+        cameraRef.current = overviewCamera(next);
+      }
       cameraRef.current = clampCamera(cameraRef.current);
       applyCamera(true);
       bumpLayout();
@@ -882,7 +862,7 @@ export default function PixelMap({
           { minX: point.x, maxX: point.x, minY: point.y, maxY: point.y },
           viewRef.current,
           {
-            insets: chromeInsets(viewRef.current.width, true),
+            insets: chromeInsets(viewRef.current.width, true, viewRef.current.height),
             padding: 0,
             minScale: Math.max(cameraRef.current.scale, 3.1),
             maxScale: MAX_SCALE,
@@ -893,7 +873,7 @@ export default function PixelMap({
       ),
       CAMERA_TRANSITION_MS,
     );
-  }, [selectedId, startCameraAnimation, viewReady]);
+  }, [selectedId, startCameraAnimation, viewReady, clampCamera]);
 
   useEffect(() => {
     if (!viewReady || focusTick < 1 || selectedRef.current) return;
@@ -923,10 +903,11 @@ export default function PixelMap({
       ),
       CAMERA_TRANSITION_MS,
     );
-  }, [focusTick, startCameraAnimation, viewReady]);
+  }, [focusTick, startCameraAnimation, viewReady, clampCamera]);
 
   useEffect(() => {
     if (!viewReady) return;
+    setHoverTarget(null);
     const previous = previousModeRef.current;
     previousModeRef.current = mode;
     if (mode === "lived" && previous !== "lived") {
@@ -947,7 +928,7 @@ export default function PixelMap({
             {
               insets: chromeInsets(viewRef.current.width, false),
               padding: 0.35,
-              minScale: 1.2,
+              minScale: MIN_SCALE,
               maxScale: 2.45,
             },
           ),
@@ -965,7 +946,9 @@ export default function PixelMap({
     publishView();
   }, [
     bumpLayout,
+    clampCamera,
     mode,
+    setHoverTarget,
     publishView,
     startCameraAnimation,
     viewReady,
@@ -976,6 +959,8 @@ export default function PixelMap({
     if (!node) return;
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
+      onExploreRef.current();
+      const pendingScale = animationRef.current?.phase === "zooming" ? animationRef.current.to.scale : cameraRef.current.scale;
       cancelCameraMotion();
       const rect = node.getBoundingClientRect();
       const screenPoint = {
@@ -984,25 +969,25 @@ export default function PixelMap({
       };
       const current = cameraRef.current;
 
-      if (wheelShouldZoom(event)) {
+      const now = performance.now();
+      if (!wheelGestureRef.current || now - wheelGestureRef.current.time > WHEEL_SETTLE_MS) {
+        wheelGestureRef.current = { zoom: wheelShouldZoom(event), time: now };
+      }
+      wheelGestureRef.current.time = now;
+      if (wheelGestureRef.current.zoom) {
         const delta =
           event.deltaMode === WheelEvent.DOM_DELTA_LINE
             ? event.deltaY * 16
             : event.deltaY;
         const scale = clamp(
-          current.scale *
+          pendingScale *
             Math.exp(-clamp(delta, -80, 80) * 0.0018),
           MIN_SCALE,
           MAX_SCALE,
         );
-        cameraRef.current = clampCamera(
-          zoomAtScreenPoint(
-            current,
-            scale,
-            screenPoint,
-            viewRef.current,
-          ),
-        );
+        const target = clampCamera(zoomAtScreenPoint(current, scale, screenPoint, viewRef.current));
+        if (reducedRef.current) cameraRef.current = target;
+        else animationRef.current = { from: {...current}, to: target, start: performance.now(), duration: 180, phase: "zooming", anchor: screenPoint };
         markMotion("zooming");
       } else {
         cameraRef.current = clampCamera(
@@ -1066,15 +1051,21 @@ export default function PixelMap({
     if (event.button !== 0) return;
     if ((event.target as HTMLElement).closest("[data-map-chrome]")) return;
     const point = localPoint(event.clientX, event.clientY);
+    if (activePointersRef.current.size === 0) pinchedRef.current = false;
     activePointersRef.current.set(event.pointerId, point);
     cancelCameraMotion();
+    setHoverTarget(null);
+    setBusy(false);
 
     if (
       event.pointerType === "touch" &&
       activePointersRef.current.size === 2
     ) {
+      pinchedRef.current = true;
+      onExploreRef.current();
       const entries = [...activePointersRef.current.entries()];
       const [first, second] = entries;
+      event.currentTarget.setPointerCapture(first[0]);
       const center = midpoint(first[1], second[1]);
       pinchRef.current = {
         pointerIds: [first[0], second[0]],
@@ -1167,6 +1158,7 @@ export default function PixelMap({
     ) {
       event.currentTarget.setPointerCapture(event.pointerId);
       drag.captured = true;
+      onExploreRef.current();
       setHoveredId(null);
       setBusy(true);
       syncInteraction();
@@ -1208,8 +1200,18 @@ export default function PixelMap({
         ...createInteractionState({ selectedId: selectedRef.current }),
         suppressPointerClick: true,
       };
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      const remaining = cancelled ? undefined : [...activePointersRef.current.entries()][0];
+      if (remaining) {
+        const [id, point] = remaining;
+        interactionRef.current = interactionReducer(interactionRef.current, { type: "POINTER_DOWN", pointerId: id, point });
+        dragRef.current = { pointerId: id, startCamera: {...cameraRef.current}, lastPoint: point,
+          lastTime: performance.now(), velocity: {x: 0, y: 0}, captured: true };
+      } else {
+        activePointersRef.current.clear();
+        scheduleSettle();
+      }
       syncInteraction();
-      scheduleSettle();
       return;
     }
 
@@ -1220,6 +1222,7 @@ export default function PixelMap({
       type: cancelled ? "POINTER_CANCEL" : "POINTER_UP",
       pointerId: event.pointerId,
     });
+    if (cancelled || pinchedRef.current) interactionRef.current.suppressPointerClick = true;
     dragRef.current = null;
     if (
       drag.captured &&
@@ -1229,8 +1232,7 @@ export default function PixelMap({
     }
 
     if (
-      wasDragging &&
-      !cancelled
+      wasDragging || cancelled
     ) {
       scheduleSettle();
     } else if (!wasDragging) {
@@ -1241,19 +1243,22 @@ export default function PixelMap({
   };
 
   const zoomFromCenter = (direction: 1 | -1) => {
+    onExploreRef.current();
+    const base = animationRef.current?.phase === "zooming" ? animationRef.current.to : cameraRef.current;
     const scale = clamp(
-      nextButtonZoomScale(cameraRef.current.scale, direction),
+      nextButtonZoomScale(base.scale, direction),
       MIN_SCALE,
       MAX_SCALE,
     );
     const insets = chromeInsets(
       viewRef.current.width,
       Boolean(selectedRef.current),
+      viewRef.current.height,
     );
     startCameraAnimation(
       clampCamera(
         zoomAtUsableCenter(
-          cameraRef.current,
+          base,
           scale,
           viewRef.current,
           insets,
@@ -1289,12 +1294,13 @@ export default function PixelMap({
               : null;
     if (!delta) return;
     event.preventDefault();
+    onExploreRef.current();
     cancelCameraMotion();
     cameraRef.current = clampCamera(
       panByScreenDelta(cameraRef.current, delta),
     );
     applyCamera(true);
-    bumpLayout();
+    finishMotion();
   };
 
   const focusHub = (hubId: TravelHubId) => {
@@ -1374,25 +1380,11 @@ export default function PixelMap({
     void layoutVersion;
     return allEntities.filter((entity) => {
       if (entity.selected) return true;
-      if (
-        focusedHubId &&
-        entity.hubId !== focusedHubId &&
-        level === "metro"
-      ) {
-        return false;
-      }
-      if (
-        settledCountry &&
-        level !== "world" &&
-        entity.place.countryCode !== settledCountry
-      ) {
-        return false;
-      }
       const x = width / 2 + (entity.x - camera.x) * camera.scale;
       const y = height / 2 + (entity.y - camera.y) * camera.scale;
       return x > -40 && x < width + 40 && y > -40 && y < height + 40;
     });
-  }, [allEntities, focusedHubId, layoutVersion, level, settledCountry]);
+  }, [allEntities, layoutVersion]);
 
   const labels = useMemo(() => {
     const camera = cameraRef.current;
@@ -1406,7 +1398,7 @@ export default function PixelMap({
       y: height / 2 + (entity.y - camera.y) * camera.scale,
     });
     for (const entity of entities) {
-      const hovered = entity.id === hoveredId;
+      const hovered = false;
       const currentHome = entity.members.some(
         (place) => place.id === currentHomeId,
       );
@@ -1421,19 +1413,6 @@ export default function PixelMap({
       const worldDestination =
         entity.place.featured && entity.place.importance >= 94;
       if (
-        (focusedHubId &&
-          entity.hubId !== focusedHubId &&
-          !entity.selected &&
-          !hovered) ||
-        (focusCountry &&
-          settledCountry &&
-          entity.place.countryCode !== settledCountry &&
-          !entity.selected &&
-          !hovered)
-      ) {
-        continue;
-      }
-      if (
         mode === "lived" &&
         entity.place.relationship === "visited" &&
         !entity.selected &&
@@ -1442,7 +1421,7 @@ export default function PixelMap({
         continue;
       }
       const persistentPastLived =
-        pastLived && (level === "metro" || mode === "lived");
+        pastLived;
       const persistentFeatured =
         level === "world"
           ? worldDestination
@@ -1475,8 +1454,8 @@ export default function PixelMap({
         focused: hovered,
         featuredHub,
         significantDestination,
-        markerRadius: 16,
-        estimatedHeight: entity.kind === "hub" && entity.count > 1 ? 32 : 22,
+        markerRadius: 25,
+        estimatedHeight: entity.kind === "hub" && entity.count > 1 ? 34 : 24,
       });
     }
 
@@ -1531,25 +1510,22 @@ export default function PixelMap({
         viewportPadding: 8,
         reservedRects: reserved,
         level,
-        worldLabelLimit: mode === "lived" ? 4 : 6,
+        worldLabelLimit: width <= 820 ? 4 : mode === "lived" ? 7 : 8,
         averageCharacterWidth: 8,
         labelHeight: 22,
-        horizontalPadding: 8,
+        horizontalPadding: 10,
         collisionPadding: 4,
-        markerRadius: 14,
+        markerRadius: 25,
       }).map((label) => [label.id, label]),
     );
   }, [
     currentHomeId,
     entities,
-    focusCountry,
     focusedHubId,
-    hoveredId,
     layoutVersion,
     level,
     mode,
     selectedId,
-    settledCountry,
     view.height,
     view.width,
   ]);
@@ -1604,11 +1580,12 @@ export default function PixelMap({
     >
       <p id="travel-map-description" className={styles.srOnly}>
         Explore a pixel world map. Drag or use arrow keys to pan. Pinch, use
-        the mouse wheel, or press plus and minus to zoom.         Use TRAVEL MAP or LIFE PATH to change which story is emphasized.
+        the mouse wheel, or press plus and minus to zoom.         Use ALL, LIVED, or VISITED to change which story is emphasized.
         Activate a travel hub to reveal nearby places and activate a place to
         open its story. Escape closes an open place card.
       </p>
-      {!ready ? <p className={styles.mapBoot}>LOADING WORLD…</p> : null}
+      {!ready ? <p className={styles.mapBoot} role="status">{terrainError ? "Terrain unavailable. Reload to try again." : "LOADING WORLD…"}</p> : null}
+      <canvas ref={terrainViewportRef} className={styles.terrainViewport} aria-hidden="true" />
 
       <div
         ref={worldRef}
@@ -1620,14 +1597,7 @@ export default function PixelMap({
         }}
         data-layer="world"
       >
-        <div className={styles.terrain} data-layer="terrain">
-          <canvas
-            ref={canvasRef}
-            className={styles.earth}
-            width={MAP_COLS}
-            height={MAP_ROWS}
-            aria-hidden="true"
-          />
+        <div className={styles.terrain} data-layer="terrain" style={{ visibility: "hidden" }}>
           <canvas
             ref={regionalCanvasRef}
             className={styles.regionEarth}
@@ -1641,12 +1611,7 @@ export default function PixelMap({
             aria-hidden="true"
             data-regional-terrain={regionalLayer.opacity > 0 ? "1" : "0"}
           />
-          {reducedMotion ? null : (
-            <>
-              <div className={styles.ocean} aria-hidden="true" />
-              <div className={styles.cloudShadows} aria-hidden="true" />
-            </>
-          )}
+
         </div>
 
         <svg
@@ -1655,6 +1620,12 @@ export default function PixelMap({
           aria-hidden="true"
           data-layer="routes"
         >
+          {entities.map(entity => {
+            const point = cityPoint(entity.place);
+            return Math.hypot(entity.x - point.x, entity.y - point.y) * layoutScale > 4
+              ? <line key={`leader-${entity.id}`} className={styles.markerLeader}
+                  x1={point.x} y1={point.y} x2={entity.x} y2={entity.y} /> : null;
+          })}
           {mode === "lived" ? (
             <>
               <polyline
@@ -1697,7 +1668,8 @@ export default function PixelMap({
             : null}
         </svg>
 
-        <div className={styles.pins} data-layer="pins">
+      </div>
+        <div ref={pinsRef} className={styles.pins} data-layer="pins">
           {entities.map((entity) => {
             const label = labels.get(entity.id);
             const hovered = hoveredId === entity.id;
@@ -1747,8 +1719,8 @@ export default function PixelMap({
                   .filter(Boolean)
                   .join(" ")}
                 style={{
-                  left: entity.x,
-                  top: entity.y,
+                  left: Math.round(view.width / 2 + (entity.x - cameraRef.current.x) * cameraRef.current.scale),
+                  top: Math.round(view.height / 2 + (entity.y - cameraRef.current.y) * cameraRef.current.scale),
                   zIndex:
                     entity.presentationTier === "hero"
                       ? 8
@@ -1761,6 +1733,8 @@ export default function PixelMap({
                 }}
                 aria-label={entityA11yLabel(entity)}
                 aria-pressed={selected}
+                data-world-x={entity.x}
+                data-world-y={entity.y}
                 data-entity-id={entity.id}
                 data-place-id={entity.place.id}
                 data-relationship={entity.place.relationship}
@@ -1775,6 +1749,8 @@ export default function PixelMap({
                 }
                 onPointerEnter={() => setHoverTarget(entity.id)}
                 onPointerLeave={() => setHoverTarget(null)}
+                onFocus={() => setHoverTarget(entity.id)}
+                onBlur={() => setHoverTarget(null)}
               >
                 <span className={styles.node} aria-hidden="true" />
                 {selected ? (
@@ -1819,9 +1795,9 @@ export default function PixelMap({
             );
           })}
         </div>
-      </div>
 
       <div className={styles.crt} aria-hidden="true" />
+      <div className={styles.mapHint} data-map-chrome>DRAG TO EXPLORE · SCROLL TO ZOOM</div>
       <div
         className={styles.zoomHud}
         data-layer="chrome"
@@ -1845,6 +1821,14 @@ export default function PixelMap({
         >
           +
         </button>
+        <button type="button" className={styles.zoomBtn} aria-label="Reset world view" data-interactive
+          onClick={() => {
+            onReset();
+            focusCountryRef.current = null;
+            focusedHubRef.current = null;
+            setFocusedHubId(null);
+            startCameraAnimation(overviewCamera(viewRef.current));
+          }}>⌂</button>
       </div>
     </div>
   );

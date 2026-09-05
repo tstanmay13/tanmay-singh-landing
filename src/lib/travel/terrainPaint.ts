@@ -219,7 +219,7 @@ function luminance(red: number, green: number, blue: number) {
  * rather than a particular map color, keeping snow and pale land out of the
  * water mask.
  */
-function sourceLooksLikeWater(
+export function sourceLooksLikeWater(
   red: number,
   green: number,
   blue: number,
@@ -233,6 +233,9 @@ function sourceLooksLikeWater(
   const blueOverGreen = blue - green;
   const light = luminance(red, green, blue);
 
+  // Bathymetry includes almost-black blue; an absolute chroma threshold
+  // turned deep ocean into enormous phantom islands.
+  if (blue > red * 1.25 && blue >= green * 1.12 && blue - red >= 3) return true;
   return (
     light < 210 &&
     chroma > 18 &&
@@ -574,6 +577,8 @@ export function paintTerrain({
             : colors.land.dry;
       } else if (light < lowCut) {
         color = colors.land.shadow;
+      } else if (light < middleCut) {
+        color = colors.land.low;
       } else if (green > 14 || light < highCut) {
         color = colors.land.mid;
       } else {

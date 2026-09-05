@@ -11,8 +11,8 @@ import { useTheme } from "@/components/ThemeProvider";
 import {
   HUB_DEFINITIONS,
   getCurrentHome,
+  getResidenceChapters,
   getTravelPlace,
-  travelCatalog,
   travelPlaces,
 } from "@/content/travel/catalog";
 import type {
@@ -63,8 +63,9 @@ const FILTERS: ReadonlyArray<{
   label: string;
   description: string;
 }> = [
-  { id: "all", label: "TRAVEL MAP", description: "Show every destination" },
-  { id: "lived", label: "LIFE PATH", description: "Show home chapters" },
+  { id: "all", label: "ALL", description: "Homes and travel experiences" },
+  { id: "lived", label: "LIVED", description: "Follow my life chapters" },
+  { id: "visited", label: "VISITED", description: "Explore travel experiences" },
 ];
 
 function usePrefersReducedMotion() {
@@ -111,6 +112,8 @@ export default function TravelStage() {
       ),
     [places],
   );
+  const chapters = useMemo(() => getResidenceChapters(), []);
+  const countries = useMemo(() => [...new Map(places.map(place => [place.countryCode, {code: place.countryCode, name: place.country}])).values()], [places]);
   const currentHome = useMemo(() => getCurrentHome(), []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [highlightCountry, setHighlightCountry] = useState<string | null>(null);
@@ -214,7 +217,9 @@ export default function TravelStage() {
     statsContext,
     HUB_DEFINITIONS,
   );
-  const stats = contextualStats?.hud ?? [];
+  const stats = (mode === "visited"
+    ? deriveContextualTravelStats(places.filter(place => place.relationship === "visited"), statsContext, HUB_DEFINITIONS)?.hud
+    : contextualStats?.hud)?.filter(stat => stat.id !== "progression" && stat.id !== "visit-years" && !(mode === "visited" && (stat.id === "lived" || stat.id === "homes"))).slice(0, 3) ?? [];
   const activeHub = atlas.hubId
     ? hubsById.get(atlas.hubId) ?? null
     : null;
@@ -224,7 +229,7 @@ export default function TravelStage() {
       ? "LIFE PATH"
       : activeHub
         ? activeHub.name.toLocaleUpperCase("en-US")
-      : atlas.title;
+      : atlas.band === "world" ? "A WORLD OF CHAPTERS" : atlas.title;
   const headerKicker = selected
     ? selectedKicker(selected)
     : mode === "lived"
@@ -232,8 +237,8 @@ export default function TravelStage() {
       : activeHub
         ? "METRO"
         : atlas.countryCode
-          ? "COUNTRY"
-          : atlas.kicker;
+          ? "EXPLORING"
+          : "TANMAY’S PERSONAL ATLAS";
 
   return (
     <div
@@ -255,6 +260,8 @@ export default function TravelStage() {
             theme={theme}
             onSelect={pickPlace}
             onView={setAtlas}
+            onExplore={() => { setFocusCountry(null); setHighlightCountry(null); }}
+            onReset={() => { setSelectedId(null); setFocusCountry(null); setHighlightCountry(null); }}
           />
         ) : (
           <p className={styles.mapBoot}>LOADING WORLD…</p>
@@ -283,10 +290,9 @@ export default function TravelStage() {
                 aria-label={`${filter.label}: ${filter.description}`}
                 onClick={() => {
                   setMode(filter.id);
-                  if (filter.id === "lived") {
-                    setSelectedId(null);
-                    setFocusCountry(null);
-                  }
+                  setSelectedId(null);
+                  setFocusCountry(null);
+                  setHighlightCountry(null);
                 }}
                 data-filter={filter.id}
                 data-interactive
@@ -308,10 +314,17 @@ export default function TravelStage() {
         <nav
           ref={stripRef}
           className={styles.worlds}
-          aria-label="Countries"
+          aria-label={mode === "lived" ? "Life chapters in chronological order" : "Countries"}
           data-layer="chrome"
         >
-          {travelCatalog.countries.map((country, index) => {
+          {mode === "lived" ? chapters.map((chapter) => (
+            <button key={chapter.id} type="button" className={`${styles.worldBtn} ${selectedId === chapter.id ? styles.worldBtnOn : ""}`}
+              onClick={() => pickPlace(chapter.id)} aria-label={`Chapter ${chapter.residenceOrder}: ${chapter.name}`} aria-pressed={selectedId === chapter.id} data-interactive>
+              <span className={styles.worldNum}>{String(chapter.residenceOrder).padStart(2, "0")}</span>
+              <span className={styles.worldName}>{chapter.name}</span>
+              {chapter.relationship === "current_home" ? <span className={styles.now}>NOW</span> : null}
+            </button>
+          )) : countries.filter(country => mode !== "visited" || places.some(place => place.countryCode === country.code && place.relationship === "visited")).map((country, index) => {
             const active = country.code === stripCountry;
             const inView =
               !focusCountry &&
@@ -344,6 +357,9 @@ export default function TravelStage() {
           })}
         </nav>
 
+        <div className={styles.legendDock} data-layer="chrome" aria-label="Map marker legend">
+          <span>⌂ Current home</span><span>◇ Past home</span><span>▣ Hub</span><span>◆ Destination</span><span>▪ Minor place</span>
+        </div>
         {selected ? (
           <PlaceCard
             key={selected.id}
@@ -351,6 +367,7 @@ export default function TravelStage() {
             hub={selectedHub}
             hubMembers={selectedHubMembers}
             onClose={closePlace}
+            onSelect={pickPlace}
           />
         ) : null}
       </div>

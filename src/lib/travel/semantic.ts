@@ -11,10 +11,10 @@ import type {
 import { cityPoint, type LodBand, type MapPoint } from "./geo";
 import { chapterMarkerLabel } from "./lifePath";
 
-export type TravelFilterMode = "all" | "lived";
+export type TravelFilterMode = "all" | "lived" | "visited";
 
 export const DFW_LIVED_CLUSTER_ID = "cluster:dfw-lived";
-export const DFW_LIVED_CLUSTER_LABEL = "01–02 DFW";
+export const DFW_LIVED_CLUSTER_LABEL = "04–05 DFW";
 
 export type SemanticMapLevel = "world" | "country" | "metro";
 
@@ -197,7 +197,8 @@ export function isPlaceVisibleAtLevel(
   const level = normalizeSemanticLevel(options.level);
   const mode = options.filterMode ?? "all";
 
-  if (mode === "lived" && level !== "metro") {
+  if (mode === "visited" && place.relationship !== "visited") return false;
+  if (mode === "lived") {
     return place.relationship !== "visited";
   }
 
@@ -205,12 +206,10 @@ export function isPlaceVisibleAtLevel(
   if (level === "country") {
     return (
       place.category === "hub" ||
-      place.category === "satellite" ||
       place.relationship !== "visited" ||
       isShowAtZoomVisible(place.showAtZoom, level)
     );
   }
-  if (mode === "lived" && place.relationship !== "visited") return true;
 
   return (
     place.category === "hub" ||
@@ -458,7 +457,7 @@ export function dfwLivedChapters(
       (place) =>
         place.hubId === "dfw" &&
         place.relationship === "lived" &&
-        (place.residenceOrder === 1 || place.residenceOrder === 2),
+        (place.residenceOrder === 4 || place.residenceOrder === 5),
     )
     .sort(
       (left, right) =>
@@ -636,7 +635,10 @@ export function buildTravelEntities(
   const selectedId = options.selectedId ?? null;
   const focusedHubId = options.focusedHubId ?? null;
   const hubs = options.hubs ?? DEFAULT_HUBS;
-  const canonicalPlaces = uniqueTravelPlaces(places);
+  const canonicalPlaces = uniqueTravelPlaces(places).filter((place) =>
+    filterMode === "visited" ? place.relationship === "visited" :
+    filterMode === "lived" ? place.relationship !== "visited" : true,
+  );
   const consumed = new Set<string>();
   const entities: TravelMapEntity[] = [];
   const entityOptions = {

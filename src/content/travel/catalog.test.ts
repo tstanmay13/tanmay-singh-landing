@@ -89,14 +89,13 @@ describe("travel catalog curation", () => {
         residenceOrder,
       })),
     ).toEqual([
-      { name: "Murphy", relationship: "lived", residenceOrder: 1 },
-      { name: "Richardson", relationship: "lived", residenceOrder: 2 },
-      { name: "Austin", relationship: "lived", residenceOrder: 3 },
-      {
-        name: "New York City",
-        relationship: "current_home",
-        residenceOrder: 4,
-      },
+      { name: "Uttar Pradesh", relationship: "lived", residenceOrder: 1 },
+      { name: "Boston", relationship: "lived", residenceOrder: 2 },
+      { name: "Bangalore", relationship: "lived", residenceOrder: 3 },
+      { name: "Richardson", relationship: "lived", residenceOrder: 4 },
+      { name: "Murphy", relationship: "lived", residenceOrder: 5 },
+      { name: "Austin", relationship: "lived", residenceOrder: 6 },
+      { name: "New York City", relationship: "current_home", residenceOrder: 7 },
     ]);
 
     expect(

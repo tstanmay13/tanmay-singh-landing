@@ -118,13 +118,23 @@ export const CANONICAL_PLACE_NAMES: Readonly<Record<string, string>> = {
  * distance. Unlisted places receive stable defaults in catalog.ts.
  */
 export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
-  // Residence chapters: exact order, intentionally no inferred dates.
+  // User-confirmed chronology; never derive residence dates from visit data.
+  [key("IN", "Uttar Pradesh", "UP")]: {
+    importance: 100, featured: true, showAtZoom: "world", relationship: "lived", residenceOrder: 1,
+    chapterTitle: "Where it began", description: "Born in Uttar Pradesh, India. The first chapter.",
+  },
+  [key("US", "Boston", "MA")]: {
+    importance: 96, featured: true, showAtZoom: "world", relationship: "lived", residenceOrder: 2, chapterTitle: "The next chapter",
+  },
+  [key("IN", "Bangalore", "KA")]: {
+    importance: 96, featured: true, showAtZoom: "world", relationship: "lived", residenceOrder: 3, chapterTitle: "Back to India",
+  },
   [key("US", "Murphy", "TX")]: {
     importance: 76,
     featured: true,
     showAtZoom: "metro",
     relationship: "lived",
-    residenceOrder: 1,
+    residenceOrder: 5,
     chapterTitle: "Past home",
     displayTitle: "Murphy, TX",
   },
@@ -133,7 +143,7 @@ export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
     featured: true,
     showAtZoom: "metro",
     relationship: "lived",
-    residenceOrder: 2,
+    residenceOrder: 4,
     chapterTitle: "Past home",
     displayTitle: "Richardson, TX",
   },
@@ -143,7 +153,7 @@ export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
     category: "hub",
     showAtZoom: "world",
     relationship: "lived",
-    residenceOrder: 3,
+    residenceOrder: 6,
     chapterTitle: "Past home",
     displayTitle: "Austin, TX",
   },
@@ -153,7 +163,7 @@ export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
     category: "destination",
     showAtZoom: "world",
     relationship: "current_home",
-    residenceOrder: 4,
+    residenceOrder: 7,
     chapterTitle: "Current home",
     displayTitle: "New York City, NY",
   },

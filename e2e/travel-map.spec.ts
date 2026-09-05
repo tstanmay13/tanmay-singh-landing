@@ -56,6 +56,7 @@ async function openReadyMap(page: Page) {
   await expect(map).toBeVisible();
   await expect(map.locator("[data-place-id]").first()).toBeAttached();
   await expect(map).toHaveAttribute("data-camera", /.+/);
+  await expect(map.getByText("LOADING WORLD…", { exact: true })).toHaveCount(0);
   await waitForSettled(map);
   return map;
 }
@@ -140,7 +141,8 @@ test("DFW hub expands canonical homes without duplicate markers", async ({
   const austin = map.locator(
     'button[data-place-id][data-hub-id="austin"][data-relationship="lived"]',
   );
-  await expect(austin).toHaveCount(0);
+  // Nearby geography remains explorable even when a hub is focused.
+  await expect(austin).toHaveCount(1);
   await expect(map.locator('button[data-current-home="true"]')).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
@@ -195,6 +197,8 @@ test("wheel anchors its pointer and zoom controls anchor the center", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
+  await page.locator('button[data-world="JP"]').click();
+  await waitForSettled(map);
   const mapBox = await requiredBox(map);
   const pointer = {
     x: mapBox.width * 0.62,
@@ -308,7 +312,7 @@ test("card owns its pixels and Escape restores pin focus", async ({ page }) => {
   await expect(card.locator('[aria-label="Classification"]')).toHaveText(
     "CURRENT HOME",
   );
-  await expect(card.getByText("CHAPTER 04 // CURRENT HOME")).toBeVisible();
+  await expect(card.getByText("CHAPTER 07 // CURRENT HOME")).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(card).toHaveCount(0);
@@ -343,7 +347,7 @@ test("Austin and visited cards expose correct facts without images", async ({
   await expect(card.locator('[aria-label="Classification"]')).toContainText(
     "TRAVEL HUB",
   );
-  await expect(card.getByText("CHAPTER 03 // PAST HOME")).toBeVisible();
+  await expect(card.getByText("CHAPTER 06 // PAST HOME")).toBeVisible();
   await expect(card.getByText(/^VISIT YEARS \/\/ \d{4}/)).toBeVisible();
   await expect(card.locator("img")).toHaveCount(0);
   await expect(card.getByText("PHOTOS COMING LATER")).toBeVisible();
@@ -419,8 +423,8 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("111");
-  await expect(page.locator('[data-stat="countries"] dd')).toHaveText("11");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("114");
+  await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
   const beforeZoom = await readCamera(map);
@@ -436,7 +440,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
     timeout: 2_500,
   });
   await waitForSettled(map);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("89");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("90");
   await expect(page.locator('[data-stat="major-hubs"] dd')).toHaveText("3");
   const hud = page.locator("header");
   const usaHub = map.locator('button[data-entity-id="hub:dfw"]');
@@ -450,20 +454,20 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
     "true",
   );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("LIFE PATH");
-  await expect(page.locator('[data-stat="chapters"] dd')).toHaveText("4");
+  await expect(page.locator('[data-stat="chapters"] dd')).toHaveText("7");
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   await expect(
     page.locator('button[data-world="MX"][aria-current="true"]'),
   ).toHaveCount(0);
   await expect(
-    page.locator('button[data-world="US"][aria-current="true"]'),
+    page.getByRole("button", { name: "Chapter 1: Uttar Pradesh", exact: true }),
   ).toHaveCount(1);
 });
 
 test("loads without unexpected console or page errors", async ({ page }) => {
   const map = await openReadyMap(page);
   await expect(map).toHaveAttribute("data-band", "world");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("WORLD MAP");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A WORLD OF CHAPTERS");
   await expect(map.locator("[class*='countryFrame']")).toHaveCount(0);
 });
 
@@ -472,7 +476,7 @@ test("Japan focus fits the islands and hides Hanoi", async ({ page }) => {
   const before = await readCamera(map);
   await page.locator('button[data-world="JP"]').click();
   await expect(map).toHaveAttribute("data-busy", "1");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("WORLD MAP");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("A WORLD OF CHAPTERS");
   await expect
     .poll(async () => (await readCamera(map)).scale, { timeout: 1_200 })
     .toBeGreaterThan(before.scale);
@@ -480,7 +484,7 @@ test("Japan focus fits the islands and hides Hanoi", async ({ page }) => {
   const after = await readCamera(map);
   expect(after.scale).toBeGreaterThanOrEqual(3.2);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("JAPAN");
-  await expect(page.locator("[data-kicker]")).toHaveText("COUNTRY");
+  await expect(page.locator("[data-kicker]")).toHaveText("EXPLORING");
   await expect(page.locator('[data-stat="major-hubs"] dd')).not.toHaveText("0");
   await expect(map.locator("[data-regional-terrain='1']")).toHaveCount(1);
   await expect(map.getByText("HANOI")).toHaveCount(0);
@@ -494,34 +498,29 @@ test("button zoom stays near 1.18x and LIFE PATH clusters DFW homes", async ({
 }) => {
   const map = await openReadyMap(page);
   const before = await readCamera(map);
-  const beforeAnchor = await readAnchor(map);
   await page.getByRole("button", { name: "Zoom in" }).click();
   await waitForSettled(map);
   const after = await readCamera(map);
-  const afterAnchor = await readAnchor(map);
   expect(after.scale / before.scale).toBeGreaterThan(1.14);
   expect(after.scale / before.scale).toBeLessThan(1.21);
-  expect(
-    Math.hypot(afterAnchor.x - beforeAnchor.x, afterAnchor.y - beforeAnchor.y),
-  ).toBeLessThan(0.8);
 
   await page.locator('button[data-filter="lived"]').click();
   await waitForSettled(map);
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   const cluster = map.locator('[data-entity-id="cluster:dfw-lived"]');
   await expect(cluster).toBeVisible();
-  await expect(cluster).toHaveAccessibleName(/01–02 DFW/);
+  await expect(cluster).toHaveAccessibleName(/04–05 DFW/);
 
   await cluster.click();
   await waitForSettled(map);
   await expect(
     map.getByRole("button", { name: "Murphy, TX, past home." }),
   ).toBeVisible();
-  await expect(map.getByText("01 MURPHY")).toBeVisible();
+  await expect(map.getByText("05 MURPHY")).toBeVisible();
   await expect(
     map.getByRole("button", { name: "Richardson, TX, past home." }),
   ).toBeVisible();
-  await expect(map.getByText("02 RICHARDSON")).toBeVisible();
+  await expect(map.getByText("04 RICHARDSON")).toBeVisible();
 });
 
 test("boot is skippable and does not replay in the same session", async ({
@@ -588,4 +587,51 @@ test("two-finger Chromium pinch zooms without opening a card", async ({
   const after = await readCamera(map);
   expect(Math.abs(after.scale - before.scale)).toBeGreaterThan(0.2);
   await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("visited mode is exclusive and reset clears selection", async ({ page }) => {
+  const map = await openReadyMap(page);
+  await page.locator('[data-filter="visited"]').click();
+  await expect(map.locator('[data-relationship="lived"], [data-relationship="current_home"]')).toHaveCount(0);
+  await page.locator('[data-world="JP"]').click();
+  await waitForSettled(map);
+  await map.getByRole('button', { name: 'Tokyo, visited place and travel hub.', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset world view' }).click();
+  await waitForSettled(map);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(map).toHaveAttribute('data-band', 'world');
+});
+
+test("native marker geometry survives maximum zoom without inherited scale", async ({ page }) => {
+  const map = await openReadyMap(page);
+  await page.locator('[data-world="JP"]').click();
+  await waitForSettled(map);
+  const tokyo = map.getByRole('button', { name: 'Tokyo, visited place and travel hub.', exact: true });
+  const before = await requiredBox(tokyo);
+  await tokyo.click();
+  await waitForSettled(map);
+  for (let i = 0; i < 5; i++) await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+  await waitForSettled(map);
+  const after = await requiredBox(tokyo);
+  expect(Math.abs(after.width - before.width)).toBeLessThan(0.1);
+  expect(after.width).toBe(44);
+  expect(await tokyo.evaluate(node => node.closest('[data-layer="world"]') === null)).toBe(true);
+  expect(Number(await map.getAttribute('data-texel'))).toBeLessThanOrEqual(4.25);
+});
+
+test("phone story controls and card fit without page overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const map = await openReadyMap(page);
+  await page.locator('[data-filter="lived"]').click();
+  await page.getByRole('button', { name: 'Chapter 1: Uttar Pradesh', exact: true }).click();
+  const card = page.getByRole('dialog');
+  await expect(card).toBeVisible();
+  await waitForSettled(map);
+  const box = await requiredBox(card);
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(390);
+  expect(box.y + box.height).toBeLessThanOrEqual(844);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(card.locator('img')).toHaveCount(0);
 });

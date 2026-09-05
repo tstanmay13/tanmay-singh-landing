@@ -1,0 +1,37 @@
+name: Travel map checks
+on:
+  pull_request:
+    paths:
+      - 'src/components/travel/**'
+      - 'src/content/travel/**'
+      - 'src/lib/travel/**'
+      - 'e2e/travel-map.spec.ts'
+      - '.github/workflows/travel-map.yml'
+permissions:
+  contents: read
+jobs:
+  travel-map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://build-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: build-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- e2e/travel-map.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: travel-map-failures
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

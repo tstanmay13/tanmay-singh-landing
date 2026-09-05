@@ -7,7 +7,7 @@ export const MAP_HEIGHT = 1280;
 export const MAP_COLS = 320;
 export const MAP_ROWS = 160;
 
-export const MIN_SCALE = 0.42;
+export const MIN_SCALE = 0.12;
 export const MAX_SCALE = 6.8;
 /** CSS pixels per 320×160 world texel. Beyond this, swap to a regional layer. */
 export const GLOBAL_RASTER_MAX_MAGNIFICATION = 6.5;

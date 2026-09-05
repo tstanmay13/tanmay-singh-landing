@@ -19,6 +19,7 @@ export type PlaceCardProps = {
   hub?: TravelHub | null;
   hubMembers?: TravelPlace[];
   onClose: () => void;
+  onSelect?: (id: string) => void;
 };
 
 export default function PlaceCard({
@@ -26,6 +27,7 @@ export default function PlaceCard({
   hub = null,
   hubMembers = [],
   onClose,
+  onSelect,
 }: PlaceCardProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const labels = placeCardLabels(place);
@@ -104,7 +106,7 @@ export default function PlaceCard({
           <ul className={styles.hubList}>
             {nearby.map((member) => (
               <li key={member.canonicalKey}>
-                {member.displayTitle ?? member.name}
+                <button type="button" onClick={() => onSelect?.(member.id)}>{member.displayTitle ?? member.name}</button>
               </li>
             ))}
           </ul>
@@ -112,7 +114,11 @@ export default function PlaceCard({
       ) : null}
 
       {photoState === "empty" ? (
-        <p className={styles.emptyStills}>{EMPTY_PHOTO_COPY}</p>
+        <div className={styles.emptyStills}>
+          <span className={styles.emptyPhotoIcon} aria-hidden="true">▧</span>
+          <p>{EMPTY_PHOTO_COPY}</p>
+          <span className={styles.cardMeta}>A place in my story. Memories to follow.</span>
+        </div>
       ) : (
         <section aria-label={`${place.name} stills`}>
           <p className={styles.filmTag}>STILLS</p>
