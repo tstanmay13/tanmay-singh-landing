@@ -46,42 +46,63 @@ const FALLBACK_REPOS: RepoData[] = [
   },
 ];
 
+function nextPageUrl(linkHeader: string | null): string | null {
+  if (!linkHeader) return null;
+  for (const part of linkHeader.split(",")) {
+    if (part.includes('rel="next"')) {
+      const match = part.match(/<([^>]+)>/);
+      return match?.[1] ?? null;
+    }
+  }
+  return null;
+}
+
+async function fetchOwnerRepos(token: string | undefined): Promise<GitHubRepo[]> {
+  const headers = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    Accept: "application/vnd.github.v3+json",
+  };
+  let url: string | null = token
+    ? "https://api.github.com/user/repos?type=owner&sort=updated&per_page=100"
+    : "https://api.github.com/users/tstanmay13/repos?type=owner&sort=updated&per_page=100";
+
+  const repos: GitHubRepo[] = [];
+  while (url) {
+    const response = await fetch(url, {
+      headers,
+      next: { revalidate: 3600 },
+    });
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with ${response.status}`);
+    }
+    const page: GitHubRepo[] = await response.json();
+    repos.push(...page);
+    url = nextPageUrl(response.headers.get("link"));
+  }
+  return repos;
+}
+
 export async function GET() {
   const token = process.env.GH_TOKEN_BASIC;
 
   try {
-    // Use /user/repos (authenticated) to include private repos, fall back to /users/ for unauthenticated
-    const apiUrl = token
-      ? "https://api.github.com/user/repos?type=owner&sort=updated&per_page=100"
-      : "https://api.github.com/users/tstanmay13/repos?type=owner&sort=updated&per_page=100";
-
-    const response = await fetch(apiUrl, {
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        Accept: "application/vnd.github.v3+json",
-      },
-      next: { revalidate: 3600 },
-    });
-
-    if (!response.ok) {
-      throw new Error(`GitHub API responded with ${response.status}`);
-    }
-
-    const rawRepos: GitHubRepo[] = await response.json();
+    const rawRepos = await fetchOwnerRepos(token);
 
     const BLOCKED_REPOS = ["tanmay-irika-austin-demo"];
     // Coursework/scratch repos read as junk on a portfolio page.
     const JUNK_PATTERNS = /^(homework|hw)\d*|helloworld|hello-world|-final$|^test-|^commerce/i;
+
+    // Hero count: everything you own, public and private. Forks are not yours.
+    const projectCount = rawRepos.filter((repo) => !repo.fork).length;
 
     const repos: RepoData[] = rawRepos
       .filter(
         (repo) =>
           !repo.fork &&
           !repo.archived &&
-          !repo.private && // lock icons on a portfolio help no one
+          !repo.private &&
           !BLOCKED_REPOS.includes(repo.name) &&
           !JUNK_PATTERNS.test(repo.name) &&
-          // A repo earns a card by having a description; write one on GitHub to surface it here.
           repo.description != null
       )
       .map((repo) => ({
@@ -99,9 +120,13 @@ export async function GET() {
       }))
       .sort((a, b) => b.stars - a.stars);
 
-    return NextResponse.json({ repos, fallback: false });
+    return NextResponse.json({ repos, projectCount, fallback: false });
   } catch (error) {
     console.error("Failed to fetch GitHub repos:", error);
-    return NextResponse.json({ repos: FALLBACK_REPOS, fallback: true });
+    return NextResponse.json({
+      repos: FALLBACK_REPOS,
+      projectCount: null,
+      fallback: true,
+    });
   }
 }
