@@ -8,18 +8,17 @@ import { useTheme } from "./ThemeProvider";
 interface NavLink {
   href: string;
   label: string;
-  icon: string;
   external?: boolean;
 }
 
 const navLinks: NavLink[] = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/games", label: "Games", icon: "🎮" },
-  { href: "/writing", label: "Writing", icon: "📝" },
-  { href: "/travel", label: "Travel", icon: "🌍" },
-  { href: "/portfolio", label: "Portfolio", icon: "💼" },
-  { href: "/resume.pdf", label: "Resume", icon: "📄", external: true },
-  { href: "/contact", label: "Contact", icon: "💌" },
+  { href: "/", label: "Home" },
+  { href: "/games", label: "Games" },
+  { href: "/writing", label: "Writing" },
+  { href: "/travel", label: "Travel" },
+  { href: "/portfolio", label: "Portfolio" },
+  { href: "/resume.pdf", label: "Resume", external: true },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function PixelNav() {
@@ -30,13 +29,12 @@ export default function PixelNav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 pixel-nav">
       <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
-        {/* Logo */}
         <Link
           href="/"
           className="flex items-center gap-2 group"
           data-interactive
         >
-          <span className="text-xl pixel-text font-bold text-[var(--color-accent)] group-hover:animate-pixel-bounce">
+          <span className="text-xl pixel-text font-bold text-[var(--color-accent)]">
             TS
           </span>
           <span className="hidden sm:inline text-xs text-[var(--color-text-secondary)] pixel-text">
@@ -44,11 +42,12 @@ export default function PixelNav() {
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => {
-            const isActive = !link.external && (pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href)));
+            const isActive =
+              !link.external &&
+              (pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(link.href)));
             const className = `px-3 py-1.5 text-xs pixel-text transition-all duration-200 border-2 ${
               isActive
                 ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
@@ -63,7 +62,6 @@ export default function PixelNav() {
                 data-interactive
                 className={className}
               >
-                <span className="mr-1.5">{link.icon}</span>
                 {link.label}
               </a>
             ) : (
@@ -73,32 +71,29 @@ export default function PixelNav() {
                 data-interactive
                 className={className}
               >
-                <span className="mr-1.5">{link.icon}</span>
                 {link.label}
               </Link>
             );
           })}
 
-          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             data-interactive
             className="ml-3 px-2.5 py-1.5 border-2 border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] transition-all duration-200 pixel-text text-xs"
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
-            {theme === "dark" ? "☀️ DAY" : "🌙 NIGHT"}
+            {theme === "dark" ? "Light" : "Dark"}
           </button>
         </div>
 
-        {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={toggleTheme}
             data-interactive
-            className="px-2 py-1.5 border-2 border-[var(--color-border)] text-sm"
+            className="px-2 py-1.5 border-2 border-[var(--color-border)] pixel-text text-xs"
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
-            {theme === "dark" ? "☀️" : "🌙"}
+            {theme === "dark" ? "Light" : "Dark"}
           </button>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -106,12 +101,11 @@ export default function PixelNav() {
             className="px-3 py-1.5 border-2 border-[var(--color-border)] pixel-text text-[var(--color-text)] text-sm"
             aria-label="Toggle menu"
           >
-            {menuOpen ? "✕" : "☰"} MENU
+            {menuOpen ? "Close" : "Menu"}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <div
         className={`md:hidden overflow-hidden transition-all duration-300 ${
           menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
@@ -119,8 +113,10 @@ export default function PixelNav() {
       >
         <div className="px-4 pb-4 flex flex-col gap-1 pixel-nav-mobile">
           {navLinks.map((link) => {
-            const isActive = !link.external && (pathname === link.href ||
-              (link.href !== "/" && pathname.startsWith(link.href)));
+            const isActive =
+              !link.external &&
+              (pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(link.href)));
             const className = `px-4 py-3 text-sm pixel-text transition-all duration-200 border-2 ${
               isActive
                 ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
@@ -136,7 +132,6 @@ export default function PixelNav() {
                 onClick={() => setMenuOpen(false)}
                 className={className}
               >
-                <span className="mr-2">{link.icon}</span>
                 {link.label}
               </a>
             ) : (
@@ -147,7 +142,6 @@ export default function PixelNav() {
                 onClick={() => setMenuOpen(false)}
                 className={className}
               >
-                <span className="mr-2">{link.icon}</span>
                 {link.label}
               </Link>
             );

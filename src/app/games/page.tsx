@@ -501,10 +501,10 @@ export default function GamesPage() {
 
           <ScrollReveal delay={100}>
             <p
-              className="pixel-text text-xs sm:text-sm animate-flicker mb-4"
+              className="text-sm mb-4"
               style={{ color: "var(--color-text-muted)" }}
             >
-              INSERT COIN TO PLAY
+              Browser games I made. Some are multiplayer.
             </p>
           </ScrollReveal>
 

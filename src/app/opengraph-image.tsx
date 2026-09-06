@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Tanmay Singh — Senior Software Engineer";
+export const alt = "Tanmay Singh";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -70,11 +70,7 @@ export default function OgImage() {
               TANMAY&nbsp;<span style={{ color: "#00ff88" }}>SINGH</span>
             </div>
             <div style={{ color: "#9a9ab2", fontSize: 30, marginTop: 28, display: "flex" }}>
-              <span style={{ color: "#00ff88" }}>&gt;</span>&nbsp;Senior software
-              engineer — SDK generators &amp; agent tooling
-            </div>
-            <div style={{ color: "#7d7d98", fontSize: 26, marginTop: 14 }}>
-              Fern (acq. Postman) · ex-Amazon Identity · NYC
+              NYC
             </div>
             <div style={{ color: "#7d7d98", fontSize: 24, marginTop: 40, display: "flex" }}>
               tanmay-singh.com
