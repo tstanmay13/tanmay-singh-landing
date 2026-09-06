@@ -419,8 +419,8 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("111");
-  await expect(page.locator('[data-stat="countries"] dd')).toHaveText("11");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("114");
+  await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
   const beforeZoom = await readCamera(map);
@@ -436,7 +436,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
     timeout: 2_500,
   });
   await waitForSettled(map);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("89");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("90");
   await expect(page.locator('[data-stat="major-hubs"] dd')).toHaveText("3");
   const hud = page.locator("header");
   const usaHub = map.locator('button[data-entity-id="hub:dfw"]');
@@ -450,7 +450,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
     "true",
   );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("LIFE PATH");
-  await expect(page.locator('[data-stat="chapters"] dd')).toHaveText("4");
+  await expect(page.locator('[data-stat="chapters"] dd')).toHaveText("7");
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   await expect(
     page.locator('button[data-world="MX"][aria-current="true"]'),
@@ -510,18 +510,18 @@ test("button zoom stays near 1.18x and LIFE PATH clusters DFW homes", async ({
   await expect(map.locator("[data-life-path]")).toHaveCount(1);
   const cluster = map.locator('[data-entity-id="cluster:dfw-lived"]');
   await expect(cluster).toBeVisible();
-  await expect(cluster).toHaveAccessibleName(/01–02 DFW/);
+  await expect(cluster).toHaveAccessibleName(/04–05 DFW/);
 
   await cluster.click();
   await waitForSettled(map);
   await expect(
     map.getByRole("button", { name: "Murphy, TX, past home." }),
   ).toBeVisible();
-  await expect(map.getByText("01 MURPHY")).toBeVisible();
+  await expect(map.getByText("05 MURPHY")).toBeVisible();
   await expect(
     map.getByRole("button", { name: "Richardson, TX, past home." }),
   ).toBeVisible();
-  await expect(map.getByText("02 RICHARDSON")).toBeVisible();
+  await expect(map.getByText("04 RICHARDSON")).toBeVisible();
 });
 
 test("two-finger Chromium pinch zooms without opening a card", async ({

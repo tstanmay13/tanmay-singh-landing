@@ -14,7 +14,7 @@ import { chapterMarkerLabel } from "./lifePath";
 export type TravelFilterMode = "all" | "lived";
 
 export const DFW_LIVED_CLUSTER_ID = "cluster:dfw-lived";
-export const DFW_LIVED_CLUSTER_LABEL = "01–02 DFW";
+export const DFW_LIVED_CLUSTER_LABEL = "04–05 DFW";
 
 export type SemanticMapLevel = "world" | "country" | "metro";
 
@@ -457,8 +457,7 @@ export function dfwLivedChapters(
     .filter(
       (place) =>
         place.hubId === "dfw" &&
-        place.relationship === "lived" &&
-        (place.residenceOrder === 1 || place.residenceOrder === 2),
+        place.relationship === "lived",
     )
     .sort(
       (left, right) =>

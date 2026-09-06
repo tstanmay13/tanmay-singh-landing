@@ -443,8 +443,8 @@ describe("dense marker spreading", () => {
       count: 2,
     });
     expect(cluster?.members.map((place) => place.name)).toEqual([
-      "Murphy",
       "Richardson",
+      "Murphy",
     ]);
     expect(
       broad.filter((entity) =>
