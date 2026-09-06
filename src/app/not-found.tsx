@@ -192,12 +192,11 @@ export default function NotFound() {
           or maybe it never existed at all.
         </p>
 
-        {/* INSERT COIN blink */}
         <p
-          className="pixel-text text-xs sm:text-sm mb-10 animate-cursor-blink"
+          className="pixel-text text-xs sm:text-sm mb-10"
           style={{ color: "var(--color-accent)" }}
         >
-          INSERT COIN TO CONTINUE
+          This page is not here.
         </p>
 
         {/* Buttons */}

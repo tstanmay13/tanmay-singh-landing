@@ -3,25 +3,20 @@ import ClientLayout from "@/components/ClientLayout";
 import "./globals.css";
 
 const DESCRIPTION =
-  "Senior software engineer in NYC. I build SDK generators and agent tooling at Fern (acquired by Postman); before that, passkeys and auth at Amazon Identity. Also: a 33-game retro arcade.";
+  "I live in NYC. I make games and whatever else I get stuck on. There's an arcade on this site.";
 
 export const metadata: Metadata = {
-  title: "Tanmay Singh — Senior Software Engineer",
+  title: "Tanmay Singh",
   description: DESCRIPTION,
   keywords: [
     "Tanmay Singh",
-    "Senior Software Engineer",
-    "SDK generation",
-    "developer experience",
-    "AI agent tooling",
-    "Fern",
-    "Postman",
+    "games",
     "NYC",
   ],
   authors: [{ name: "Tanmay Singh" }],
   creator: "Tanmay Singh",
   openGraph: {
-    title: "Tanmay Singh — Senior Software Engineer",
+    title: "Tanmay Singh",
     description: DESCRIPTION,
     url: "https://tanmay-singh.com",
     siteName: "Tanmay Singh",
@@ -30,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tanmay Singh — Senior Software Engineer",
+    title: "Tanmay Singh",
     description: DESCRIPTION,
     creator: "@tanmaysingh",
   },
@@ -47,7 +42,6 @@ const personJsonLd = {
   "@type": "Person",
   name: "Tanmay Singh",
   url: "https://tanmay-singh.com",
-  jobTitle: "Senior Software Engineer",
   worksFor: { "@type": "Organization", name: "Fern (acquired by Postman)" },
   alumniOf: { "@type": "CollegeOrUniversity", name: "University of Texas at Austin" },
   address: { "@type": "PostalAddress", addressLocality: "New York", addressRegion: "NY" },

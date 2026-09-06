@@ -27,13 +27,6 @@ interface ArcadeGame {
 interface SocialLink {
   label: string;
   href: string;
-  icon: string;
-}
-
-interface Stat {
-  label: string;
-  value: string | number;
-  icon: string;
 }
 
 /* ============================================
@@ -118,149 +111,10 @@ const ARCADE_GAMES: ArcadeGame[] = [
 ];
 
 const SOCIAL_LINKS: SocialLink[] = [
-  {
-    label: "GitHub",
-    href: "https://github.com/tstanmay13",
-    icon: "[ git ]",
-  },
-  {
-    label: "Twitter / X",
-    href: "https://twitter.com/tstanmay13",
-    icon: "[ x__ ]",
-  },
-  {
-    label: "Email",
-    href: "mailto:contact@tanmay-singh.com",
-    icon: "[ @>> ]",
-  },
+  { label: "GitHub", href: "https://github.com/tstanmay13" },
+  { label: "Twitter / X", href: "https://twitter.com/tstanmay13" },
+  { label: "Email", href: "mailto:contact@tanmay-singh.com" },
 ];
-
-// Inventory-style loadout — the tools actually in daily use, no invented percentages.
-const LOADOUT: { slot: string; items: string }[] = [
-  { slot: "LANGUAGES", items: "TypeScript · Java · Python · Rust · Go" },
-  { slot: "WIRE", items: "WebSockets · SSE · OAuth2 · OpenAPI" },
-  { slot: "INFRA", items: "AWS · Postgres · Docker · Vercel" },
-  { slot: "AGENTS", items: "Claude SDK · MCP · agent-readiness evals" },
-];
-
-const ROTATING_PROJECTS = [
-  "a Rust CLI generator",
-  "agent-readiness tooling",
-  "SDKs in six languages",
-  "too many browser games",
-];
-
-/* ============================================
-   SUBCOMPONENTS
-   ============================================ */
-
-function TypingText({ texts }: { texts: string[] }) {
-  const [index, setIndex] = useState(0);
-  const [displayed, setDisplayed] = useState("");
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    const current = texts[index];
-
-    if (!deleting && displayed === current) {
-      const timeout = setTimeout(() => setDeleting(true), 2000);
-      return () => clearTimeout(timeout);
-    }
-
-    if (deleting && displayed === "") {
-      setDeleting(false);
-      setIndex((prev) => (prev + 1) % texts.length);
-      return;
-    }
-
-    const speed = deleting ? 40 : 80;
-    const timeout = setTimeout(() => {
-      setDisplayed(
-        deleting
-          ? current.slice(0, displayed.length - 1)
-          : current.slice(0, displayed.length + 1)
-      );
-    }, speed);
-
-    return () => clearTimeout(timeout);
-  }, [displayed, deleting, index, texts]);
-
-  return (
-    <span>
-      {displayed}
-      <span
-        className="animate-cursor-blink inline-block ml-0.5"
-        style={{ color: "var(--color-accent)" }}
-      >
-        _
-      </span>
-    </span>
-  );
-}
-
-function TerminalWindow({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="pixel-border rounded-none overflow-hidden"
-      style={{ background: "var(--color-bg-card)" }}
-    >
-      {/* Title bar */}
-      <div
-        className="flex items-center gap-2 px-4 py-2 border-b-2"
-        style={{
-          background: "var(--color-bg-secondary)",
-          borderColor: "var(--color-border)",
-        }}
-      >
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ background: "var(--color-red)" }}
-        />
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ background: "var(--color-orange)" }}
-        />
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ background: "var(--color-accent)" }}
-        />
-        <span
-          className="pixel-text text-xs ml-2"
-          style={{ color: "var(--color-text-muted)", fontSize: "0.625rem" }}
-        >
-          {title}
-        </span>
-      </div>
-      {/* Content */}
-      <div className="p-5 mono-text text-sm leading-relaxed">{children}</div>
-    </div>
-  );
-}
-
-function LoadoutRow({ slot, items }: { slot: string; items: string }) {
-  return (
-    <div className="flex items-baseline gap-3 mb-3 last:mb-0">
-      <span
-        className="pixel-text w-28 text-right shrink-0"
-        style={{ color: "var(--color-accent)", fontSize: "0.625rem" }}
-      >
-        {slot}
-      </span>
-      <span
-        className="mono-text text-sm"
-        style={{ color: "var(--color-text-secondary)" }}
-      >
-        {items}
-      </span>
-    </div>
-  );
-}
 
 /* ============================================
    MAIN PAGE COMPONENT
@@ -269,7 +123,6 @@ function LoadoutRow({ slot, items }: { slot: string; items: string }) {
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [contributions, setContributions] = useState<number | null>(null);
-  const [projectCount, setProjectCount] = useState<number | null>(null);
   const aboutRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -281,47 +134,21 @@ export default function Home() {
     const fetchContributions = async () => {
       try {
         const response = await fetch("/api/github-contributions");
-        if (!response.ok) {
-          throw new Error("Failed to fetch contributions");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (typeof data.totalContributions === "number") {
+          setContributions(data.totalContributions);
         }
-        const data = await response.json();
-        setContributions(data.totalContributions);
-      } catch (error) {
-        console.error("Failed to fetch GitHub contributions:", error);
-      }
-    };
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch("/api/portfolio/repos");
-        if (!response.ok) throw new Error("Failed to fetch repos");
-        const data = await response.json();
-        setProjectCount(data.repos?.length ?? null);
       } catch {
-        // leave null
+        // Keep the placeholder rather than a made-up number.
       }
     };
     fetchContributions();
-    fetchProjects();
   }, []);
 
   const scrollToAbout = useCallback(() => {
     aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
-
-  // The classic trio — live numbers where possible, placeholders while loading.
-  const heroStats: Stat[] = [
-    { label: "YRS EXP", value: "3+", icon: ">" },
-    {
-      label: "PROJECTS",
-      value: projectCount !== null ? `${projectCount}` : "...",
-      icon: "#",
-    },
-    {
-      label: "COMMITS",
-      value: contributions !== null ? contributions.toLocaleString() : "...",
-      icon: "*",
-    },
-  ];
 
   if (!mounted) {
     return (
@@ -358,92 +185,35 @@ export default function Home() {
           ))}
         </div>
 
-        {/* ASCII art decoration */}
-        <div
-          className="mono-text text-xs mb-6 text-center animate-fade-in-up hidden sm:block"
-          style={{ color: "var(--color-text-muted)", animationDelay: "0.1s" }}
-          aria-hidden="true"
-        >
-          <pre>{`
-    ╔══════════════════════════════════════╗
-    ║  > SYSTEM BOOT... OK                ║
-    ║  > LOADING PROFILE... OK            ║
-    ║  > WELCOME, PLAYER 1                ║
-    ╚══════════════════════════════════════╝
-          `}</pre>
-        </div>
-
-        {/* Main title */}
         <h1
-          className="pixel-text text-3xl sm:text-5xl md:text-6xl text-center mb-4 leading-tight"
+          className="pixel-text text-3xl sm:text-5xl md:text-6xl text-center mb-8 leading-tight"
           style={{ color: "var(--color-text)" }}
         >
           TANMAY{" "}
           <span style={{ color: "var(--color-accent)" }}>SINGH</span>
         </h1>
 
-        {/* Subtitle with typing effect */}
-        <p
-          className="mono-text text-lg sm:text-xl md:text-2xl text-center mb-10"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          <span style={{ color: "var(--color-accent)" }}>&gt;</span>{" "}
-          <TypingText
-            texts={[
-              "Senior Software Engineer",
-              "Game Builder",
-              "SDK Generator Author",
-              "Agent Tooling Nerd",
-            ]}
-          />
-        </p>
-
-        {/* Stats bar */}
-        <div
-          className="flex flex-wrap justify-center gap-6 sm:gap-10 mb-12 animate-fade-in-up"
-          style={{ animationDelay: "0.3s" }}
-        >
-          {heroStats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div
-                className="pixel-text text-xl sm:text-2xl mb-1"
-                style={{ color: "var(--color-accent)" }}
-              >
-                <span style={{ color: "var(--color-text-muted)" }}>
-                  {stat.icon}
-                </span>{" "}
-                {stat.value}
-              </div>
-              <div
-                className="pixel-text"
-                style={{
-                  color: "var(--color-text-muted)",
-                  fontSize: "0.625rem",
-                }}
-              >
-                {stat.label}
-              </div>
-            </div>
-          ))}
+        <div className="text-center mb-12">
+          <div
+            className="pixel-text text-xl sm:text-2xl mb-1"
+            style={{ color: "var(--color-accent)" }}
+          >
+            {contributions !== null ? contributions.toLocaleString() : "..."}
+          </div>
+          <div
+            className="pixel-text"
+            style={{
+              color: "var(--color-text-muted)",
+              fontSize: "0.625rem",
+            }}
+          >
+            COMMITS
+          </div>
         </div>
 
-        {/* PRESS START button */}
-        <button
-          onClick={scrollToAbout}
-          className="pixel-btn animate-glow-pulse"
-        >
-          PRESS START
+        <button onClick={scrollToAbout} className="pixel-btn">
+          about
         </button>
-
-        {/* Scroll indicator */}
-        <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-float"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          <span className="pixel-text" style={{ fontSize: "0.625rem" }}>
-            v v v
-          </span>
-        </div>
       </section>
 
       {/* ============================================
@@ -459,51 +229,20 @@ export default function Home() {
             className="pixel-text text-xl sm:text-2xl mb-8"
             style={{ color: "var(--color-accent)" }}
           >
-            {"//"} ABOUT
+            ABOUT
           </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={100}>
-          <TerminalWindow title="tanmay@dev:~$ cat about.txt">
+          <div
+            className="pixel-border p-6 sm:p-8 mono-text text-sm leading-relaxed"
+            style={{ background: "var(--color-bg-card)" }}
+          >
             <p style={{ color: "var(--color-text-secondary)" }}>
-              <span style={{ color: "var(--color-accent)" }}>$</span> I build the
-              machinery that turns API specs into SDKs people actually want to
-              use — six languages, streaming, auth, pagination, the hard parts.
-              Lately that includes a git-native merge engine (Replay) and tooling
-              that makes CLIs legible to AI agents.
+              I live in New York. I try a lot of things. Some of them stick,
+              some of them don&apos;t. A lot of them are games, which is why
+              this place looks like an arcade.
             </p>
-            <br />
-            <p style={{ color: "var(--color-text-secondary)" }}>
-              <span style={{ color: "var(--color-accent)" }}>$</span> This site is
-              mostly an excuse to build games. There are 33 in the arcade,
-              multiplayer included. Try Merge Conflict — it&apos;s basically my
-              day job with a scoreboard.
-            </p>
-            <br />
-            <p style={{ color: "var(--color-text-muted)" }}>
-              <span style={{ color: "var(--color-orange)" }}>currently crafting:</span>{" "}
-              <TypingText texts={ROTATING_PROJECTS} />
-            </p>
-          </TerminalWindow>
-        </ScrollReveal>
-
-        {/* Daily-driver tools, inventory style */}
-        <ScrollReveal delay={200}>
-          <div className="mt-10">
-            <h3
-              className="pixel-text text-sm mb-6"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              LOADOUT
-            </h3>
-            <div
-              className="pixel-border p-5"
-              style={{ background: "var(--color-bg-card)" }}
-            >
-              {LOADOUT.map((row) => (
-                <LoadoutRow key={row.slot} slot={row.slot} items={row.items} />
-              ))}
-            </div>
           </div>
         </ScrollReveal>
       </section>
@@ -517,7 +256,7 @@ export default function Home() {
             className="pixel-text text-xl sm:text-2xl mb-10"
             style={{ color: "var(--color-accent)" }}
           >
-            {"//"} PROJECTS
+            PROJECTS
           </h2>
         </ScrollReveal>
 
@@ -591,16 +330,13 @@ export default function Home() {
             className="pixel-text text-xl sm:text-2xl mb-2 text-center inline-block w-full"
             style={{ color: "var(--color-accent)" }}
           >
-            ARCADE
+            GAMES
           </h2>
           <p
-            className="pixel-text text-center mb-10"
-            style={{
-              color: "var(--color-text-muted)",
-              fontSize: "0.625rem",
-            }}
+            className="text-center mb-10 text-sm"
+            style={{ color: "var(--color-text-muted)" }}
           >
-            INSERT COIN TO PLAY
+            A few to start. There are 33.
           </p>
         </ScrollReveal>
 
@@ -644,7 +380,7 @@ export default function Home() {
                       background: "var(--color-accent)",
                     }}
                   >
-                    PLAY NOW
+                    Play
                   </span>
                 ) : (
                   <span
@@ -666,7 +402,7 @@ export default function Home() {
         <ScrollReveal delay={400}>
           <div className="text-center">
             <Link href="/games" className="pixel-btn inline-block">
-              ENTER THE ARCADE
+              All games
             </Link>
           </div>
         </ScrollReveal>
@@ -681,91 +417,43 @@ export default function Home() {
             className="pixel-text text-xl sm:text-2xl mb-8"
             style={{ color: "var(--color-accent)" }}
           >
-            {"//"} GITHUB XP
+            GITHUB
           </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={100}>
           <div
-            className="pixel-border p-6"
+            className="pixel-border p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             style={{ background: "var(--color-bg-card)" }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <span
-                className="pixel-text text-sm"
+            <div>
+              <p
+                className="pixel-text text-sm mb-2"
                 style={{ color: "var(--color-text-secondary)" }}
               >
                 @tstanmay13
-              </span>
-              <span
-                className="pixel-text"
-                style={{
-                  color: "var(--color-text-muted)",
-                  fontSize: "0.625rem",
-                }}
-              >
-                LIFETIME XP
-              </span>
-            </div>
-
-            {/* XP Bar */}
-            <div className="mb-4">
-              <div
-                className="w-full h-8 relative"
-                style={{
-                  background: "var(--color-bg-secondary)",
-                  border: "2px solid var(--color-border)",
-                }}
-              >
-                <div
-                  className="h-full transition-all duration-2000 ease-out"
-                  style={{
-                    width: contributions !== null ? "100%" : "0%",
-                    background:
-                      "linear-gradient(90deg, var(--color-accent-secondary), var(--color-accent))",
-                    boxShadow: "0 0 15px var(--color-accent-glow)",
-                    transitionDuration: "2s",
-                  }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span
-                    className="pixel-text text-sm"
-                    style={{
-                      color:
-                        contributions !== null
-                          ? "var(--color-bg)"
-                          : "var(--color-text-muted)",
-                    }}
-                  >
-                    {contributions !== null
-                      ? `${contributions.toLocaleString()} XP`
-                      : "LOADING..."}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats row */}
-            <div className="flex justify-between">
-              <span
-                className="mono-text text-xs"
+              </p>
+              <p
+                className="mono-text text-sm"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                total contributions across all repos
-              </span>
-              <a
-                href="https://github.com/tstanmay13"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="pixel-text transition-colors duration-200 hover:underline"
-                style={{
-                  fontSize: "0.625rem",
-                  color: "var(--color-accent)",
-                }}
-              >
-                VIEW PROFILE &rarr;
-              </a>
+                {contributions !== null
+                  ? `${contributions.toLocaleString()} contributions`
+                  : "GitHub"}
+              </p>
             </div>
+            <a
+              href="https://github.com/tstanmay13"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pixel-text hover:underline"
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--color-accent)",
+              }}
+            >
+              Profile &rarr;
+            </a>
           </div>
         </ScrollReveal>
       </section>
@@ -783,17 +471,13 @@ export default function Home() {
               className="pixel-text text-lg sm:text-2xl mb-4"
               style={{ color: "var(--color-text)" }}
             >
-              PLAYER 2{" "}
-              <span style={{ color: "var(--color-accent)" }}>
-                WANTED
-              </span>
+              SAY HI
             </h2>
             <p
               className="mono-text text-sm mb-8"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              I&apos;m in NYC building SDK and agent tooling. If you want to
-              talk shop — or you beat my Snake high score — say hi.
+              I&apos;m in New York. If you want to talk, email me.
             </p>
 
             {/* Social links */}
@@ -810,14 +494,8 @@ export default function Home() {
                       ? undefined
                       : "noopener noreferrer"
                   }
-                  className="pixel-card px-5 py-3 inline-flex flex-col items-center gap-1 min-w-[100px]"
+                  className="pixel-card px-5 py-3 inline-flex items-center justify-center min-w-[100px]"
                 >
-                  <span
-                    className="mono-text text-sm font-bold"
-                    style={{ color: "var(--color-accent)" }}
-                  >
-                    {social.icon}
-                  </span>
                   <span
                     className="pixel-text"
                     style={{
@@ -833,7 +511,7 @@ export default function Home() {
 
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/contact" className="pixel-btn inline-block">
-                START CONVERSATION
+                Contact
               </Link>
               <a
                 href="/resume.pdf"
@@ -846,7 +524,7 @@ export default function Home() {
                   border: "2px solid var(--color-accent)",
                 }}
               >
-                VIEW RESUME
+                Resume
               </a>
             </div>
           </div>

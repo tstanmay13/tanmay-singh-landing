@@ -28,7 +28,7 @@ export default function WritingIndex() {
           className="pixel-text text-xl sm:text-2xl mb-4"
           style={{ color: "var(--color-accent)" }}
         >
-          {"//"} WRITING
+          WRITING
         </h1>
         <p
           className="mono-text text-sm mb-10"

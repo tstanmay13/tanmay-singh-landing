@@ -820,7 +820,7 @@ export default function PortfolioPage() {
               className="pixel-text text-xs mb-5"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {"// LIVE WEBSITES"}
+              LIVE WEBSITES
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {LIVE_PROJECTS.map((project) => (
@@ -837,7 +837,7 @@ export default function PortfolioPage() {
               className="pixel-text text-xs mb-5"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {"// SELECTED BUILDS"}
+              SELECTED BUILDS
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {FEATURED.map((project) => (
@@ -933,7 +933,7 @@ export default function PortfolioPage() {
               className="pixel-text text-xs"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {"// FROM GITHUB"}
+              FROM GITHUB
             </h2>
             <a
               href="https://github.com/tstanmay13?tab=repositories"
@@ -979,7 +979,7 @@ export default function PortfolioPage() {
               className="pixel-text text-xs mb-5"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {"// RECENT ACTIVITY"}
+              RECENT ACTIVITY
             </h2>
 
             {activityFallback && !activityLoading && (

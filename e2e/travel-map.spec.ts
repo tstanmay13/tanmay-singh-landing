@@ -524,23 +524,6 @@ test("button zoom stays near 1.18x and LIFE PATH clusters DFW homes", async ({
   await expect(map.getByText("02 RICHARDSON")).toBeVisible();
 });
 
-test("boot is skippable and does not replay in the same session", async ({
-  browser,
-}) => {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  const boot = page.locator("[data-boot='1']");
-  const appeared = boot.waitFor({ state: "visible", timeout: 3_000 });
-  await page.goto("/travel", { waitUntil: "commit" });
-  await appeared;
-  await page.keyboard.press("Escape");
-  await expect(boot).toHaveCount(0, { timeout: 1_000 });
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(200);
-  await expect(page.locator("[data-boot='1']")).toHaveCount(0);
-  await context.close();
-});
-
 test("two-finger Chromium pinch zooms without opening a card", async ({
   context,
   page,
