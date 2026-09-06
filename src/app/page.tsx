@@ -154,8 +154,8 @@ export default function Home() {
         const response = await fetch("/api/portfolio/repos");
         if (!response.ok) return;
         const data = await response.json();
-        if (typeof data.repos?.length === "number") {
-          setProjectCount(data.repos.length);
+        if (typeof data.projectCount === "number") {
+          setProjectCount(data.projectCount);
         }
       } catch {
         // leave null
