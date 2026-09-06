@@ -29,6 +29,12 @@ interface SocialLink {
   href: string;
 }
 
+interface Stat {
+  label: string;
+  value: string | number;
+  icon: string;
+}
+
 /* ============================================
    STATIC DATA
    ============================================ */
@@ -123,6 +129,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [contributions, setContributions] = useState<number | null>(null);
+  const [projectCount, setProjectCount] = useState<number | null>(null);
   const aboutRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -130,7 +137,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // If an API fails we keep the placeholder rather than a made-up number.
     const fetchContributions = async () => {
       try {
         const response = await fetch("/api/github-contributions");
@@ -143,12 +149,39 @@ export default function Home() {
         // Keep the placeholder rather than a made-up number.
       }
     };
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch("/api/portfolio/repos");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (typeof data.repos?.length === "number") {
+          setProjectCount(data.repos.length);
+        }
+      } catch {
+        // leave null
+      }
+    };
     fetchContributions();
+    fetchProjects();
   }, []);
 
   const scrollToAbout = useCallback(() => {
     aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  const heroStats: Stat[] = [
+    { label: "YRS EXP", value: "4", icon: ">" },
+    {
+      label: "PROJECTS",
+      value: projectCount !== null ? `${projectCount}` : "...",
+      icon: "#",
+    },
+    {
+      label: "COMMITS",
+      value: contributions !== null ? contributions.toLocaleString() : "...",
+      icon: "*",
+    },
+  ];
 
   if (!mounted) {
     return (
@@ -193,22 +226,31 @@ export default function Home() {
           <span style={{ color: "var(--color-accent)" }}>SINGH</span>
         </h1>
 
-        <div className="text-center mb-12">
-          <div
-            className="pixel-text text-xl sm:text-2xl mb-1"
-            style={{ color: "var(--color-accent)" }}
-          >
-            {contributions !== null ? contributions.toLocaleString() : "..."}
-          </div>
-          <div
-            className="pixel-text"
-            style={{
-              color: "var(--color-text-muted)",
-              fontSize: "0.625rem",
-            }}
-          >
-            COMMITS
-          </div>
+        <div
+          className="flex flex-wrap justify-center gap-6 sm:gap-10 mb-12"
+        >
+          {heroStats.map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div
+                className="pixel-text text-xl sm:text-2xl mb-1"
+                style={{ color: "var(--color-accent)" }}
+              >
+                <span style={{ color: "var(--color-text-muted)" }}>
+                  {stat.icon}
+                </span>{" "}
+                {stat.value}
+              </div>
+              <div
+                className="pixel-text"
+                style={{
+                  color: "var(--color-text-muted)",
+                  fontSize: "0.625rem",
+                }}
+              >
+                {stat.label}
+              </div>
+            </div>
+          ))}
         </div>
 
         <button onClick={scrollToAbout} className="pixel-btn">
