@@ -89,13 +89,16 @@ describe("travel catalog curation", () => {
         residenceOrder,
       })),
     ).toEqual([
-      { name: "Murphy", relationship: "lived", residenceOrder: 1 },
-      { name: "Richardson", relationship: "lived", residenceOrder: 2 },
-      { name: "Austin", relationship: "lived", residenceOrder: 3 },
+      { name: "Uttar Pradesh", relationship: "lived", residenceOrder: 1 },
+      { name: "Boston", relationship: "lived", residenceOrder: 2 },
+      { name: "Bangalore", relationship: "lived", residenceOrder: 3 },
+      { name: "Richardson", relationship: "lived", residenceOrder: 4 },
+      { name: "Murphy", relationship: "lived", residenceOrder: 5 },
+      { name: "Austin", relationship: "lived", residenceOrder: 6 },
       {
         name: "New York City",
         relationship: "current_home",
-        residenceOrder: 4,
+        residenceOrder: 7,
       },
     ]);
 
@@ -107,11 +110,36 @@ describe("travel catalog curation", () => {
     expect(getCurrentHome().name).toBe("New York City");
   });
 
-  it("does not invent residence start or end dates", () => {
-    for (const chapter of getResidenceChapters()) {
-      expect(chapter).not.toHaveProperty("residenceStart");
-      expect(chapter).not.toHaveProperty("residenceEnd");
-    }
+  it("keeps the editorial residence dates supplied for each chapter", () => {
+    expect(
+      getResidenceChapters().map(
+        ({ name, residenceStart, residenceEnd }) => ({
+          name,
+          residenceStart,
+          residenceEnd,
+        }),
+      ),
+    ).toEqual([
+      {
+        name: "Uttar Pradesh",
+        residenceStart: "2000",
+        residenceEnd: "2001",
+      },
+      { name: "Boston", residenceStart: "2001", residenceEnd: "2002" },
+      { name: "Bangalore", residenceStart: "2002", residenceEnd: "2008" },
+      {
+        name: "Richardson",
+        residenceStart: "2008",
+        residenceEnd: "Sep 2013",
+      },
+      { name: "Murphy", residenceStart: "Sep 2013", residenceEnd: "2018" },
+      { name: "Austin", residenceStart: "2018", residenceEnd: "2025" },
+      {
+        name: "New York City",
+        residenceStart: "2025",
+        residenceEnd: "present",
+      },
+    ]);
   });
 
   it("keeps Austin as one lived-in hub with its actual visit years", () => {
@@ -191,9 +219,16 @@ describe("travel catalog curation", () => {
     expect(travelPlaces()).toHaveLength(expectedCanonicalKeys.size);
   });
 
-  it("includes empty manual records for Murphy and Richardson", () => {
-    for (const name of ["Murphy", "Richardson"]) {
-      expect(requirePlace(reference(name, "TX"))).toMatchObject({
+  it("includes empty manual records for homes absent from Timeline", () => {
+    const manuals = [
+      reference("Uttar Pradesh", "UP", "IN"),
+      reference("Boston", "MA"),
+      reference("Bangalore", "KA", "IN"),
+      reference("Murphy", "TX"),
+      reference("Richardson", "TX"),
+    ];
+    for (const placeReference of manuals) {
+      expect(requirePlace(placeReference)).toMatchObject({
         visitCount: 0,
         spotCount: 0,
         dwellMs: 0,
