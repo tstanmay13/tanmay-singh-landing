@@ -70,7 +70,6 @@ import {
 import {
   resolveLabelCollisions,
   type LabelCandidate,
-  type LabelPlacement,
   type ScreenRect,
 } from "@/lib/travel/labels";
 import {
@@ -283,11 +282,8 @@ function entityA11yLabel(entity: TravelMapEntity) {
   return `${entity.place.displayTitle ?? entity.place.name}, ${relationship}${hub}.`;
 }
 
-function labelClass(placement: LabelPlacement) {
-  if (placement === "above") return styles.pinLabelAbove;
-  if (placement === "right") return styles.pinLabelRight;
-  if (placement === "left") return styles.pinLabelLeft;
-  return "";
+function snapPx(value: number) {
+  return Math.round(value);
 }
 
 export default function PixelMap({
@@ -466,11 +462,18 @@ export default function PixelMap({
       const { width, height } = viewRef.current;
       if (!node || width < 8) return;
       const camera = cameraRef.current;
+      const moving = Boolean(
+        animationRef.current ||
+          dragRef.current ||
+          pinchRef.current ||
+          busyRef.current,
+      );
       node.style.transform = `translate3d(${
         width / 2 - camera.x * camera.scale
       }px, ${height / 2 - camera.y * camera.scale}px, 0) scale(${
         camera.scale
       })`;
+      node.style.willChange = moving ? "transform" : "auto";
       node.style.setProperty("--map-scale", String(camera.scale));
       viewportRef.current?.setAttribute(
         "data-camera",
@@ -1554,6 +1557,59 @@ export default function PixelMap({
     view.width,
   ]);
 
+  const overlayLabels = useMemo(() => {
+    const camera = cameraRef.current;
+    const { width, height } = viewRef.current;
+    void layoutVersion;
+    const items: Array<{
+      id: string;
+      kind: "label" | "tooltip";
+      text: string;
+      x: number;
+      y: number;
+      selected: boolean;
+      count: number | null;
+    }> = [];
+
+    for (const entity of entities) {
+      const hovered = hoveredId === entity.id;
+      const selected = entity.selected;
+      const text =
+        entity.label ?? entity.place.name.toLocaleUpperCase("en-US");
+      const count =
+        entity.kind === "hub" && entity.count > 1 && mode !== "lived"
+          ? entity.count
+          : null;
+
+      if (hovered && !selected) {
+        items.push({
+          id: entity.id,
+          kind: "tooltip",
+          text,
+          x: snapPx(width / 2 + (entity.x - camera.x) * camera.scale),
+          y: snapPx(height / 2 + (entity.y - camera.y) * camera.scale + 22),
+          selected: false,
+          count: null,
+        });
+        continue;
+      }
+
+      const label = labels.get(entity.id);
+      if (!label) continue;
+      items.push({
+        id: entity.id,
+        kind: "label",
+        text,
+        x: snapPx(label.rect.x),
+        y: snapPx(label.rect.y),
+        selected,
+        count,
+      });
+    }
+
+    return items;
+  }, [entities, hoveredId, labels, layoutVersion, mode]);
+
   const residenceChapters = useMemo(
     () => getResidenceChapters().map((place) => cityPoint(place)),
     [],
@@ -1699,7 +1755,6 @@ export default function PixelMap({
 
         <div className={styles.pins} data-layer="pins">
           {entities.map((entity) => {
-            const label = labels.get(entity.id);
             const hovered = hoveredId === entity.id;
             const selected = entity.selected;
             const current = entity.members.some(
@@ -1792,33 +1847,44 @@ export default function PixelMap({
                     {String(chapter).padStart(2, "0")}
                   </span>
                 ) : null}
-                {hovered && !selected ? (
-                  <span className={styles.pinTooltip} role="tooltip">
-                    {entity.label ??
-                      entity.place.name.toLocaleUpperCase("en-US")}
-                  </span>
-                ) : null}
-                {label && (!hovered || selected) ? (
-                  <span
-                    className={`${styles.pinLabel} ${labelClass(
-                      label.placement,
-                    )} ${selected ? styles.pinLabelOn : ""}`}
-                  >
-                    {entity.label ??
-                      entity.place.name.toLocaleUpperCase("en-US")}
-                    {entity.kind === "hub" &&
-                    entity.count > 1 &&
-                    mode !== "lived" ? (
-                      <span className={styles.pinLabelCount}>
-                        {entity.count} PLACES
-                      </span>
-                    ) : null}
-                  </span>
-                ) : null}
               </button>
             );
           })}
         </div>
+      </div>
+
+      <div className={styles.labelLayer} data-layer="labels" aria-hidden="true">
+        {overlayLabels.map((item) =>
+          item.kind === "tooltip" ? (
+            <span
+              key={item.id}
+              className={styles.pinTooltip}
+              role="tooltip"
+              style={{ left: item.x, top: item.y, zIndex: 12 }}
+            >
+              {item.text}
+            </span>
+          ) : (
+            <span
+              key={item.id}
+              className={`${styles.pinLabel} ${
+                item.selected ? styles.pinLabelOn : ""
+              }`}
+              style={{
+                left: item.x,
+                top: item.y,
+                zIndex: item.selected ? 12 : 1,
+              }}
+            >
+              {item.text}
+              {item.count ? (
+                <span className={styles.pinLabelCount}>
+                  {item.count} PLACES
+                </span>
+              ) : null}
+            </span>
+          ),
+        )}
       </div>
 
       <div className={styles.crt} aria-hidden="true" />

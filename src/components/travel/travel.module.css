@@ -51,7 +51,8 @@
 
 /*
  * Stacking contract:
- *  1 world/terrain, 2 routes, 3 pins, 4 CRT, 5 chrome, 6 place card.
+ *  1 world/terrain, 2 routes, 3 pins, 3 labels (screen-space),
+ *  4 CRT, 5 chrome, 6 place card.
  * The site cursor remains above this isolated stage.
  */
 .mapViewport {
@@ -481,10 +482,16 @@
   background: var(--travel-current);
 }
 
+.labelLayer {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .pinLabel {
   position: absolute;
-  top: calc(100% + 4px);
-  left: 50%;
   display: grid;
   justify-items: center;
   gap: 0.12rem;
@@ -501,9 +508,9 @@
   text-transform: uppercase;
   text-overflow: clip;
   pointer-events: none;
-  transform: translateX(-50%);
   box-shadow: 2px 2px 0 var(--travel-border-strong);
   transition: opacity 90ms linear;
+  -webkit-font-smoothing: none;
 }
 
 .pinLabel:not(:has(.pinLabelCount)) {
@@ -516,24 +523,6 @@
   letter-spacing: 0.1em;
 }
 
-.pinLabelAbove {
-  top: auto;
-  bottom: calc(100% + 3px);
-}
-
-.pinLabelRight {
-  top: 50%;
-  left: calc(100% + 3px);
-  transform: translateY(-50%);
-}
-
-.pinLabelLeft {
-  top: 50%;
-  right: calc(100% + 3px);
-  left: auto;
-  transform: translateY(-50%);
-}
-
 .pinLabelOn {
   border-color: var(--travel-current);
   background: var(--travel-panel);
@@ -542,8 +531,6 @@
 
 .pinTooltip {
   position: absolute;
-  top: calc(100% + 5px);
-  left: 50%;
   z-index: 12;
   width: max-content;
   padding: 0.18rem 0.3rem;
@@ -556,6 +543,7 @@
   white-space: nowrap;
   pointer-events: none;
   transform: translateX(-50%);
+  -webkit-font-smoothing: none;
 }
 
 .pinLabelHot {
@@ -563,7 +551,7 @@
   color: var(--travel-panel);
 }
 
-.mapViewport[data-busy="1"] .pinLabel,
+.mapViewport[data-busy="1"] .labelLayer,
 .mapViewport[data-busy="1"] .clusterCount,
 .mapViewport[data-busy="1"] .chapterBadge,
 .mapViewport[data-busy="1"] .reticle {
