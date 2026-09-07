@@ -84,6 +84,8 @@ import {
   paintTerrain,
   type TerrainPalette,
 } from "@/lib/travel/terrainPaint";
+import { buildMapSprites, type MapSprite } from "@/lib/travel/mapLife";
+import MapLife from "./MapLife";
 import styles from "./travel.module.css";
 
 export type TravelMapView = AtlasView & {
@@ -310,6 +312,7 @@ export default function PixelMap({
   const onSelectRef = useRef(onSelect);
   const onViewRef = useRef(onView);
   const [ready, setReady] = useState(false);
+  const [mapCast, setMapCast] = useState<MapSprite[]>([]);
   const [view, setView] = useState({ width: 0, height: 0 });
   const [layoutScale, setLayoutScale] = useState(cameraRef.current.scale);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -663,6 +666,7 @@ export default function PixelMap({
         canvas.width = MAP_WIDTH;
         canvas.height = MAP_HEIGHT;
         canvas.getContext("2d")?.putImageData(result.baseImageData, 0, 0);
+        setMapCast(buildMapSprites(result, placesRef.current.map(cityPoint)));
         revealTerrain();
       };
       try {
@@ -670,12 +674,13 @@ export default function PixelMap({
           new URL("../../lib/travel/terrain.worker.ts", import.meta.url),
         );
         terrainWorker = worker;
-        worker.onmessage = (event: MessageEvent<ImageBitmap>) => {
-          const bitmap = event.data;
+        worker.onmessage = (event: MessageEvent<{ bitmap: ImageBitmap; spots: MapSprite[] }>) => {
+          const { bitmap, spots } = event.data;
           if (live) {
             canvas.width = bitmap.width;
             canvas.height = bitmap.height;
             canvas.getContext("2d")?.drawImage(bitmap, 0, 0);
+            setMapCast(spots);
             revealTerrain();
           }
           bitmap.close();
@@ -687,7 +692,7 @@ export default function PixelMap({
         };
         void createImageBitmap(image).then((source) => {
           if (!live) { source.close(); return; }
-          worker.postMessage({ source, palette }, [source]);
+          worker.postMessage({ source, palette, destinations: placesRef.current.map(cityPoint) }, [source]);
         }).catch(fallback);
       } catch {
         // Older browsers still get complete terrain, painted once at startup.
@@ -1541,12 +1546,7 @@ export default function PixelMap({
             aria-hidden="true"
             data-regional-terrain={regionalLayer.opacity > 0 ? "1" : "0"}
           />
-          {reducedMotion ? null : (
-            <>
-              <div className={styles.ocean} aria-hidden="true" />
-              <div className={styles.cloudShadows} aria-hidden="true" />
-            </>
-          )}
+          {reducedMotion ? null : <MapLife spots={mapCast} />}
         </div>
 
         <svg

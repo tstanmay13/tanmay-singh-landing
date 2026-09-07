@@ -116,8 +116,13 @@ supports browsers without worker canvas support.
 
 `terrainPaint.ts` keeps the palette and deterministic geography, including
 near-black ocean pixels that must remain water. Terrain-displacing pointer
-ripples are disabled; gentle ocean/cloud motion and the current-home pulse
-provide ambient movement without changing coastlines or land detail.
+ripples are disabled. `MapLife.tsx` adds small wavelets, bobbing sailboats,
+whales with occasional spouts, swaying groves, and softly glowing campsites.
+The worker uses the terrain mask to keep ocean sprites on water and land
+sprites on green land, with a 120-world-unit exclusion around every destination.
+At most 94 sprites are rendered. They sit below routes and pins, ignore pointer
+input, and use transform/opacity animation without a JavaScript frame loop.
+They pause during navigation and disappear when reduced motion is requested.
 
 Ambient movement pauses while the document is hidden. Reduced-motion mode
 removes nonessential ocean, cloud, marker, camera, and ripple animation.
