@@ -93,8 +93,10 @@ Wheel and pinch zoom preserve the world point under their screen-space anchor.
 Buttons zoom around the usable map center, excluding the HUD and country rail.
 Camera flights interpolate that same anchor for 450–650 ms and are cancelled
 by new pan, wheel, pinch, country, or hub input. Title, statistics, and
-semantic zoom update only after the camera settles. Labels hide during
-meaningful motion and return 150–220 ms after the last movement frame.
+semantic zoom update only after the camera settles. Labels follow the same camera transform during motion, then resolve collisions
+after the camera settles. Country and hub navigation frame destinations without
+filtering out the rest of the map; markers remain mounted so they enter the
+viewport immediately while panning.
 
 The header switches between two story modes:
 
@@ -105,18 +107,17 @@ Leaving LIFE PATH restores the prior camera.
 
 ## Terrain and ambient motion
 
-`terrainPaint.ts` quantizes `earth.jpg` into a 320×160 world raster. Country
-and metro views swap in a higher-resolution crop of the same source so Japan
-and Texas keep recognizable coastlines instead of magnifying world texels
-beyond about 6.5×. The world layer stays pixelated; regional layers add source
-information rather than smoothing.
-Hub markers use chunky SNES-style buttons; lived chapters keep diamond and
-house shapes so the distinction is not color-only.
+`terrain.worker.ts` paints `earth.jpg` into one immutable 2560×1280 world
+raster off the main thread. The camera only transforms that texture: there are
+no viewport crops, terrain repaints on settle, or coarse fallback edges during
+navigation. At maximum zoom a terrain texel is 6.8 CSS pixels. The worker is
+terminated after transferring its bitmap, and a one-time synchronous fallback
+supports browsers without worker canvas support.
 
-`terrainRipple.ts` affects only the terrain canvas. It keeps at most three
-short-lived, pixel-quantized ripples and writes bounded dirty rectangles from
-an immutable base raster. Pins, labels, routes, panels, and navigation are
-never part of the displaced canvas.
+`terrainPaint.ts` keeps the palette and deterministic geography, including
+near-black ocean pixels that must remain water. Terrain-displacing pointer
+ripples are disabled; gentle ocean/cloud motion and the current-home pulse
+provide ambient movement without changing coastlines or land detail.
 
 Ambient movement pauses while the document is hidden. Reduced-motion mode
 removes nonessential ocean, cloud, marker, camera, and ripple animation.

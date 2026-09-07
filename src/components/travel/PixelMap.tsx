@@ -38,23 +38,16 @@ import {
   COUNTRY_FOCUS_MIN_SPAN_X,
   COUNTRY_FOCUS_MIN_SPAN_Y,
   COUNTRY_FOCUS_SCALE,
-  GLOBAL_RASTER_MAX_MAGNIFICATION,
-  MAP_COLS,
   MAP_HEIGHT,
-  MAP_ROWS,
   MAP_WIDTH,
   MAX_SCALE,
   MIN_SCALE,
   cityPoint,
   clamp,
-  clampWorldRectToMap,
   describeAtlasView,
   globalTexelCssSize,
   lodBandFromScale,
-  regionalRasterSize,
   sparkleDelay,
-  visibleWorldRect,
-  worldRectToSourceRect,
   type AtlasView,
   type LodBand,
 } from "@/lib/travel/geo";
@@ -91,10 +84,6 @@ import {
   paintTerrain,
   type TerrainPalette,
 } from "@/lib/travel/terrainPaint";
-import {
-  createTerrainRippleEngine,
-  type TerrainRippleEngine,
-} from "@/lib/travel/terrainRipple";
 import styles from "./travel.module.css";
 
 export type TravelMapView = AtlasView & {
@@ -164,17 +153,6 @@ function chromeExclusionRects(viewport: HTMLElement): ScreenRect[] {
       };
     })
     .filter((rect) => rect.width > 4 && rect.height > 4);
-}
-
-function regionalOpacity(scale: number) {
-  const mag = globalTexelCssSize(scale);
-  if (mag <= GLOBAL_RASTER_MAX_MAGNIFICATION - 0.7) return 0;
-  if (mag >= GLOBAL_RASTER_MAX_MAGNIFICATION + 0.6) return 1;
-  return clamp(
-    (mag - (GLOBAL_RASTER_MAX_MAGNIFICATION - 0.7)) / 1.3,
-    0,
-    1,
-  );
 }
 
 function wheelShouldZoom(event: WheelEvent) {
@@ -301,9 +279,9 @@ export default function PixelMap({
 }: PixelMapProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const labelLayerRef = useRef<HTMLDivElement>(null);
+  const labelCameraRef = useRef<Camera | null>(null);
   const regionalCanvasRef = useRef<HTMLCanvasElement>(null);
-  const earthImageRef = useRef<HTMLImageElement | null>(null);
   const loopRef = useRef(0);
   const settleTimerRef = useRef<number | null>(null);
   const wheelTimerRef = useRef<number | null>(null);
@@ -322,8 +300,6 @@ export default function PixelMap({
   const activePointersRef = useRef(new Map<number, Point>());
   const pinchRef = useRef<PinchMeta | null>(null);
   const interactionRef = useRef<InteractionState>(createInteractionState());
-  const rippleRef = useRef<TerrainRippleEngine | null>(null);
-  const lastRippleRef = useRef({ x: 0, y: 0, time: 0 });
   const previousCameraRef = useRef<Camera | null>(null);
   const previousModeRef = useRef<TravelFilterMode>(mode);
   const focusedHubRef = useRef<TravelHubId | null>(null);
@@ -339,7 +315,6 @@ export default function PixelMap({
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [focusedHubId, setFocusedHubId] = useState<TravelHubId | null>(null);
-  const [settledCountry, setSettledCountry] = useState<string | null>(null);
   const [regionalLayer, setRegionalLayer] = useState({
     x: 0,
     y: 0,
@@ -429,7 +404,6 @@ export default function PixelMap({
       if (!hubId && !focusCountryRef.current) {
         hubId =
           resolveFocusedHub(placesRef.current, {
-            selectedId: selectedRef.current,
             cameraNearestPlaceId: base.cityId,
             cameraPoint: camera,
             maxDistance: 56,
@@ -462,18 +436,19 @@ export default function PixelMap({
       const { width, height } = viewRef.current;
       if (!node || width < 8) return;
       const camera = cameraRef.current;
-      const moving = Boolean(
-        animationRef.current ||
-          dragRef.current ||
-          pinchRef.current ||
-          busyRef.current,
-      );
       node.style.transform = `translate3d(${
         width / 2 - camera.x * camera.scale
       }px, ${height / 2 - camera.y * camera.scale}px, 0) scale(${
         camera.scale
       })`;
-      node.style.willChange = moving ? "transform" : "auto";
+      const labelCamera = labelCameraRef.current;
+      if (labelLayerRef.current && labelCamera) {
+        const ratio = camera.scale / labelCamera.scale;
+        const dx = width / 2 * (1 - ratio) + (labelCamera.x - camera.x) * camera.scale;
+        const dy = height / 2 * (1 - ratio) + (labelCamera.y - camera.y) * camera.scale;
+        labelLayerRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${ratio})`;
+      }
+      node.style.willChange = "transform";
       node.style.setProperty("--map-scale", String(camera.scale));
       viewportRef.current?.setAttribute(
         "data-camera",
@@ -514,12 +489,10 @@ export default function PixelMap({
     }
     syncInteraction();
     setBusy(false);
-    setSettledCountry(focusCountryRef.current);
     setFocusedHubId(focusedHubRef.current);
     bandRef.current = lodBandFromScale(cameraRef.current.scale);
     bumpLayout();
     applyCamera(true);
-    paintRegionalForCamera(cameraRef.current);
   }, [applyCamera, bumpLayout, setBusy, syncInteraction]);
 
   const scheduleSettle = useCallback(() => {
@@ -577,14 +550,6 @@ export default function PixelMap({
     if (dragRef.current || pinchRef.current) keep = true;
     applyCamera(false);
 
-    const rippleFrame = rippleRef.current?.render(now);
-    if (rippleFrame) {
-      viewportRef.current?.setAttribute(
-        "data-ripples",
-        String(rippleFrame.activeCount),
-      );
-      if (rippleFrame.needsAnimationFrame) keep = true;
-    }
     return keep;
   };
 
@@ -643,8 +608,7 @@ export default function PixelMap({
         animationRef.current = null;
         applyCamera(true);
         bumpLayout();
-        setSettledCountry(focusCountryRef.current);
-        setFocusedHubId(focusedHubRef.current);
+            setFocusedHubId(focusedHubRef.current);
         setBusy(false);
         return;
       }
@@ -657,7 +621,6 @@ export default function PixelMap({
         anchor,
       };
       markMotion(phase);
-      paintRegionalForCamera(to);
       startLoop();
     },
     [
@@ -671,100 +634,11 @@ export default function PixelMap({
     ],
   );
 
-  const paintRegionalForCamera = useCallback((camera: Camera) => {
-    const image = earthImageRef.current;
-    const canvas = regionalCanvasRef.current;
-    const { width, height } = viewRef.current;
-    if (!image || !canvas || width < 8 || height < 8) return;
-    const opacity = regionalOpacity(camera.scale);
-    if (opacity <= 0) {
-      setRegionalLayer((current) =>
-        current.opacity === 0 ? current : { ...current, opacity: 0 },
-      );
-      return;
-    }
-    const world = clampWorldRectToMap(
-      visibleWorldRect(camera, width, height, 0.32),
-    );
-    const sourceRect = worldRectToSourceRect(
-      world,
-      image.naturalWidth,
-      image.naturalHeight,
-    );
-    const raster = regionalRasterSize(sourceRect);
-    const result = paintTerrain({
-      source: image,
-      width: raster.width,
-      height: raster.height,
-      palette: terrainPalette(canvas.closest(`.${styles.root}`)),
-      sourceRect,
-    });
-    canvas.width = raster.width;
-    canvas.height = raster.height;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.putImageData(result.baseImageData, 0, 0);
-    setRegionalLayer({
-      x: world.x,
-      y: world.y,
-      width: world.width,
-      height: world.height,
-      opacity,
-    });
-  }, []);
-
-  const spawnRipple = useCallback(
-    (screenPoint: Point, strong: boolean) => {
-      const engine = rippleRef.current;
-      if (!engine || reducedRef.current || document.hidden) return;
-      const now = performance.now();
-      const previous = lastRippleRef.current;
-      if (
-        now - previous.time < (strong ? 72 : 125) &&
-        Math.hypot(screenPoint.x - previous.x, screenPoint.y - previous.y) <
-          (strong ? 12 : 22)
-      ) {
-        return;
-      }
-      const world = screenToWorld(
-        screenPoint,
-        cameraRef.current,
-        viewRef.current,
-      );
-      const sourcePoint = {
-        x: (world.x / MAP_WIDTH) * MAP_COLS,
-        y: (world.y / MAP_HEIGHT) * MAP_ROWS,
-      };
-      const cssPixelsPerTexel =
-        (MAP_WIDTH / MAP_COLS) * cameraRef.current.scale;
-      engine.add({
-        x: sourcePoint.x,
-        y: sourcePoint.y,
-        cssRadius: strong ? 84 : 60,
-        cssPixelsPerSourceTexel: cssPixelsPerTexel,
-        ringCount: strong ? 3 : 2,
-      });
-      viewportRef.current?.setAttribute(
-        "data-ripples",
-        String(engine.activeCount),
-      );
-      lastRippleRef.current = {
-        x: screenPoint.x,
-        y: screenPoint.y,
-        time: now,
-      };
-      startLoop();
-    },
-    [startLoop],
-  );
-
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = regionalCanvasRef.current;
     if (!canvas) return;
     let live = true;
-    setReady(false);
-    rippleRef.current?.reset();
-    rippleRef.current = null;
+    let terrainWorker: Worker | null = null;
 
     const image = new Image();
     image.src = "/travel/earth.jpg";
@@ -773,42 +647,59 @@ export default function PixelMap({
     };
     image.onload = () => {
       if (!live) return;
-      earthImageRef.current = image;
-      const result = paintTerrain({
-        source: image,
-        width: MAP_COLS,
-        height: MAP_ROWS,
-        palette: terrainPalette(canvas.closest(`.${styles.root}`)),
-      });
-      const context = canvas.getContext("2d");
-      if (!context) {
+      const palette = terrainPalette(canvas.closest(`.${styles.root}`));
+      const revealTerrain = () => {
+        setRegionalLayer({
+          x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT, opacity: 1,
+        });
         setReady(true);
-        return;
+      };
+      const fallback = () => {
+        terrainWorker?.terminate();
+        if (!live) return;
+        const result = paintTerrain({
+          source: image, width: MAP_WIDTH, height: MAP_HEIGHT, palette,
+        });
+        canvas.width = MAP_WIDTH;
+        canvas.height = MAP_HEIGHT;
+        canvas.getContext("2d")?.putImageData(result.baseImageData, 0, 0);
+        revealTerrain();
+      };
+      try {
+        const worker = new Worker(
+          new URL("../../lib/travel/terrain.worker.ts", import.meta.url),
+        );
+        terrainWorker = worker;
+        worker.onmessage = (event: MessageEvent<ImageBitmap>) => {
+          const bitmap = event.data;
+          if (live) {
+            canvas.width = bitmap.width;
+            canvas.height = bitmap.height;
+            canvas.getContext("2d")?.drawImage(bitmap, 0, 0);
+            revealTerrain();
+          }
+          bitmap.close();
+          worker.terminate();
+        };
+        worker.onerror = (event) => {
+          event.preventDefault();
+          fallback();
+        };
+        void createImageBitmap(image).then((source) => {
+          if (!live) { source.close(); return; }
+          worker.postMessage({ source, palette }, [source]);
+        }).catch(fallback);
+      } catch {
+        // Older browsers still get complete terrain, painted once at startup.
+        fallback();
       }
-      context.putImageData(result.baseImageData, 0, 0);
-      rippleRef.current = createTerrainRippleEngine({
-        context,
-        baseImageData: result.baseImageData,
-        landMask: result.landMask,
-        reducedMotion: reducedRef.current,
-      });
-      paintRegionalForCamera(cameraRef.current);
-      setReady(true);
     };
 
     return () => {
       live = false;
-      rippleRef.current?.reset();
-      rippleRef.current = null;
+      terrainWorker?.terminate();
     };
   }, [theme]);
-
-  useEffect(() => {
-    rippleRef.current?.setReducedMotion(reducedMotion);
-    if (reducedMotion) {
-      viewportRef.current?.setAttribute("data-ripples", "0");
-    }
-  }, [reducedMotion]);
 
   useEffect(() => {
     const onVisibility = () => {
@@ -818,13 +709,11 @@ export default function PixelMap({
         hidden ? "1" : "0",
       );
       if (hidden) {
-        rippleRef.current?.pause();
         if (loopRef.current) {
           cancelAnimationFrame(loopRef.current);
           loopRef.current = 0;
         }
       } else {
-        rippleRef.current?.resume();
         startLoop();
       }
     };
@@ -896,7 +785,7 @@ export default function PixelMap({
       ),
       CAMERA_TRANSITION_MS,
     );
-  }, [selectedId, startCameraAnimation, viewReady]);
+  }, [clampCamera, selectedId, startCameraAnimation, viewReady]);
 
   useEffect(() => {
     if (!viewReady || focusTick < 1 || selectedRef.current) return;
@@ -926,7 +815,7 @@ export default function PixelMap({
       ),
       CAMERA_TRANSITION_MS,
     );
-  }, [focusTick, startCameraAnimation, viewReady]);
+  }, [clampCamera, focusTick, startCameraAnimation, viewReady]);
 
   useEffect(() => {
     if (!viewReady) return;
@@ -968,6 +857,7 @@ export default function PixelMap({
     publishView();
   }, [
     bumpLayout,
+    clampCamera,
     mode,
     publishView,
     startCameraAnimation,
@@ -1017,7 +907,6 @@ export default function PixelMap({
         markMotion("coasting");
       }
 
-      spawnRipple(screenPoint, true);
       applyCamera(false);
       startLoop();
       if (wheelTimerRef.current) {
@@ -1036,7 +925,6 @@ export default function PixelMap({
     clampCamera,
     markMotion,
     scheduleSettle,
-    spawnRipple,
     startLoop,
   ]);
 
@@ -1148,7 +1036,6 @@ export default function PixelMap({
         scale,
       });
       setBusy(true);
-      spawnRipple(center, true);
       startLoop();
       return;
     }
@@ -1195,7 +1082,6 @@ export default function PixelMap({
     cameraRef.current = clampCamera(
       panByScreenDelta(drag.startCamera, delta),
     );
-    spawnRipple(point, true);
     startLoop();
   };
 
@@ -1231,10 +1117,7 @@ export default function PixelMap({
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
 
-    if (
-      wasDragging &&
-      !cancelled
-    ) {
+    if (wasDragging) {
       scheduleSettle();
     } else if (!wasDragging) {
       setBusy(false);
@@ -1371,31 +1254,9 @@ export default function PixelMap({
     },
     [focusedHubId, layoutScale, level, mode, places, selectedId],
   );
-  const entities = useMemo(() => {
-    const camera = cameraRef.current;
-    const { width, height } = viewRef.current;
-    void layoutVersion;
-    return allEntities.filter((entity) => {
-      if (entity.selected) return true;
-      if (
-        focusedHubId &&
-        entity.hubId !== focusedHubId &&
-        level === "metro"
-      ) {
-        return false;
-      }
-      if (
-        settledCountry &&
-        level !== "world" &&
-        entity.place.countryCode !== settledCountry
-      ) {
-        return false;
-      }
-      const x = width / 2 + (entity.x - camera.x) * camera.scale;
-      const y = height / 2 + (entity.y - camera.y) * camera.scale;
-      return x > -40 && x < width + 40 && y > -40 && y < height + 40;
-    });
-  }, [allEntities, focusedHubId, layoutVersion, level, settledCountry]);
+  // Keep the small canonical marker set mounted. Viewport clipping is cheap
+  // and brings pins into view during a drag, without waiting for React/settle.
+  const entities = allEntities;
 
   const labels = useMemo(() => {
     const camera = cameraRef.current;
@@ -1423,19 +1284,6 @@ export default function PixelMap({
         entity.place.featured && entity.place.importance >= 90;
       const worldDestination =
         entity.place.featured && entity.place.importance >= 94;
-      if (
-        (focusedHubId &&
-          entity.hubId !== focusedHubId &&
-          !entity.selected &&
-          !hovered) ||
-        (focusCountry &&
-          settledCountry &&
-          entity.place.countryCode !== settledCountry &&
-          !entity.selected &&
-          !hovered)
-      ) {
-        continue;
-      }
       if (
         mode === "lived" &&
         entity.place.relationship === "visited" &&
@@ -1545,14 +1393,12 @@ export default function PixelMap({
   }, [
     currentHomeId,
     entities,
-    focusCountry,
     focusedHubId,
     hoveredId,
     layoutVersion,
     level,
     mode,
     selectedId,
-    settledCountry,
     view.height,
     view.width,
   ]);
@@ -1609,6 +1455,11 @@ export default function PixelMap({
 
     return items;
   }, [entities, hoveredId, labels, layoutVersion, mode]);
+
+  useLayoutEffect(() => {
+    labelCameraRef.current = { ...cameraRef.current };
+    if (labelLayerRef.current) labelLayerRef.current.style.transform = "none";
+  }, [overlayLabels]);
 
   const residenceChapters = useMemo(
     () => getResidenceChapters().map((place) => cityPoint(place)),
@@ -1677,13 +1528,6 @@ export default function PixelMap({
         data-layer="world"
       >
         <div className={styles.terrain} data-layer="terrain">
-          <canvas
-            ref={canvasRef}
-            className={styles.earth}
-            width={MAP_COLS}
-            height={MAP_ROWS}
-            aria-hidden="true"
-          />
           <canvas
             ref={regionalCanvasRef}
             className={styles.regionEarth}
@@ -1783,6 +1627,11 @@ export default function PixelMap({
               <button
                 key={entity.id}
                 type="button"
+                tabIndex={
+                  Math.abs((entity.x - cameraRef.current.x) * cameraRef.current.scale) < view.width / 2 &&
+                  Math.abs((entity.y - cameraRef.current.y) * cameraRef.current.scale) < view.height / 2
+                    ? 0 : -1
+                }
                 className={[
                   styles.pin,
                   markerClass(entity, currentHomeId),
@@ -1853,7 +1702,7 @@ export default function PixelMap({
         </div>
       </div>
 
-      <div className={styles.labelLayer} data-layer="labels" aria-hidden="true">
+      <div ref={labelLayerRef} className={styles.labelLayer} data-layer="labels" aria-hidden="true">
         {overlayLabels.map((item) =>
           item.kind === "tooltip" ? (
             <span

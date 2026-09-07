@@ -140,8 +140,8 @@ test("DFW hub expands canonical homes without duplicate markers", async ({
   const austin = map.locator(
     'button[data-place-id][data-hub-id="austin"][data-relationship="lived"]',
   );
-  await expect(austin).toHaveCount(0);
-  await expect(map.locator('button[data-current-home="true"]')).toHaveCount(0);
+  await expect(austin).toHaveCount(1);
+  await expect(map.locator('button[data-current-home="true"]')).not.toBeInViewport();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(
     map.locator('button[aria-pressed="true"][data-relationship="lived"]'),
@@ -308,7 +308,7 @@ test("card owns its pixels and Escape restores pin focus", async ({ page }) => {
   await expect(card.locator('[aria-label="Classification"]')).toHaveText(
     "CURRENT HOME",
   );
-  await expect(card.getByText("CHAPTER 04 // CURRENT HOME")).toBeVisible();
+  await expect(card.getByText("CHAPTER 07 // CURRENT HOME")).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(card).toHaveCount(0);
@@ -343,7 +343,7 @@ test("Austin and visited cards expose correct facts without images", async ({
   await expect(card.locator('[aria-label="Classification"]')).toContainText(
     "TRAVEL HUB",
   );
-  await expect(card.getByText("CHAPTER 03 // PAST HOME")).toBeVisible();
+  await expect(card.getByText("CHAPTER 06 // PAST HOME")).toBeVisible();
   await expect(card.getByText(/^VISIT YEARS \/\/ \d{4}/)).toBeVisible();
   await expect(card.locator("img")).toHaveCount(0);
   await expect(card.getByText("PHOTOS COMING LATER")).toBeVisible();
@@ -572,3 +572,90 @@ test("two-finger Chromium pinch zooms without opening a card", async ({
   expect(Math.abs(after.scale - before.scale)).toBeGreaterThan(0.2);
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+test("terrain remains identical and covers the world after panning", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const map = await openReadyMap(page);
+  const terrain = map.locator('canvas[data-regional-terrain="1"]');
+  await expect(terrain).toHaveCount(1);
+  const before = await terrain.evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
+  const cameraBefore = await map.getAttribute("data-camera");
+  const box = await requiredBox(map);
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.65);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.7, box.y + box.height * 0.65, { steps: 8 });
+  await page.mouse.up();
+  await waitForSettled(map);
+  expect(await map.getAttribute("data-camera")).not.toBe(cameraBefore);
+  expect(await terrain.evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL())).toBe(before);
+  const coverage = await terrain.evaluate((canvas) => ({
+    width: parseFloat(getComputedStyle(canvas).width),
+    height: parseFloat(getComputedStyle(canvas).height),
+  }));
+  expect(coverage).toEqual({ width: 2560, height: 1280 });
+});
+
+test("country navigation keeps other destinations available during exploration", async ({ page }) => {
+  const map = await openReadyMap(page);
+  await page.locator('button[data-world="VN"]').click();
+  await waitForSettled(map);
+  // Offscreen markers stay mounted so panning brings them in immediately,
+  // including destinations outside the country used to navigate here.
+  const home = map.locator('button[data-current-home="true"]');
+  await expect(home).toHaveCount(1);
+  const point = await home.evaluate((node) => ({ x: parseFloat(node.style.left), y: parseFloat(node.style.top) }));
+  const camera = await readCamera(map);
+  const box = await requiredBox(map);
+  const start = { x: box.x + box.width / 2, y: box.y + box.height * 0.6 };
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 10, start.y, { steps: 2 });
+  await page.mouse.move(start.x + (camera.x - point.x) * camera.scale, start.y + (camera.y - point.y) * camera.scale, { steps: 12 });
+  await expect(home).toBeInViewport();
+  await page.mouse.up();
+  await waitForSettled(map);
+  await expect(page.locator('button[data-world="US"]')).toHaveAttribute("aria-current", "true");
+});
+
+for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  test(`continuous pan keeps labels and terrain stable at ${viewport.width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize(viewport);
+    const map = await openReadyMap(page);
+    const terrain = map.locator('canvas[data-regional-terrain="1"]');
+    await expect(terrain).toHaveCount(1);
+    const cameraBefore = await readCamera(map);
+    await page.evaluate(() => {
+      const samples: number[] = [];
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) samples.push(entry.duration);
+      });
+      observer.observe({ type: "longtask", buffered: false });
+      Object.assign(window, { travelPerf: { samples, observer } });
+    });
+    const box = await requiredBox(map);
+    await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.55);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.6, { steps: 30 });
+    await expect(map).toHaveAttribute("data-interaction", "dragging");
+    await expect(map.locator('[data-layer="labels"]')).toHaveCSS("opacity", "1");
+    await expect(terrain).toHaveCSS("opacity", "1");
+    await page.screenshot({ path: testInfo.outputPath("during-pan.png") });
+    await page.mouse.up();
+    await waitForSettled(map);
+    expect((await readCamera(map)).x).not.toBe(cameraBefore.x);
+    const longTasks = await page.evaluate(() => {
+      const perf = (window as unknown as { travelPerf: { samples: number[]; observer: PerformanceObserver } }).travelPerf;
+      perf.observer.disconnect();
+      return perf.samples;
+    });
+    await testInfo.attach("pan-long-tasks", { body: JSON.stringify(longTasks), contentType: "application/json" });
+    console.log(`${viewport.width}px pan long tasks (>50ms): ${JSON.stringify(longTasks)}`);
+    // Allow a small scheduling outlier, but catch repeated frame stalls.
+    expect(longTasks.reduce((total, duration) => total + duration, 0)).toBeLessThan(200);
+    if (viewport.width < 500) {
+      const clipped = await page.locator("header dl dt, header dl dd").evaluateAll((nodes) => nodes.filter((node) => node.scrollWidth > node.clientWidth).map((node) => node.textContent));
+      expect(clipped).toEqual([]);
+    }
+    await page.screenshot({ path: testInfo.outputPath("settled-map.png") });
+  });
+}

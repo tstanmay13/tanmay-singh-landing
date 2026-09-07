@@ -179,14 +179,9 @@ export default function TravelStage() {
     if (match) pickPlace(match.id);
   }, [pickPlace]);
 
-  const stripCountry =
-    focusCountry ??
-    selected?.countryCode ??
-    (mode === "lived"
-      ? "US"
-      : atlas.band === "world"
-        ? null
-        : atlas.countryCode);
+  // Country buttons navigate the camera; the rail follows the current view
+  // after navigation, including when the user pans away from a selection.
+  const stripCountry = mode === "lived" ? "US" : atlas.countryCode;
 
   useEffect(() => {
     if (!stripCountry || !stripRef.current) return;
@@ -248,7 +243,7 @@ export default function TravelStage() {
             selectedId={selectedId}
             currentHomeId={currentHome.id}
             mode={mode}
-            highlightCountry={focusCountry ? null : highlightCountry}
+            highlightCountry={highlightCountry}
             focusCountry={focusCountry}
             focusTick={focusTick}
             reducedMotion={reducedMotion}
@@ -313,9 +308,7 @@ export default function TravelStage() {
         >
           {travelCatalog.countries.map((country, index) => {
             const active = country.code === stripCountry;
-            const inView =
-              !focusCountry &&
-              atlas.visibleCountryCodes.includes(country.code);
+            const inView = atlas.visibleCountryCodes.includes(country.code);
             return (
               <button
                 key={country.code}

@@ -219,13 +219,16 @@ function luminance(red: number, green: number, blue: number) {
  * rather than a particular map color, keeping snow and pale land out of the
  * water mask.
  */
-function sourceLooksLikeWater(
+export function sourceLooksLikeWater(
   red: number,
   green: number,
   blue: number,
   alpha: number,
 ) {
   if (alpha < 8) return true;
+  // The source has near-black deep ocean, whose chroma falls below the
+  // shallow-water threshold. Blue dominance distinguishes it from forests.
+  if (blue < 48 && blue > red * 1.35 && blue > green * 1.2) return true;
   const brightest = Math.max(red, green, blue);
   const darkest = Math.min(red, green, blue);
   const chroma = brightest - darkest;
