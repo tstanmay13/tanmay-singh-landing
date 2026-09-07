@@ -127,52 +127,12 @@
   pointer-events: none;
 }
 
-.earth,
-.ocean,
-.cloudShadows {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-}
-
-.earth {
-  background: var(--travel-water);
-}
-
 .regionEarth {
   position: absolute;
   z-index: 1;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   pointer-events: none;
-}
-
-.ocean {
-  will-change: transform;
-  width: calc(100% + 32px);
-  opacity: 0.08;
-  background: repeating-linear-gradient(
-    90deg,
-    transparent 0 31px,
-    color-mix(in srgb, var(--map-ocean-glint) 55%, transparent) 31px 32px
-  );
-  animation: ocean-shift 28s linear infinite;
-}
-
-.cloudShadows {
-  will-change: transform;
-  width: calc(100% + 96px);
-  height: 100%;
-  opacity: 0.045;
-  background: repeating-linear-gradient(
-    115deg,
-    transparent 0 92px,
-    color-mix(in srgb, var(--travel-panel) 70%, transparent) 92px 96px
-  );
-  animation: cloud-drift 64s linear infinite;
 }
 
 .routes {
@@ -1049,16 +1009,6 @@
   box-shadow: 3px 3px 0 var(--travel-border-strong);
 }
 
-@keyframes ocean-shift {
-  from { transform: translateX(-32px); }
-  to { transform: translateX(0); }
-}
-
-@keyframes cloud-drift {
-  from { transform: translateX(-96px); }
-  to { transform: translateX(0); }
-}
-
 @keyframes frame-pulse {
   from {
     opacity: 0.72;
@@ -1222,8 +1172,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ocean,
-  .cloudShadows,
   .countryFrame,
   .card,
   .pinOn .node,
@@ -1242,8 +1190,68 @@
 }
 
 /* Keep camera motion on stable compositor layers. */
-.mapViewport[data-busy="1"] .ocean,
-.mapViewport[data-busy="1"] .cloudShadows,
 .mapViewport[data-busy="1"] .node {
   animation-play-state: paused;
+}
+
+/* Small world inhabitants; decorations live under every route and pin. */
+.oceanLife { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
+.oceanLife * { pointer-events: none; }
+.oceanSprite {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(clamp(0.5, calc(1 / var(--map-scale)), 2.4));
+  transform-origin: center;
+}
+.waveSprite { width: 28px; height: 12px; }
+.creatureSprite { width: 38px; height: 32px; }
+.waveMotion { animation: wavelet 6s ease-in-out infinite; }
+.bobMotion { animation: boat-bob 5s ease-in-out infinite; }
+.treeMotion { transform-origin: bottom center; animation: grove-sway 7s ease-in-out infinite; }
+.campMotion { animation: camp-glow 5s ease-in-out infinite; }
+.waveMotion, .bobMotion, .treeMotion, .campMotion {
+  will-change: transform, opacity;
+  animation-delay: var(--ocean-delay);
+}
+.waveInk { stroke: var(--map-ocean-glint); opacity: 0.55; }
+.sailWhite { fill: var(--map-land-snow); }
+.sailShade { fill: var(--map-ocean-glint); }
+.boatHull, .tentCanvas { fill: var(--map-land-dry); }
+.boatFlag, .fireOuter { fill: var(--travel-hub); }
+.whaleBack { fill: var(--map-ocean-glint); }
+.whaleBelly { fill: var(--map-land-snow); opacity: 0.55; }
+.whaleEye { fill: var(--map-ocean-deep); }
+.whale { position: relative; }
+.whaleSpout {
+  position: absolute; left: 6px; top: -1px;
+  animation: whale-breath 13s ease-in-out infinite;
+  animation-delay: var(--ocean-delay);
+  will-change: transform, opacity;
+}
+.spoutInk { stroke: var(--map-land-snow); }
+.treeShadow { fill: var(--map-land-shadow); opacity: 0.45; }
+.treeTrunk { fill: var(--map-land-dry-detail); }
+.treeDark { fill: var(--map-land-forest); }
+.treeLight { fill: var(--map-land-vegetation); }
+.fireInner { fill: var(--travel-current); }
+@keyframes wavelet {
+  0%, 100% { transform: translateX(-3px); opacity: 0.22; }
+  50% { transform: translateX(3px); opacity: 0.85; }
+}
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-2px) rotate(2deg); }
+}
+@keyframes grove-sway {
+  0%, 100% { transform: rotate(-1.5deg); }
+  50% { transform: rotate(1.5deg); }
+}
+@keyframes camp-glow { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
+@keyframes whale-breath {
+  0%, 68%, 100% { transform: translateY(3px) scaleY(0.5); opacity: 0; }
+  76%, 85% { transform: translateY(-2px) scaleY(1); opacity: 0.75; }
+  94% { transform: translateY(-4px) scaleY(0.8); opacity: 0; }
+}
+.mapViewport[data-busy="1"] .oceanLife * { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .oceanLife * { animation: none; }
 }

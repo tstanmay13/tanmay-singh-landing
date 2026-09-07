@@ -659,3 +659,35 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await page.screenshot({ path: testInfo.outputPath("settled-map.png") });
   });
 }
+
+test("map life stays decorative, clear of pins, and pauses with navigation", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const map = await openReadyMap(page);
+  const life = map.locator('[data-ocean-life]');
+  await expect(life.locator('[data-ocean-kind="sailboat"]').first()).toBeAttached();
+  await expect(life.locator('[data-ocean-kind="trees"]').first()).toBeAttached();
+  await expect(life.locator('[data-ocean-kind="camp"]').first()).toBeAttached();
+  expect(await life.locator('[data-ocean-kind]').count()).toBeLessThanOrEqual(94);
+  await expect(life).toHaveAttribute("aria-hidden", "true");
+  const overlap = await map.evaluate((root) => {
+    const pins = [...root.querySelectorAll('[data-place-id]')].map((node) => node.getBoundingClientRect());
+    return [...root.querySelectorAll('[data-ocean-kind]')].some((node) => {
+      const rect = node.getBoundingClientRect();
+      return getComputedStyle(node).pointerEvents !== "none" || pins.some((pin) => rect.left < pin.right && rect.right > pin.left && rect.top < pin.bottom && rect.bottom > pin.top);
+    });
+  });
+  expect(overlap).toBe(false);
+  await page.screenshot({ path: testInfo.outputPath("living-atlas.png") });
+  const box = await requiredBox(map);
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.65);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.65, box.y + box.height * 0.65, { steps: 8 });
+  const moving = await life.evaluate((root) => [...root.querySelectorAll('*')].filter((node) => getComputedStyle(node).animationName !== "none").map((node) => getComputedStyle(node).animationPlayState));
+  expect(moving.length).toBeGreaterThan(0);
+  expect(moving.every((state) => state === "paused")).toBe(true);
+  await page.mouse.up();
+  await waitForSettled(map);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(life).toHaveCount(0);
+});
