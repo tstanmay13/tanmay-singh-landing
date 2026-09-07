@@ -50,7 +50,7 @@ export type Level = {
   underground: boolean;
   night: boolean;
   checkpoint: number;
-  pipe: number;
+  bonus?: boolean;
 };
 export function makeLevel(index: number): Level {
   const world = Math.floor(index / 4),
@@ -144,7 +144,41 @@ export function makeLevel(index: number): Level {
     underground,
     night: stage === 2 || world > 5,
     checkpoint,
-    pipe: 320,
+  };
+}
+/** A persistent side room per pipe: leaving and returning never refills its coins. */
+function makeBonusRoom(): Level {
+  const blocks: Block[] = [];
+  for (let x = 0; x < WIDTH; x += TILE)
+    blocks.push({ x, y: 208, w: 16, h: 32, kind: "ground" });
+  blocks.push(
+    { x: 0, y: 0, w: 16, h: 208, kind: "brick" },
+    { x: 464, y: 0, w: 16, h: 208, kind: "brick" },
+  );
+  for (const x of [32, 416])
+    blocks.push({ x, y: 176, w: 32, h: 32, kind: "pipe" });
+  const items: Item[] = [];
+  for (let row = 0; row < 3; row++)
+    for (let col = 0; col < 10; col++)
+      items.push({
+        x: 112 + col * 24,
+        y: 184 - row * 24,
+        w: 10,
+        h: 12,
+        kind: "coin",
+        vx: 0,
+        vy: 0,
+      });
+  return {
+    blocks,
+    items,
+    enemies: [],
+    width: WIDTH,
+    castle: false,
+    underground: true,
+    night: false,
+    checkpoint: Infinity,
+    bonus: true,
   };
 }
 export const overlaps = (a: Rect, b: Rect) =>
@@ -177,6 +211,13 @@ export class Game {
   elapsed = 0;
   shots: (Rect & { vx: number; vy: number; enemy?: boolean })[] = [];
   message = "";
+  private surface: Level | null = null;
+  private returnPipe: Block | null = null;
+  private rooms = new Map<number, Level>();
+  private downHeld = false;
+  pipeFade = 0;
+  private pendingPipe: Block | null = null;
+  private pipeSwitched = false;
   sound: (kind: string) => void = () => {};
   start(index = 0) {
     this.lives = 3;
@@ -186,6 +227,12 @@ export class Game {
     this.load(index);
   }
   load(index: number, retry = false) {
+    this.surface = null;
+    this.returnPipe = null;
+    this.rooms.clear();
+    this.pendingPipe = null;
+    this.pipeFade = 0;
+    this.downHeld = false;
     this.levelIndex = index;
     this.level = makeLevel(index);
     this.player = {
@@ -206,6 +253,39 @@ export class Game {
     this.jumpHeld = false;
     this.camera = Math.max(0, this.player.x - 160);
     this.message = "";
+  }
+  private travelPipe(pipe: Block) {
+    if (this.level.bonus && this.surface && this.returnPipe) {
+      this.level = this.surface;
+      pipe = this.returnPipe;
+      this.surface = null;
+      this.returnPipe = null;
+      this.message = "Back above ground. Nice little detour.";
+    } else {
+      this.surface = this.level;
+      this.returnPipe = pipe;
+      let room = this.rooms.get(pipe.x);
+      if (!room) {
+        room = makeBonusRoom();
+        this.rooms.set(pipe.x, room);
+      }
+      this.level = room;
+      pipe = room.blocks.find((b) => b.kind === "pipe")!;
+      this.message =
+        "A little pocket money. Down on either pipe takes you back.";
+    }
+    Object.assign(this.player, {
+      x: pipe.x + (pipe.w - this.player.w) / 2,
+      y: pipe.y - this.player.h,
+      vx: 0,
+      vy: 0,
+      grounded: true,
+    });
+    this.camera = Math.max(
+      0,
+      Math.min(this.level.width - WIDTH, this.player.x - 150),
+    );
+    this.shots = [];
   }
   advance() {
     if (this.levelIndex === 31) this.state = "won";
@@ -279,6 +359,17 @@ export class Game {
   }
   tick(dt: number, input: Input) {
     if (this.state !== "playing") return;
+    if (this.pipeFade > 0) {
+      this.pipeFade = Math.max(0, this.pipeFade - dt);
+      if (this.pipeFade <= 0.25 && !this.pipeSwitched && this.pendingPipe) {
+        this.travelPipe(this.pendingPipe);
+        this.pipeSwitched = true;
+      }
+      this.downHeld = input.down;
+      return;
+    }
+    const enterPipe = input.down && !this.downHeld;
+    this.downHeld = input.down;
     this.elapsed += dt;
     this.time -= dt;
     this.invincible = Math.max(0, this.invincible - dt);
@@ -306,21 +397,26 @@ export class Game {
       this.die();
       return;
     }
-    if (p.x > this.level.checkpoint && !this.checkpoint) {
+    if (!this.level.bonus && p.x > this.level.checkpoint && !this.checkpoint) {
       this.checkpoint = true;
       this.message = "Checkpoint!";
     }
-    if (
-      input.down &&
-      p.grounded &&
-      Math.abs(p.x - this.level.pipe) < 28 &&
-      !this.message.includes("stash")
-    ) {
-      this.coins += 10;
-      this.score += 1000;
-      this.message = "Found the pipe stash. +10 coins";
-      this.sound("coin");
-      this.level.pipe = -100;
+    if (enterPipe && p.grounded) {
+      const pipe = this.level.blocks.find(
+        (b) =>
+          b.kind === "pipe" &&
+          Math.abs(p.y + p.h - b.y) < 1 &&
+          p.x + p.w / 2 >= b.x + 4 &&
+          p.x + p.w / 2 <= b.x + b.w - 4,
+      );
+      if (pipe) {
+        this.pendingPipe = pipe;
+        this.pipeSwitched = false;
+        this.pipeFade = 0.5;
+        p.vx = 0;
+        this.sound("pipe");
+        return;
+      }
     }
     if (input.run && this.power === 2 && this.fireClock <= 0) {
       this.shots.push({
@@ -408,6 +504,8 @@ export class Game {
     );
     this.camera = Math.max(0, Math.min(this.level.width - WIDTH, p.x - 150));
     if (
+      this.state === "playing" &&
+      !this.level.bonus &&
       p.x > this.level.width - 60 &&
       (!this.level.castle ||
         !this.level.enemies.some((e) => e.kind === "boss" && e.hp > 0))

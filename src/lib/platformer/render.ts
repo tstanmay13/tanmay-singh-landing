@@ -170,12 +170,14 @@ export function draw(ctx: CanvasRenderingContext2D, g: Game) {
       rect(e.x, e.y + 12, 16, 3, "#e7c777");
     } else sprite(ctx, walker, e.x, e.y + 4);
   }
-  const flagX = l.width - 54;
-  rect(flagX, 66, 2, 142, "#e6dfb8");
-  rect(flagX - 2, 62, 6, 6, "#ffdc64");
-  rect(flagX + 2, 71, 20, 12, l.castle ? "#e96748" : "#e8e4c7");
-  rect(flagX + 7, 74, 5, 5, "#599750");
-  if (g.checkpoint) {
+  if (!l.bonus) {
+    const flagX = l.width - 54;
+    rect(flagX, 66, 2, 142, "#e6dfb8");
+    rect(flagX - 2, 62, 6, 6, "#ffdc64");
+    rect(flagX + 2, 71, 20, 12, l.castle ? "#e96748" : "#e8e4c7");
+    rect(flagX + 7, 74, 5, 5, "#599750");
+  }
+  if (g.checkpoint && !l.bonus) {
     rect(l.checkpoint, 174, 2, 34, "#f6d67d");
     rect(l.checkpoint + 2, 174, 14, 8, "#72bd75");
   }
@@ -199,4 +201,8 @@ export function draw(ctx: CanvasRenderingContext2D, g: Game) {
       g.power === 2,
     );
   ctx.restore();
+  if (g.pipeFade > 0) {
+    ctx.fillStyle = `rgba(16, 28, 43, ${1 - Math.abs(g.pipeFade - 0.25) * 4})`;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
 }
