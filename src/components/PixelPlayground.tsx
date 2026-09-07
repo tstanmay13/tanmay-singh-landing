@@ -1,191 +1,382 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import {
+  Game,
+  emptyInput,
+  worldNames,
+  WIDTH,
+  HEIGHT,
+  type Input,
+} from "@/lib/platformer/engine";
+import { draw } from "@/lib/platformer/render";
 import styles from "./PixelPlayground.module.css";
-
-const COINS = [165, 320, 475];
-const FLOOR = 122;
-
-/** A tiny, user-started platformer. Its keyboard controls stay inside this region. */
+const SAVE = "homepage-platformer-v1";
 export default function PixelPlayground() {
-  const actor = useRef<SVGGElement>(null);
-  const motion = useRef({
-    x: 24,
-    y: FLOOR,
-    vy: 0,
-    collected: new Set<number>(),
+  const canvas = useRef<HTMLCanvasElement>(null),
+    region = useRef<HTMLDivElement>(null);
+  const game = useRef<Game | null>(null),
+    input = useRef(emptyInput()),
+    audio = useRef<AudioContext | null>(null),
+    soundOn = useRef(false);
+  const [hud, setHud] = useState({
+    state: "title",
+    level: 0,
+    score: 0,
+    coins: 0,
+    lives: 3,
+    time: 300,
+    message: "",
   });
-  const [running, setRunning] = useState(false);
-  const [collected, setCollected] = useState<number[]>([]);
-  const [finished, setFinished] = useState(false);
-  const [best, setBest] = useState(0);
-
-  function jump() {
-    if (!running) {
-      motion.current = { x: 24, y: FLOOR, vy: -310, collected: new Set() };
-      setCollected([]);
-      setFinished(false);
-      setRunning(true);
-    } else if (motion.current.y >= FLOOR) {
-      motion.current.vy = -310;
-    }
-  }
-
+  const [unlocked, setUnlocked] = useState(0),
+    [selected, setSelected] = useState(0),
+    [sound, setSound] = useState(false);
   useEffect(() => {
-    if (!running) return;
-    let frame = 0;
-    let previous = 0;
-    const tick = (now: number) => {
-      const dt = previous ? Math.min((now - previous) / 1000, 0.035) : 0;
-      previous = now;
-      const player = motion.current;
-      player.x += dt * 95;
-      player.vy += dt * 880;
-      player.y = Math.min(FLOOR, player.y + player.vy * dt);
-      if (player.y === FLOOR) player.vy = 0;
-      for (const coin of COINS) {
-        if (
-          !player.collected.has(coin) &&
-          Math.abs(player.x - coin) < 18 &&
-          Math.abs(player.y - 13 - 69) < 20
-        ) {
-          player.collected.add(coin);
-          setCollected([...player.collected]);
-        }
-      }
-      actor.current?.setAttribute(
-        "transform",
-        `translate(${player.x.toFixed(2)} ${player.y.toFixed(2)})`,
+    const g = new Game();
+    game.current = g;
+    let saved = 0;
+    try {
+      saved = Math.max(
+        0,
+        Math.min(31, Number(localStorage.getItem(SAVE)) || 0),
       );
-      if (player.x >= 571) {
-        setBest((value) => Math.max(value, player.collected.size));
-        setFinished(true);
-        setRunning(false);
-        return;
+      setUnlocked(saved);
+    } catch {}
+    g.sound = (kind) => {
+      const a = audio.current;
+      if (!a || !soundOn.current) return;
+      const o = a.createOscillator(),
+        v = a.createGain();
+      o.type = "square";
+      o.frequency.setValueAtTime(
+        kind === "coin"
+          ? 880
+          : kind === "jump"
+            ? 220
+            : kind === "power"
+              ? 440
+              : 130,
+        a.currentTime,
+      );
+      o.frequency.exponentialRampToValueAtTime(
+        kind === "hurt" ? 45 : 660,
+        a.currentTime + 0.12,
+      );
+      v.gain.setValueAtTime(0.035, a.currentTime);
+      v.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 0.16);
+      o.connect(v);
+      v.connect(a.destination);
+      o.start();
+      o.stop(a.currentTime + 0.17);
+    };
+    let frame = 0,
+      previous = 0,
+      accumulator = 0,
+      lastHud = "",
+      lastDrawState = "";
+    const pause = () => {
+      input.current = emptyInput();
+      if (g.state === "playing") g.state = "paused";
+    };
+    const visibility = () => {
+      if (document.hidden) pause();
+    };
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) pause();
+    });
+    if (region.current) observer.observe(region.current);
+    window.addEventListener("blur", pause);
+    document.addEventListener("visibilitychange", visibility);
+    const tick = (now: number) => {
+      accumulator += previous ? Math.min((now - previous) / 1000, 0.05) : 0;
+      previous = now;
+      while (accumulator >= 1 / 60) {
+        g.tick(1 / 60, input.current);
+        accumulator -= 1 / 60;
+      }
+      const ctx = canvas.current?.getContext("2d");
+      if (ctx && (g.state === "playing" || lastDrawState !== g.state))
+        draw(ctx, g);
+      lastDrawState = g.state;
+      const next = {
+        state: g.state,
+        level: g.levelIndex,
+        score: g.score,
+        coins: g.coins,
+        lives: g.lives,
+        time: Math.ceil(g.time),
+        message: g.message,
+      };
+      const signature = JSON.stringify(next);
+      if (signature !== lastHud) {
+        setHud(next);
+        lastHud = signature;
+      }
+      if (
+        g.state === "clear" &&
+        g.levelIndex < 31 &&
+        g.levelIndex + 1 > saved
+      ) {
+        saved = g.levelIndex + 1;
+        setUnlocked(saved);
+        try {
+          localStorage.setItem(SAVE, String(saved));
+        } catch {}
       }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [running]);
-
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("blur", pause);
+      document.removeEventListener("visibilitychange", visibility);
+      void audio.current?.close();
+    };
+  }, []);
+  function act() {
+    const g = game.current;
+    if (!g) return;
+    input.current = emptyInput();
+    if (g.state === "paused") g.state = "playing";
+    else if (g.state === "clear") g.advance();
+    else if (g.state === "dead") g.load(g.levelIndex, true);
+    else g.start(selected);
+    region.current?.focus({ preventScroll: true });
+  }
+  function key(event: React.KeyboardEvent, pressed: boolean) {
+    if (
+      event.target instanceof HTMLSelectElement ||
+      event.target instanceof HTMLButtonElement
+    )
+      return;
+    const map: Record<string, keyof Input> = {
+      ArrowLeft: "left",
+      a: "left",
+      ArrowRight: "right",
+      d: "right",
+      ArrowUp: "jump",
+      w: "jump",
+      " ": "jump",
+      z: "jump",
+      Shift: "run",
+      x: "run",
+      ArrowDown: "down",
+      s: "down",
+    };
+    const action = map[event.key];
+    if (action) {
+      event.preventDefault();
+      input.current[action] = pressed;
+    }
+    if (
+      pressed &&
+      !event.repeat &&
+      (event.key === "Escape" || event.key === "p")
+    ) {
+      event.preventDefault();
+      const g = game.current;
+      if (g) {
+        if (g.state === "playing") {
+          g.state = "paused";
+          input.current = emptyInput();
+        } else if (g.state === "paused") act();
+      }
+    }
+    if (pressed && event.key === "Enter" && game.current?.state !== "playing")
+      act();
+  }
+  const touch = (label: string, action: keyof Input) => (
+    <button
+      type="button"
+      aria-label={label}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        input.current[action] = true;
+      }}
+      onPointerUp={() => {
+        input.current[action] = false;
+      }}
+      onPointerCancel={() => {
+        input.current[action] = false;
+      }}
+      onLostPointerCapture={() => {
+        input.current[action] = false;
+      }}
+    >
+      {label}
+    </button>
+  );
   return (
     <div
+      ref={region}
       className={styles.playground}
       role="region"
-      aria-label="Little coin run"
+      aria-label="Super Tanmay Bros game"
       tabIndex={0}
-      onKeyDown={(event) => {
-        if (
-          (event.key === " " && event.target === event.currentTarget) ||
-          event.key === "ArrowUp"
-        ) {
-          event.preventDefault();
-          if (!event.repeat) jump();
+      onKeyDown={(e) => key(e, true)}
+      onKeyUp={(e) => key(e, false)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          input.current = emptyInput();
+          if (game.current?.state === "playing") game.current.state = "paused";
         }
       }}
     >
-      <svg
-        viewBox="0 0 640 152"
-        className={styles.scene}
-        aria-hidden="true"
-        shapeRendering="crispEdges"
-      >
-        <rect width="640" height="152" fill="var(--run-sky)" />
-        <path
-          d="M42 35h16v-8h32v8h16v12H42zM410 22h14v-8h30v8h16v12h-60z"
-          fill="var(--run-cloud)"
-        />
-        <path
-          d="M0 122V98h22V82h20V66h24V82h20v16h22v24M356 122V98h22V82h20V66h24V82h20v16h22v24"
-          fill="var(--run-hill)"
-        />
-        <path
-          d="M64 122v-18h20V88h24V72h24v16h22v16h24v18M470 122v-18h20V88h24V72h24v16h22v16h24v18"
-          fill="var(--run-hill-light)"
-        />
-        {[264, 288, 312].map((x) => (
-          <g key={x}>
-            <rect
-              x={x}
-              y="14"
-              width="23"
-              height="22"
-              fill="var(--run-brick)"
-              stroke="var(--run-ink)"
-              strokeWidth="2"
-            />
-            <path
-              d={`M${x + 2} 24h19m-10-8v8m-5 0v10`}
-              stroke="var(--run-ink)"
-              opacity=".35"
-            />
-          </g>
-        ))}
-        {COINS.map(
-          (x) =>
-            !collected.includes(x) && (
-              <g key={x}>
-                <path
-                  d={`M${x - 5} 60h10v3h3v12h-3v3h-10v-3h-3V63h3z`}
-                  fill="var(--run-coin)"
-                />
-                <path
-                  d={`M${x} 64v10`}
-                  stroke="var(--run-brick)"
-                  strokeWidth="3"
-                />
-              </g>
-            ),
-        )}
-        <path
-          d="M582 99h36v25h-36zM577 88h46v13h-46z"
-          fill="var(--run-pipe)"
-          stroke="var(--run-ink)"
-          strokeWidth="3"
-        />
-        <path
-          d="M588 103v19m-5-30v6"
-          stroke="var(--run-pipe-light)"
-          strokeWidth="5"
-        />
-        <rect y="124" width="640" height="28" fill="var(--run-dirt)" />
-        <path d="M0 124h640" stroke="var(--run-grass)" strokeWidth="6" />
-        {Array.from({ length: 32 }, (_, i) => (
-          <path
-            key={i}
-            d={`M${i * 20} 138h20m-10 0v14m-10-24v10`}
-            stroke="var(--run-ink)"
-            strokeWidth="2"
-            opacity=".3"
-          />
-        ))}
-        <g ref={actor} transform="translate(24 122)">
-          <path d="M-8-26h14v4h5v4H-10v-4h2z" fill="var(--run-red)" />
-          <path d="M-7-18H6v10H-7zM6-16h5v5H6z" fill="var(--run-skin)" />
-          <path d="M2-17h3v4H2z" fill="var(--run-ink)" />
-          <path d="M-8-8H7v5H-8z" fill="var(--run-red)" />
-          <path
-            d="M-5-9h8v8h-8zM-8-3h6v3h-6zM3-3h7v3H3z"
-            fill="var(--run-overalls)"
-          />
-        </g>
-      </svg>
-      <div className={styles.controls}>
-        <span className={styles.score} role="status">
-          {finished
-            ? collected.length === 3
-              ? "ALL THREE!"
-              : `${collected.length}/3. ONE MORE GO?`
-            : `COINS ${collected.length}/3`}
-          {best === 3 && !finished ? " ★" : ""}
+      <div className={styles.top}>
+        <span>SUPER TANMAY BROS.</span>
+        <span>
+          WORLD {Math.floor(hud.level / 4) + 1}-{(hud.level % 4) + 1}
         </span>
-        <span className={styles.hint}>Focus here + Space</span>
-        <button type="button" onClick={jump} className={styles.jump}>
-          {finished ? "AGAIN" : "JUMP"}
-          <span aria-hidden="true"> ↑</span>
-        </button>
       </div>
+      <div className={styles.screen}>
+        <canvas
+          ref={canvas}
+          width={WIDTH}
+          height={HEIGHT}
+          aria-label="Side-scrolling platform game. Arrow keys move, Space jumps, Shift runs. Press P to pause."
+        />
+        <div className={styles.hud} aria-hidden="true">
+          <span>
+            SCORE
+            <br />
+            {String(hud.score).padStart(6, "0")}
+          </span>
+          <span>
+            COINS
+            <br />
+            {String(hud.coins).padStart(2, "0")}
+          </span>
+          <span>
+            LIVES
+            <br />
+            {hud.lives}
+          </span>
+          <span>
+            TIME
+            <br />
+            {hud.time}
+          </span>
+        </div>
+        {hud.state !== "playing" && (
+          <div className={styles.overlay}>
+            <div className={styles.panel}>
+              <span className={styles.eyebrow}>
+                8 WORLDS · 32 STAGES · ONE DISTRACTION
+              </span>
+              <h3>
+                {hud.state === "title"
+                  ? "Just one level."
+                  : hud.state === "paused"
+                    ? "Take a breather."
+                    : hud.state === "dead"
+                      ? "That gap was personal."
+                      : hud.state === "over"
+                        ? "Okay. One more try."
+                        : hud.state === "won"
+                          ? "You actually did it."
+                          : "Flag secured."}
+              </h3>
+              <p>
+                {hud.state === "title"
+                  ? "I like Mario. This got a little out of hand."
+                  : hud.state === "won"
+                    ? "All 32 stages. You deserve a very long walk outside."
+                    : hud.state === "clear"
+                      ? worldNames[Math.floor(hud.level / 4)] + " — cleared."
+                      : hud.state === "dead"
+                        ? "Your checkpoint is waiting."
+                        : "Your next good jump is right there."}
+              </p>
+              {(hud.state === "title" ||
+                hud.state === "over" ||
+                hud.state === "won") &&
+                unlocked > 0 && (
+                  <label className={styles.select}>
+                    Start at{" "}
+                    <select
+                      value={selected}
+                      onChange={(e) => setSelected(Number(e.target.value))}
+                    >
+                      {Array.from({ length: unlocked + 1 }, (_, i) => (
+                        <option key={i} value={i}>
+                          World {Math.floor(i / 4) + 1}-{(i % 4) + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              <button type="button" className={styles.start} onClick={act}>
+                {hud.state === "paused"
+                  ? "RESUME"
+                  : hud.state === "clear"
+                    ? "ONWARD →"
+                    : hud.state === "dead"
+                      ? "TRY AGAIN"
+                      : "LET’S PLAY →"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className={styles.controls}>
+        <span>← → move · SPACE jump · SHIFT run / fire · P pause</span>
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              const g = game.current;
+              if (g?.state === "playing") {
+                g.state = "paused";
+                input.current = emptyInput();
+              } else if (g?.state === "paused") act();
+            }}
+            disabled={hud.state !== "playing" && hud.state !== "paused"}
+          >
+            {hud.state === "paused" ? "Resume" : "Pause"}
+          </button>
+          <button
+            type="button"
+            aria-pressed={sound}
+            onClick={() => {
+              const next = !sound;
+              setSound(next);
+              soundOn.current = next;
+              if (next) {
+                audio.current ??= new AudioContext();
+                void audio.current.resume();
+              }
+            }}
+          >
+            Sound {sound ? "on" : "off"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (document.fullscreenElement) void document.exitFullscreen();
+              else void region.current?.requestFullscreen?.().catch(() => {});
+            }}
+          >
+            Expand
+          </button>
+        </div>
+      </div>
+      <div className={styles.touch}>
+        <div>
+          {touch("←", "left")}
+          {touch("→", "right")}
+          {touch("↓", "down")}
+        </div>
+        <div>
+          {touch("RUN", "run")}
+          {touch("JUMP", "jump")}
+        </div>
+      </div>
+      <p className={styles.note} role="status">
+        {hud.message ||
+          "An original, homemade tribute. Hit ? blocks from below. Find a mushroom. Watch your step."}
+      </p>
     </div>
   );
 }

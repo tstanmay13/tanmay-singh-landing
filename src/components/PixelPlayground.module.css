@@ -1,75 +1,268 @@
 .playground {
-  --run-sky: #0b2149;
-  --run-cloud: #8ca8c5;
-  --run-hill: #24492e;
-  --run-hill-light: #38673a;
-  --run-grass: #7da44e;
-  --run-dirt: #a57442;
-  --run-brick: #d29345;
-  --run-coin: #ffe27a;
-  --run-pipe: #438840;
-  --run-pipe-light: #8ec965;
-  --run-ink: #172b29;
-  --run-red: #ed765b;
-  --run-skin: #f1c594;
-  --run-overalls: #6eabde;
-  width: min(640px, 100%);
-  margin: 38px auto 0;
+  --game-ink: #101c2b;
+  --game-cream: #fff1cd;
+  --game-gold: #f3c966;
+  width: min(800px, 100%);
+  margin: 40px auto 0;
   border: 3px solid var(--color-panel-edge);
-  box-shadow: 4px 4px 0 var(--color-border);
-  background: var(--color-bg-card);
+  background: var(--game-ink);
+  box-shadow: 5px 5px 0 var(--color-border);
+  color: var(--game-cream);
+  text-align: left;
+  overflow: hidden;
 }
-.scene {
-  display: block;
+.playground:focus-visible {
+  outline: 3px solid var(--game-gold);
+  outline-offset: 5px;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 18px;
+  font-family: var(--font-pixel), monospace;
+  font-size: 9px;
+  color: var(--game-gold);
+  border-bottom: 3px solid var(--color-panel-edge);
+}
+.screen {
+  position: relative;
+  aspect-ratio: 2/1;
+}
+.screen canvas {
   width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+.hud {
+  position: absolute;
+  inset: 16px 24px auto;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  font-family: var(--font-pixel), monospace;
+  font-size: 9px;
+  line-height: 1.8;
+  text-shadow: 2px 2px var(--game-ink);
+  color: var(--game-cream);
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #101c2b70;
+  padding: 40px 16px 10px;
+}
+.panel {
+  text-align: center;
+  background: var(--game-ink);
+  border: 2px solid var(--game-cream);
+  box-shadow: 5px 5px 0 #101c2b80;
+  padding: 24px 28px;
+  max-width: 430px;
+}
+.eyebrow {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--game-gold);
+}
+.panel h3 {
+  font-size: 19px !important;
+  line-height: 1.6;
+  margin: 12px 0 !important;
+  color: var(--game-cream) !important;
+}
+.panel p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px;
+  color: var(--game-cream);
+}
+.playground button {
+  cursor: pointer;
+  border: 1px solid #fff1cd66;
+  padding: 9px 12px;
+  color: var(--game-cream);
+  background: transparent;
+  font-size: 12px;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.playground button:hover {
+  background: #fff1cd18;
+}
+.playground button:focus-visible,
+.select select:focus-visible {
+  outline: 2px solid var(--game-gold);
+  outline-offset: 3px;
+}
+.playground button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.playground .start {
+  background: var(--game-gold);
+  color: var(--game-ink);
+  font-family: var(--font-pixel), monospace;
+  font-size: 10px;
+  padding: 14px 18px;
+  border: 0;
+  box-shadow: 3px 3px 0 #ae783a;
+}
+.start:active {
+  transform: translate(2px, 2px);
 }
 .controls {
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 10px;
+  border-top: 3px solid var(--color-panel-edge);
 }
-.score {
-  font-family: var(--font-pixel);
-  font-size: 8px;
-  line-height: 1.7;
-  color: var(--color-yellow);
-}
-.hint {
+.controls > span {
   font-size: 11px;
-  color: var(--color-text-secondary);
+  line-height: 1.6;
+  max-width: 300px;
+  color: #b9c8cb;
 }
-.jump {
-  font-family: var(--font-pixel);
-  font-size: 9px;
-  padding: 8px 11px;
-  border: 2px solid var(--color-panel-edge);
-  color: var(--color-text);
-  box-shadow: 2px 2px 0 var(--color-border);
-  cursor: pointer;
-  min-height: 36px;
+.controls > div {
+  display: flex;
+  gap: 6px;
 }
-.jump:hover {
-  border-color: var(--color-yellow);
+.note {
+  font-size: 11px;
+  color: #b9c8cb;
+  margin: 0;
+  padding: 0 16px 12px;
+  line-height: 1.6;
 }
-.jump:active {
-  transform: translate(2px, 2px);
-  box-shadow: none;
+.touch {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px 12px;
+  gap: 12px;
 }
-.playground:focus-visible,
-.jump:focus-visible {
-  outline: 3px solid var(--color-yellow);
-  outline-offset: 5px;
+.touch > div {
+  display: flex;
+  gap: 8px;
 }
-@media (max-width: 540px) {
-  .hint {
+.touch button {
+  touch-action: none;
+  user-select: none;
+  min-width: 48px;
+  min-height: 44px;
+  background: #263949;
+  font-weight: bold;
+}
+.select {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 12px;
+}
+.select select {
+  color: var(--game-cream);
+  background: var(--game-ink);
+  padding: 6px;
+  border: 1px solid var(--game-cream);
+}
+.playground:fullscreen {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 0;
+}
+.playground:fullscreen .screen {
+  max-height: 75vh;
+  max-width: 150vh;
+  width: 100%;
+  margin: auto;
+}
+.playground:fullscreen .top,
+.playground:fullscreen .controls,
+.playground:fullscreen .touch,
+.playground:fullscreen .note {
+  width: min(100%, 150vh);
+  margin-inline: auto;
+}
+@media (min-width: 850px) and (pointer: fine) {
+  .touch {
     display: none;
   }
-  .controls {
-    padding: 9px;
+}
+@media (max-width: 600px) {
+  .top {
+    font-size: 7px;
+    padding: 12px 10px;
   }
-  .jump {
-    min-height: 42px;
+  .screen {
+    aspect-ratio: 1.6;
+  }
+  .screen canvas {
+    object-fit: fill;
+  }
+  .hud {
+    font-size: 7px;
+    inset: 9px 12px auto;
+  }
+  .overlay {
+    padding: 34px 12px 8px;
+  }
+  .panel {
+    padding: 12px 14px;
+  }
+  .panel h3 {
+    font-size: 13px !important;
+    margin: 6px 0 !important;
+  }
+  .panel p {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+  .eyebrow {
+    font-size: 6px;
+    letter-spacing: 0;
+  }
+  .playground .start {
+    padding: 11px;
+    font-size: 8px;
+  }
+  .controls {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  .controls > span {
+    font-size: 10px;
+    max-width: none;
+  }
+  .controls > div {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .controls button {
+    min-height: 40px;
+  }
+  .touch {
+    padding-inline: 12px;
+  }
+  .note {
+    font-size: 10px;
+  }
+  .select {
+    margin-bottom: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .playground button {
+    transition: none;
   }
 }
