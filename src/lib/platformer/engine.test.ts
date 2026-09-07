@@ -76,3 +76,71 @@ describe("homepage platformer", () => {
     expect(g.state).toBe("clear");
   });
 });
+
+describe("pipe travel", () => {
+  function onPipe(g: Game) {
+    const pipe = g.level.blocks.find((b) => b.kind === "pipe")!;
+    Object.assign(g.player, {
+      x: pipe.x + 10,
+      y: pipe.y - g.player.h,
+      vx: 0,
+      vy: 0,
+      grounded: true,
+    });
+  }
+  function enter(g: Game) {
+    g.tick(1 / 60, { ...emptyInput(), down: true });
+    for (let i = 0; i < 32; i++) g.tick(1 / 60, emptyInput());
+  }
+  it("enters and returns through pipes in all stages without resetting the surface", () => {
+    for (let stage = 0; stage < 32; stage++) {
+      const g = new Game();
+      g.start(stage);
+      const surface = g.level;
+      onPipe(g);
+      const x = g.player.x;
+      enter(g);
+      expect(g.level.bonus).toBe(true);
+      expect(g.coins).toBe(0);
+      expect(g.level.items).toHaveLength(30);
+      onPipe(g);
+      enter(g);
+      expect(g.level).toBe(surface);
+      expect(g.player.x).toBe(x);
+      expect(g.state).toBe("playing");
+      expect(g.time).toBeLessThan(300);
+    }
+  });
+  it("requires standing on top, and cannot retrigger while Down is held", () => {
+    const g = new Game();
+    g.start();
+    g.player.x = 320;
+    g.player.y = 100;
+    enter(g);
+    expect(g.level.bonus).not.toBe(true);
+    onPipe(g);
+    g.tick(1 / 60, emptyInput());
+    for (let i = 0; i < 120; i++)
+      g.tick(1 / 60, { ...emptyInput(), down: true });
+    expect(g.level.bonus).toBe(true);
+  });
+  it("keeps collected coins gone on revisits and cannot clear a level in a room", () => {
+    const g = new Game();
+    g.start();
+    onPipe(g);
+    enter(g);
+    const coin = g.level.items[0];
+    Object.assign(g.player, { x: coin.x, y: coin.y, vx: 0, vy: 0 });
+    g.tick(1 / 60, emptyInput());
+    expect(g.coins).toBeGreaterThan(0);
+    const remaining = g.level.items.length;
+    g.player.x = 430;
+    g.tick(1 / 60, emptyInput());
+    expect(g.state).toBe("playing");
+    onPipe(g);
+    enter(g);
+    onPipe(g);
+    enter(g);
+    expect(g.level.items).toHaveLength(remaining);
+  });
+});

@@ -31,6 +31,16 @@ export default function PixelPlayground() {
   const [unlocked, setUnlocked] = useState(0),
     [selected, setSelected] = useState(0),
     [sound, setSound] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    region.current?.focus({ preventScroll: true });
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [expanded]);
   useEffect(() => {
     const g = new Game();
     game.current = g;
@@ -143,8 +153,22 @@ export default function PixelPlayground() {
     else if (g.state === "dead") g.load(g.levelIndex, true);
     else g.start(selected);
     region.current?.focus({ preventScroll: true });
+    if (!expanded)
+      region.current?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      });
   }
   function key(event: React.KeyboardEvent, pressed: boolean) {
+    if (pressed && event.key === "Escape" && expanded) {
+      event.preventDefault();
+      setExpanded(false);
+      input.current = emptyInput();
+      if (game.current?.state === "playing") game.current.state = "paused";
+      return;
+    }
     if (
       event.target instanceof HTMLSelectElement ||
       event.target instanceof HTMLButtonElement
@@ -211,7 +235,7 @@ export default function PixelPlayground() {
   return (
     <div
       ref={region}
-      className={styles.playground}
+      className={`${styles.playground} ${expanded ? styles.expanded : ""}`}
       role="region"
       aria-label="Super Tanmay Bros game"
       tabIndex={0}
@@ -321,7 +345,9 @@ export default function PixelPlayground() {
         )}
       </div>
       <div className={styles.controls}>
-        <span>← → move · SPACE jump · SHIFT run / fire · P pause</span>
+        <span>
+          ← → move · SPACE jump · ↓ enter pipe · SHIFT run / fire · P pause
+        </span>
         <div>
           <button
             type="button"
@@ -354,11 +380,10 @@ export default function PixelPlayground() {
           <button
             type="button"
             onClick={() => {
-              if (document.fullscreenElement) void document.exitFullscreen();
-              else void region.current?.requestFullscreen?.().catch(() => {});
+              setExpanded((value) => !value);
             }}
           >
-            Expand
+            {expanded ? "Back to page" : "Fit screen"}
           </button>
         </div>
       </div>
@@ -375,7 +400,7 @@ export default function PixelPlayground() {
       </div>
       <p className={styles.note} role="status">
         {hud.message ||
-          "An original, homemade tribute. Hit ? blocks from below. Find a mushroom. Watch your step."}
+          "Stand on a pipe and press ↓ to explore. Hit ? blocks from below. Watch your step."}
       </p>
     </div>
   );
