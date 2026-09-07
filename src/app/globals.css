@@ -791,28 +791,120 @@ body {
   display: none;
 }
 
-/* Quiet the shared arcade effects only on the redesigned browsing pages.
-   Travel and the individual games retain their existing presentation. */
-body:has([data-personal-page])::before,
-body:has([data-personal-page])::after { display: none; }
-body:has([data-personal-page]) .parallax-bg { display: none; }
-body:has([data-personal-page]) .pixel-nav {
+/* Shared 8-bit interface: the travel atlas is the visual reference.
+   Use the same pixel type and solid frames everywhere, including navigation. */
+:root {
+  --color-panel-edge: color-mix(in srgb, var(--color-text) 65%, var(--color-border));
+  --color-panel-highlight: color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+.pixel-card,
+.pixel-border {
+  border-radius: 0;
+  border-color: var(--color-panel-edge);
+  box-shadow: 4px 4px 0 var(--color-border), inset 2px 2px 0 var(--color-panel-highlight);
+}
+.pixel-card::before { display: none; }
+.pixel-card:hover {
+  border-color: var(--color-yellow);
+  box-shadow: 4px 4px 0 var(--color-border), inset 2px 2px 0 var(--color-panel-highlight);
+}
+.pixel-btn {
+  border-radius: 0;
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+.pixel-btn:hover {
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+.pixel-card:focus-visible,
+.pixel-btn:focus-visible {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 5px;
+}
+.site-nav {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  height: 4rem;
   background: var(--color-bg-secondary);
+  border-bottom: 2px solid var(--color-border);
   backdrop-filter: none;
-  border-bottom-width: 1px;
+  font-family: var(--font-pixel);
 }
-body:has([data-personal-page]) .pixel-nav a,
-body:has([data-personal-page]) .pixel-nav button {
-  font-family: var(--font-body);
-  font-size: 14px;
-  letter-spacing: 0;
+.site-nav-inner {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
-
-body:has([data-personal-page]) {
-  --color-accent: #b8d9c8;
-  --color-bg-secondary: #202633;
+.site-nav-brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.site-nav-brand span:first-child { font-size: 22px; color: var(--color-accent); }
+.site-nav-brand span:last-child { font-size: 10px; color: var(--color-text-secondary); }
+.site-nav-desktop { display: flex; align-items: center; gap: 3px; margin-left: auto; }
+.site-nav-link,
+.site-nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 10px;
+  border: 2px solid transparent;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
-[data-theme="light"] body:has([data-personal-page]) {
-  --color-accent: #326b57;
-  --color-bg-secondary: #e1e6e1;
+.site-nav-link[aria-current="page"] {
+  color: var(--color-yellow);
+  border-color: var(--color-yellow);
+  background: var(--color-bg-card);
+  box-shadow: 2px 2px 0 var(--color-border);
+}
+.site-nav-link:hover,
+.site-nav-button:hover { color: var(--color-text); border-color: var(--color-panel-edge); }
+.site-nav-button { cursor: pointer; border-color: var(--color-border); color: var(--color-text); }
+.site-nav-actions { display: flex; align-items: center; gap: 8px; }
+.site-nav-link:focus-visible,
+.site-nav-brand:focus-visible,
+.site-nav-button:focus-visible { outline: 3px solid var(--color-yellow); outline-offset: 3px; }
+.site-nav-menu-button,
+.site-nav-mobile { display: none; }
+@media (max-width: 1099px) {
+  .site-nav-desktop { display: none; }
+  .site-nav-actions { margin-left: auto; }
+  .site-nav-menu-button { display: inline-flex; }
+  .site-nav-mobile {
+    display: grid;
+    position: absolute;
+    top: 4rem;
+    right: 12px;
+    left: 12px;
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    padding: 10px;
+    gap: 4px;
+    border: 3px solid var(--color-panel-edge);
+    background: var(--color-bg-secondary);
+    box-shadow: 4px 4px 0 var(--color-border);
+  }
+  .site-nav-mobile .site-nav-link { justify-content: flex-start; min-height: 44px; padding: 12px; }
+}
+@media (max-width: 480px) {
+  .site-nav-inner { padding: 0 14px; gap: 10px; }
+  .site-nav-brand span:last-child { display: none; }
+  .site-nav-button { min-height: 40px; }
+}
+.site-nav-link,
+.site-nav-button { transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease; }
+.site-nav-button:active { box-shadow: inset 2px 2px 0 var(--color-border); }
+.site-nav-mobile { animation: pixel-menu-in 140ms ease-out; }
+@keyframes pixel-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-nav-mobile { animation: none; }
+  .site-nav-link, .site-nav-button, .pixel-card, .pixel-btn { transition: none; }
 }

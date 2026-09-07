@@ -2,16 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTheme } from "./ThemeProvider";
 
-interface NavLink {
-  href: string;
-  label: string;
-  external?: boolean;
-}
-
-const navLinks: NavLink[] = [
+const navLinks = [
   { href: "/", label: "Home" },
   { href: "/games", label: "Games" },
   { href: "/writing", label: "Writing" },
@@ -24,130 +18,91 @@ const navLinks: NavLink[] = [
 export default function PixelNav() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const menuOpen = openPath === pathname;
+
+  function links(mobile = false) {
+    return navLinks.map((link) => {
+      const active =
+        !link.external &&
+        (pathname === link.href ||
+          (link.href !== "/" && pathname.startsWith(link.href)));
+      const props = {
+        className: "site-nav-link",
+        "aria-current": active ? ("page" as const) : undefined,
+        "data-interactive": true,
+        onClick: () => setOpenPath(null),
+      };
+      return link.external ? (
+        <a
+          key={`${mobile}-${link.href}`}
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          {...props}
+        >
+          {link.label}
+        </a>
+      ) : (
+        <Link key={`${mobile}-${link.href}`} href={link.href} {...props}>
+          {link.label}
+        </Link>
+      );
+    });
+  }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 pixel-nav">
-      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
+    <nav
+      className="pixel-nav site-nav"
+      aria-label="Main navigation"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && menuOpen) {
+          setOpenPath(null);
+          menuButton.current?.focus();
+        }
+      }}
+    >
+      <div className="site-nav-inner">
         <Link
           href="/"
-          className="flex items-center gap-2 group"
+          className="site-nav-brand"
+          onClick={() => setOpenPath(null)}
           data-interactive
         >
-          <span className="text-xl pixel-text font-bold text-[var(--color-accent)]">
-            TS
-          </span>
-          <span className="hidden sm:inline text-xs text-[var(--color-text-secondary)] pixel-text">
-            tanmay singh
-          </span>
+          <span>TS</span>
+          <span>tanmay singh</span>
         </Link>
-
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => {
-            const isActive =
-              !link.external &&
-              (pathname === link.href ||
-                (link.href !== "/" && pathname.startsWith(link.href)));
-            const className = `px-3 py-1.5 text-xs pixel-text transition-all duration-200 border-2 ${
-              isActive
-                ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:border-[var(--color-border)]"
-            }`;
-            return link.external ? (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-interactive
-                className={className}
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                data-interactive
-                className={className}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-
+        <div className="site-nav-desktop">{links()}</div>
+        <div className="site-nav-actions">
           <button
+            className="site-nav-button"
             onClick={toggleTheme}
-            data-interactive
-            className="ml-3 px-2.5 py-1.5 border-2 border-[var(--color-border)] text-[var(--color-text)] hover:border-[var(--color-accent)] transition-all duration-200 pixel-text text-xs"
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          >
-            {theme === "dark" ? "Light" : "Dark"}
-          </button>
-        </div>
-
-        <div className="flex md:hidden items-center gap-2">
-          <button
-            onClick={toggleTheme}
             data-interactive
-            className="px-2 py-1.5 border-2 border-[var(--color-border)] pixel-text text-xs"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
             {theme === "dark" ? "Light" : "Dark"}
           </button>
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            ref={menuButton}
+            className="site-nav-button site-nav-menu-button"
+            onClick={() => setOpenPath(menuOpen ? null : pathname)}
+            aria-label={
+              menuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
+            aria-expanded={menuOpen}
+            aria-controls="site-nav-menu"
             data-interactive
-            className="px-3 py-1.5 border-2 border-[var(--color-border)] pixel-text text-[var(--color-text)] text-sm"
-            aria-label="Toggle menu"
           >
             {menuOpen ? "Close" : "Menu"}
           </button>
         </div>
       </div>
-
-      <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
-          menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="px-4 pb-4 flex flex-col gap-1 pixel-nav-mobile">
-          {navLinks.map((link) => {
-            const isActive =
-              !link.external &&
-              (pathname === link.href ||
-                (link.href !== "/" && pathname.startsWith(link.href)));
-            const className = `px-4 py-3 text-sm pixel-text transition-all duration-200 border-2 ${
-              isActive
-                ? "border-[var(--color-accent)] text-[var(--color-accent)] bg-[var(--color-accent)]/10"
-                : "border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
-            }`;
-            return link.external ? (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-interactive
-                onClick={() => setMenuOpen(false)}
-                className={className}
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                data-interactive
-                onClick={() => setMenuOpen(false)}
-                className={className}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+      {menuOpen && (
+        <div id="site-nav-menu" className="site-nav-mobile">
+          {links(true)}
         </div>
-      </div>
+      )}
     </nav>
   );
 }
