@@ -1255,3 +1255,38 @@
 @media (prefers-reduced-motion: reduce) {
   .oceanLife * { animation: none; }
 }
+
+
+/* Interface-only polish. Preserve all map geometry, layering and hit areas. */
+.hud,
+.worlds {
+  background: var(--travel-panel-soft);
+  box-shadow:
+    4px 4px 0 var(--travel-panel),
+    inset 2px 2px 0 color-mix(in srgb, var(--travel-text) 16%, transparent),
+    inset -2px -2px 0 var(--travel-border);
+}
+.modes {
+  background: var(--travel-panel);
+  box-shadow: 2px 2px 0 var(--travel-border);
+}
+.filterBtnOn {
+  background: var(--travel-current);
+  color: var(--travel-panel);
+}
+.filterBtnOn:hover {
+  background: var(--travel-current);
+  color: var(--travel-panel);
+}
+.worldBtnOn {
+  background: var(--travel-current);
+  color: var(--travel-panel);
+}
+.worldBtnOn .worldNum { color: inherit; }
+.cardHead {
+  padding-bottom: 0.65rem;
+  border-bottom: 2px solid var(--travel-border);
+}
+.cardMeta { line-height: 1.6; }
+.cardBadge { border-color: var(--travel-border); }
+.emptyStills { line-height: 1.8; letter-spacing: 0.04em; }

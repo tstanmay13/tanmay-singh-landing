@@ -790,3 +790,29 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Quiet the shared arcade effects only on the redesigned browsing pages.
+   Travel and the individual games retain their existing presentation. */
+body:has([data-personal-page])::before,
+body:has([data-personal-page])::after { display: none; }
+body:has([data-personal-page]) .parallax-bg { display: none; }
+body:has([data-personal-page]) .pixel-nav {
+  background: var(--color-bg-secondary);
+  backdrop-filter: none;
+  border-bottom-width: 1px;
+}
+body:has([data-personal-page]) .pixel-nav a,
+body:has([data-personal-page]) .pixel-nav button {
+  font-family: var(--font-body);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+body:has([data-personal-page]) {
+  --color-accent: #b8d9c8;
+  --color-bg-secondary: #202633;
+}
+[data-theme="light"] body:has([data-personal-page]) {
+  --color-accent: #326b57;
+  --color-bg-secondary: #e1e6e1;
+}
