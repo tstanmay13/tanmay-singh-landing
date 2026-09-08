@@ -1,5 +1,5 @@
-import PixelHome from "@/components/home/PixelHome";
+import LivingRoom from "@/components/living/LivingRoom";
 
 export default function Home() {
-  return <PixelHome />;
+  return <LivingRoom />;
 }

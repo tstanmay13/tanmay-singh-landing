@@ -1,0 +1,1032 @@
+.world.world {
+  position: relative;
+  height: 100svh;
+  min-height: 480px;
+  overflow: hidden;
+  padding: 0;
+  background: #0b121d;
+  color: #f5e5ca;
+  --home-bg: #151d25;
+  --home-panel: #18242d;
+  --home-panel-raised: #24333b;
+  --home-border: #495150;
+  --home-ink: #f0e4ce;
+  --home-muted: #bbc1bb;
+  --home-gold: #e7bd7b;
+  --home-green: #a8bd95;
+  --home-purple: #bba0de;
+  --home-red: #ef9a88;
+  --home-blue: #99bed8;
+  --home-paper: #e4d4b5;
+  --home-paper-ink: #443a33;
+}
+.world button,
+.world a {
+  -webkit-tap-highlight-color: transparent;
+}
+.world button {
+  cursor: pointer;
+}
+.world button:focus-visible,
+.world a:focus-visible {
+  outline: 2px solid #ffe0a5;
+  outline-offset: 5px;
+}
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  touch-action: none;
+  cursor: grab;
+  transition: right 0.55s ease;
+}
+.world[data-reading="true"] .viewport {
+  right: min(506px, calc(42vw + 26px));
+}
+.viewport[data-dragging="true"] {
+  cursor: grabbing;
+}
+.scene {
+  position: absolute;
+  width: max(100vw, 175svh);
+  height: max(100svh, 57.15vw);
+  transform-origin: 0 0;
+  will-change: transform;
+  user-select: none;
+}
+.art {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.edgeShade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    #060f1dc9 0%,
+    transparent 21%,
+    transparent 64%,
+    #070e1dde 100%
+  );
+}
+.header {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 34px;
+  gap: 15px;
+  pointer-events: none;
+}
+.header button {
+  pointer-events: auto;
+}
+.signature {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-align: left;
+  text-shadow: 0 2px 10px #0009;
+}
+.signature > span:first-child {
+  font: 21px/1.5 var(--font-pixel);
+}
+.signatureDot {
+  color: #ebbc78;
+}
+.signature > span:last-child {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.signature small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: #ded8c7a8;
+  margin-top: 3px;
+}
+.settings {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.settings button {
+  min-width: 40px;
+  min-height: 42px;
+  padding: 7px 12px;
+  font-size: 14px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: #0c16295e;
+}
+.settings button:hover,
+.settings button[aria-expanded="true"] {
+  background: #101d30de;
+  border-color: #a28c6855;
+}
+.settingText {
+  font-size: 11px;
+  margin-left: 6px;
+}
+.invitation {
+  position: absolute;
+  left: 38px;
+  bottom: 125px;
+  pointer-events: none;
+  max-width: min(610px, 86vw);
+  text-shadow: 0 3px 14px #060d1f;
+  animation: invitation 0.6s both;
+}
+.invitation > p {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: #e8c086;
+  margin: 0 0 15px;
+}
+.invitation h1 {
+  font: clamp(19px, 2.2vw, 31px)/1.6 var(--font-pixel);
+  letter-spacing: -1px;
+  margin: 0 0 10px;
+}
+.invitation > span {
+  font-size: 14px;
+  color: #dfd9cd;
+}
+.footer {
+  position: absolute;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 34px;
+  right: 34px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.footer > p {
+  margin: 0 0 13px;
+  color: #ddd7c4a8;
+  font-size: 11px;
+}
+.footer > p > span {
+  margin-right: 6px;
+}
+.corners {
+  display: flex;
+  background: #101a29e8;
+  border: 1px solid #c8ab7440;
+  padding: 5px;
+  border-radius: 4px;
+  box-shadow: 0 4px 18px #050b143b;
+}
+.corners button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #cdc5b3;
+  font-size: 11px;
+  padding: 12px 17px;
+  min-height: 45px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.corners button > span {
+  font-size: 17px;
+  color: #c6ad86;
+}
+.corners button[aria-pressed="true"] {
+  background: #a88e6033;
+  color: #fff0cf;
+  box-shadow: inset 0 -2px #d0ab73;
+}
+.corners button:hover {
+  background: #a88e6022;
+}
+.object {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%) scale(calc(1 / var(--camera-zoom, 1)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  z-index: 3;
+  border: 0;
+  background: transparent;
+}
+.marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #111e2cad;
+  color: #ffe3a9;
+  border: 1px solid #efd1a08c;
+  box-shadow: 0 2px 9px #070e2480;
+  font-size: 15px;
+  transition:
+    background 0.2s,
+    transform 0.2s,
+    opacity 0.2s;
+  opacity: 0.6;
+}
+.object:hover .marker,
+.object:focus-visible .marker {
+  background: #eac99c;
+  color: #1c2a34;
+  opacity: 1;
+  transform: translateY(-3px);
+}
+.objectName {
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: #101a28f5;
+  color: #fff0d3;
+  padding: 7px 10px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  border-bottom: 1px solid #d7b98799;
+}
+.object:hover .objectName,
+.object:focus-visible .objectName,
+.scene[data-labels="true"] .objectName {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.world[data-reading="true"] .object {
+  visibility: hidden;
+}
+.world[data-reading="true"] .lampButton,
+.world[data-reading="true"] .gengar {
+  pointer-events: none;
+}
+.lampButton {
+  position: absolute;
+  left: 72%;
+  top: 37%;
+  width: 5%;
+  height: 11%;
+  z-index: 3;
+}
+.lampButton > span {
+  position: absolute;
+  top: 20%;
+  left: 40%;
+  font-size: 10px;
+  color: #ffe2ab;
+  background: #152337e0;
+  padding: 4px 9px;
+  opacity: 0;
+}
+.lampButton:hover > span,
+.lampButton:focus-visible > span {
+  opacity: 1;
+}
+.lampGlow {
+  position: absolute;
+  left: 69%;
+  top: 39%;
+  width: 13%;
+  height: 22%;
+  background: radial-gradient(
+    ellipse,
+    #ffcd7440,
+    #ffa93316 48%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: opacity 0.7s;
+}
+.lightsDown {
+  position: absolute;
+  inset: 0;
+  background: #111c42;
+  opacity: 0;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  transition: opacity 0.7s;
+}
+.scene[data-lamp="false"] .lightsDown {
+  opacity: 0.55;
+}
+.scene[data-lamp="false"] .lampGlow {
+  opacity: 0;
+}
+.candleGlow {
+  position: absolute;
+  left: 94%;
+  top: 46%;
+  width: 5%;
+  height: 12%;
+  background: radial-gradient(
+    ellipse,
+    #ffc96788,
+    #ff982a18 40%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  animation: candle 2.8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.tvGlow {
+  position: absolute;
+  left: 13%;
+  top: 42%;
+  width: 12%;
+  height: 14%;
+  background: #729fee;
+  opacity: 0.025;
+  mix-blend-mode: screen;
+  animation: television 7s steps(5) infinite;
+  pointer-events: none;
+}
+.monitorCursor {
+  position: absolute;
+  left: 82.3%;
+  top: 49.6%;
+  width: 0.3%;
+  height: 0.3%;
+  background: #91bf97;
+  animation: cursor 1.8s steps(1) infinite;
+  pointer-events: none;
+}
+.windowWeather {
+  position: absolute;
+  left: 35.8%;
+  top: 6.8%;
+  width: 31.8%;
+  height: 44.4%;
+  overflow: hidden;
+  pointer-events: none;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 40%,
+    100% 40%,
+    100% 37%,
+    0 37%
+  );
+}
+.windowWeather[data-weather="clear"] {
+  display: none;
+}
+.windowWeather > i {
+  position: absolute;
+  inset: -100% -20%;
+  opacity: 0.1;
+  background-image: linear-gradient(
+    107deg,
+    transparent 48%,
+    #c1daf0 49%,
+    #c1daf0 50%,
+    transparent 51%
+  );
+  background-size: 43px 89px;
+  animation: rain 0.85s linear infinite;
+}
+.windowWeather > i:nth-child(2) {
+  background-size: 77px 131px;
+  opacity: 0.05;
+  animation-duration: 1.25s;
+  animation-delay: -0.4s;
+}
+.windowWeather > i:nth-child(3) {
+  background-size: 113px 183px;
+  opacity: 0.07;
+  animation-duration: 1.65s;
+  animation-delay: -0.8s;
+}
+.windowWeather[data-weather="snow"] > i {
+  background-image: radial-gradient(circle, #e6eef4 1px, transparent 1.6px);
+  background-size: 39px 61px;
+  animation: snow 12s linear infinite;
+  opacity: 0.6;
+}
+.windowWeather[data-weather="snow"] > i:nth-child(2) {
+  background-size: 73px 91px;
+  animation-duration: 20s;
+  opacity: 0.3;
+}
+.windowWeather[data-weather="snow"] > i:nth-child(3) {
+  background-size: 107px 139px;
+  animation-duration: 28s;
+  opacity: 0.4;
+}
+.cityLights {
+  position: absolute;
+  left: 36%;
+  top: 23%;
+  width: 31%;
+  height: 27%;
+  pointer-events: none;
+}
+.cityLights i {
+  position: absolute;
+  width: 3px;
+  height: 5px;
+  background: #fcd184;
+  box-shadow: 0 0 4px #ebb67e;
+  animation: city 13s steps(1) infinite;
+  top: 40%;
+  left: 19%;
+}
+.cityLights i:nth-child(2) {
+  left: 34%;
+  top: 24%;
+  animation-delay: -8s;
+}
+.cityLights i:nth-child(3) {
+  left: 60%;
+  top: 16%;
+  animation-delay: -4s;
+}
+.cityLights i:nth-child(4) {
+  left: 84%;
+  top: 52%;
+  animation-delay: -10s;
+}
+.cityLights i:nth-child(5) {
+  left: 47%;
+  top: 70%;
+  animation-delay: -2s;
+}
+.dust {
+  position: absolute;
+  left: 70%;
+  top: 38%;
+  width: 16%;
+  height: 30%;
+  pointer-events: none;
+}
+.dust i {
+  position: absolute;
+  left: 20%;
+  top: 50%;
+  width: 2px;
+  height: 2px;
+  background: #ffe1a5;
+  animation: dust 11s ease-in-out infinite;
+}
+.dust i:nth-child(2) {
+  left: 31%;
+  top: 77%;
+  animation-delay: -3s;
+  animation-duration: 15s;
+}
+.dust i:nth-child(3) {
+  left: 48%;
+  top: 43%;
+  animation-delay: -6s;
+}
+.dust i:nth-child(4) {
+  left: 12%;
+  top: 74%;
+  animation-delay: -8s;
+}
+.dust i:nth-child(5) {
+  left: 43%;
+  top: 62%;
+  animation-delay: -1s;
+  animation-duration: 18s;
+}
+.dust i:nth-child(6) {
+  left: 60%;
+  top: 63%;
+  animation-delay: -9s;
+  animation-duration: 14s;
+}
+.stereoLights {
+  position: absolute;
+  left: 24%;
+  top: 65.5%;
+  width: 2%;
+  height: 0.6%;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  pointer-events: none;
+}
+.stereoLights i {
+  width: 3px;
+  height: 100%;
+  background: #c7a45e;
+  opacity: 0.6;
+  transform-origin: bottom;
+  animation: equalizer 1.7s steps(4) infinite alternate;
+}
+.stereoLights i:nth-child(2) {
+  animation-delay: -0.7s;
+}
+.stereoLights i:nth-child(3) {
+  animation-delay: -0.3s;
+}
+.stereoLights i:nth-child(4) {
+  animation-delay: -1.2s;
+}
+.stereoLights i:nth-child(5) {
+  animation-delay: -0.9s;
+}
+.gengar {
+  position: absolute;
+  left: 56%;
+  top: 54%;
+  width: 9%;
+  height: 12%;
+  z-index: 4;
+}
+.gengarEyes {
+  position: absolute;
+  left: 23%;
+  top: 36%;
+  width: 42%;
+  height: 16%;
+  background:
+    radial-gradient(ellipse at 20% 50%, #f5496433, transparent 35%),
+    radial-gradient(ellipse at 78% 50%, #f5496433, transparent 35%);
+  animation: ghost 8s ease-in-out infinite;
+  pointer-events: none;
+}
+.ghostReply {
+  position: absolute;
+  bottom: 102%;
+  left: 10%;
+  padding: 9px 12px;
+  background: #342b4ff2;
+  border: 1px solid #cbb1e7;
+  color: #f6eaff;
+  font-size: 11px;
+  white-space: nowrap;
+  transform-origin: bottom left;
+  animation: reply 4.5s both;
+  pointer-events: none;
+}
+.guide {
+  position: absolute;
+  z-index: 8;
+  right: 30px;
+  top: 85px;
+  width: min(350px, calc(100vw - 30px));
+  max-height: calc(100svh - 115px);
+  overflow-y: auto;
+  background: #14212cf7;
+  border: 1px solid #bba27970;
+  box-shadow: 0 18px 60px #0007;
+  padding: 23px;
+  color: #ede0c8;
+}
+.guide > p {
+  font: 12px/1.8 var(--font-pixel);
+  margin: 0 0 10px;
+}
+.guide > small {
+  font-size: 12px;
+  color: #c8c6bb;
+  line-height: 1.6;
+  display: block;
+}
+.guide > div {
+  margin: 15px 0;
+  border-top: 1px solid #92948433;
+}
+.guide > div > button {
+  width: 100%;
+  padding: 11px 0;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  border-bottom: 1px solid #92948433;
+  font-size: 13px;
+  text-align: left;
+}
+.guide > div > button > span:first-child {
+  width: 22px;
+  color: #e3bc82;
+  text-align: center;
+}
+.guide > div > button > span:last-child {
+  margin-left: auto;
+  color: #9d9c8b;
+}
+.guide > button,
+.guide > a {
+  display: block;
+  padding: 8px 0;
+  font-size: 12px;
+  color: #d5b888;
+}
+.back {
+  position: absolute;
+  z-index: 6;
+  left: 34px;
+  bottom: 30px;
+  padding: 13px 19px;
+  min-height: 46px;
+  background: #13202ded;
+  border: 1px solid #d4bb894d;
+  font-size: 12px;
+}
+.arriving {
+  position: absolute;
+  bottom: 100px;
+  left: 36px;
+  font: 13px/1.8 var(--font-pixel);
+  color: #f4ddbd;
+  text-shadow: 0 2px 8px black;
+}
+.story {
+  position: absolute;
+  z-index: 5;
+  right: 26px;
+  top: 98px;
+  bottom: 26px;
+  width: min(480px, 42vw);
+  background: #17232ef5;
+  border: 1px solid #b79b685e;
+  border-top: 3px solid #d1ac78;
+  box-shadow: -10px 14px 45px #050d284a;
+  display: flex;
+  flex-direction: column;
+  animation: story 0.4s ease-out both;
+  outline: none;
+}
+.story > header {
+  position: relative;
+  flex: none;
+  padding: 24px 50px 20px 24px;
+  border-bottom: 1px solid #a4987b35;
+}
+.story > header > p {
+  color: #cfae7b;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 9px;
+  margin-bottom: 12px;
+}
+.story h2 {
+  font: 15px/1.8 var(--font-pixel);
+  margin: 0;
+  color: #f7e8cd;
+}
+.story > header > button {
+  position: absolute;
+  top: 13px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  font-size: 25px;
+}
+.storyBody {
+  padding: 23px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #887558 #17232e;
+  color: #f0e4ce;
+  line-height: 1.7;
+  font-size: 14px;
+}
+.storyBody > :first-child {
+  margin-top: 0;
+}
+.storyBody :global(iframe) {
+  max-width: 100%;
+}
+.storyBody :global(h3) {
+  line-height: 1.6;
+}
+.travelStory img {
+  width: 100%;
+  height: auto;
+  margin: 25px 0;
+  image-rendering: pixelated;
+}
+.travelStory > a {
+  display: inline-flex;
+  margin-top: 20px;
+  border-bottom: 1px solid #caa679;
+  color: #f1cd91;
+}
+.world[data-moving="false"] .scene > div,
+.world[data-moving="false"] .scene > div *,
+.world[data-moving="false"] .stereoLights *,
+.world[data-moving="false"] .gengarEyes {
+  animation-play-state: paused !important;
+}
+@keyframes invitation {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes story {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes rain {
+  to {
+    transform: translate(-21px, 89px);
+  }
+}
+@keyframes snow {
+  to {
+    transform: translate(15px, 183px);
+  }
+}
+@keyframes candle {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  30% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.65;
+    transform: scale(1.08);
+  }
+}
+@keyframes television {
+  0%,
+  100% {
+    opacity: 0.025;
+  }
+  30% {
+    opacity: 0.1;
+  }
+  60% {
+    opacity: 0.045;
+  }
+}
+@keyframes cursor {
+  0%,
+  50% {
+    opacity: 0.65;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes city {
+  0%,
+  30%,
+  100% {
+    opacity: 0.15;
+  }
+  31%,
+  78% {
+    opacity: 0.7;
+  }
+  79%,
+  99% {
+    opacity: 0;
+  }
+}
+@keyframes dust {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(0, 8px);
+  }
+  30%,
+  70% {
+    opacity: 0.5;
+  }
+  90% {
+    transform: translate(14px, -40px);
+    opacity: 0;
+  }
+}
+@keyframes equalizer {
+  0% {
+    transform: scaleY(0.3);
+  }
+  40% {
+    transform: scaleY(0.8);
+  }
+  80% {
+    transform: scaleY(0.45);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes ghost {
+  0%,
+  75%,
+  100% {
+    opacity: 0.2;
+  }
+  85% {
+    opacity: 1;
+  }
+}
+@keyframes reply {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  7%,
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+@media (max-width: 1000px) {
+  .footer > p {
+    display: none;
+  }
+  .story {
+    right: 16px;
+    width: 44vw;
+  }
+  .story > header {
+    padding-left: 18px;
+  }
+  .storyBody {
+    padding: 18px;
+  }
+}
+@media (max-width: 760px) {
+  .world[data-reading="true"] .viewport {
+    right: 0;
+  }
+  .world.world {
+    min-height: 480px;
+  }
+  .header {
+    padding: 17px 18px;
+  }
+  .signature {
+    gap: 9px;
+  }
+  .signature > span:first-child {
+    font-size: 15px;
+  }
+  .signature > span:last-child {
+    font-size: 11px;
+  }
+  .signature small {
+    font-size: 9px;
+  }
+  .settings {
+    gap: 2px;
+  }
+  .settings button {
+    min-width: 36px;
+    padding: 6px;
+  }
+  .settingText {
+    display: none;
+  }
+  .invitation {
+    left: 23px;
+    bottom: 132px;
+    max-width: calc(100vw - 46px);
+  }
+  .invitation > p {
+    font-size: 9px;
+    margin-bottom: 12px;
+  }
+  .invitation h1 {
+    font-size: 19px;
+    line-height: 1.7;
+    max-width: 340px;
+  }
+  .invitation > span {
+    display: block;
+    font-size: 12px;
+    line-height: 1.7;
+    max-width: 280px;
+  }
+  .footer {
+    left: 15px;
+    right: 15px;
+    bottom: max(15px, env(safe-area-inset-bottom));
+    flex-direction: column;
+    align-items: center;
+    gap: 13px;
+  }
+  .footer > p {
+    display: block;
+    margin: 0;
+    font-size: 9px;
+  }
+  .corners {
+    width: 100%;
+    justify-content: space-between;
+    padding: 4px;
+  }
+  .corners button {
+    flex: 1;
+    padding: 10px 7px;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 9px;
+  }
+  .corners button > span {
+    font-size: 16px;
+  }
+  .guide {
+    right: 15px;
+    top: 73px;
+  }
+  .back {
+    left: 15px;
+    bottom: auto;
+    top: 80px;
+    font-size: 11px;
+    padding: 11px 15px;
+  }
+  .story {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 51svh;
+    max-height: calc(100svh - 155px);
+    border-left: 0;
+    border-right: 0;
+    box-shadow: 0 -10px 40px #07132066;
+    animation-name: invitation;
+  }
+  .story > header {
+    padding: 17px 55px 15px 21px;
+  }
+  .story > header > p {
+    margin-bottom: 5px;
+    font-size: 8px;
+  }
+  .story h2 {
+    font-size: 12px;
+  }
+  .storyBody {
+    padding: 18px 21px max(25px, env(safe-area-inset-bottom));
+    font-size: 13px;
+  }
+  .arriving {
+    bottom: 35%;
+    left: 23px;
+    font-size: 12px;
+  }
+}
+@media (max-height: 550px) and (min-width: 761px) {
+  .header {
+    padding-top: 12px;
+  }
+  .story {
+    top: 72px;
+    bottom: 14px;
+  }
+  .invitation {
+    bottom: 100px;
+  }
+  .invitation h1 {
+    font-size: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world *,
+  .world *::before,
+  .world *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .ghostReply {
+    opacity: 1;
+  }
+}
