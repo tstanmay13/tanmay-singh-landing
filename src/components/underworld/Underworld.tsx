@@ -291,7 +291,8 @@ export default function Underworld() {
       if (canvas.current) {
         draw.current = createRenderer(canvas.current);
         draw.current(run.current!);
-        canvas.current.focus();
+        canvas.current.focus({ preventScroll: true });
+        canvas.current.closest("section")?.scrollIntoView({ block: "start" });
       }
     });
   }
@@ -299,12 +300,12 @@ export default function Underworld() {
     action();
     refresh();
     release();
-    canvas.current?.focus();
+    canvas.current?.focus({ preventScroll: true });
   }
   function resume() {
     release();
     setPaused(false);
-    canvas.current?.focus();
+    canvas.current?.focus({ preventScroll: true });
   }
   const keyDown = (event: React.KeyboardEvent) => {
     const key = event.key.toLowerCase();
@@ -352,7 +353,7 @@ export default function Underworld() {
       if (key === "j") input.current.attack = true;
       if (key === "k") input.current.special = true;
       if (key === "q") input.current.cast = true;
-      canvas.current?.focus();
+      canvas.current?.focus({ preventScroll: true });
     },
     onPointerUp: () => keys.current.delete(key),
     onPointerCancel: () => keys.current.delete(key),

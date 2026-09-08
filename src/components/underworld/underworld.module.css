@@ -270,6 +270,7 @@
   outline-offset: 4px;
 }
 .game {
+  scroll-margin-top: 82px;
   width: min(100%, calc((100dvh - 220px) * 16 / 9));
   margin-inline: auto;
   border: 1px solid var(--ash-line);
