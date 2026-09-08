@@ -1,388 +1,281 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  Game,
-  emptyInput,
-  worldNames,
-  WIDTH,
-  HEIGHT,
-  type Input,
-} from "@/lib/platformer/engine";
-import { draw } from "@/lib/platformer/render";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./PixelPlayground.module.css";
-const SAVE = "homepage-platformer-v1";
+type Action = "left" | "right" | "jump" | "down" | "run" | "fire";
+const STAGES = Array.from(
+  { length: 32 },
+  (_, i) => `${Math.floor(i / 4) + 1}-${(i % 4) + 1}`,
+);
+const keys: Record<string, Action> = {
+  ArrowLeft: "left",
+  a: "left",
+  ArrowRight: "right",
+  d: "right",
+  ArrowUp: "jump",
+  w: "jump",
+  " ": "jump",
+  z: "jump",
+  ArrowDown: "down",
+  s: "down",
+  Shift: "run",
+  x: "fire",
+  k: "fire",
+};
 export default function PixelPlayground() {
-  const canvas = useRef<HTMLCanvasElement>(null),
-    region = useRef<HTMLDivElement>(null);
-  const game = useRef<Game | null>(null),
-    input = useRef(emptyInput()),
-    audio = useRef<AudioContext | null>(null),
-    soundOn = useRef(false);
-  const [hud, setHud] = useState({
-    state: "title",
-    level: 0,
-    score: 0,
-    coins: 0,
-    lives: 3,
-    time: 300,
-    message: "",
-  });
-  const [unlocked, setUnlocked] = useState(0),
-    [selected, setSelected] = useState(0),
-    [sound, setSound] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const region = useRef<HTMLDivElement>(null),
+    frame = useRef<HTMLIFrameElement>(null),
+    desired = useRef("playing");
+  const [loaded, setLoaded] = useState(false),
+    [state, setState] = useState<
+      "title" | "loading" | "playing" | "paused" | "error"
+    >("title");
+  const [expanded, setExpanded] = useState(false),
+    [sound, setSound] = useState(false),
+    [stage, setStage] = useState("1-1"),
+    [power, setPower] = useState(1);
+  const [lastStage, setLastStage] = useState("1-1");
+  const send = useCallback(
+    (type: string, data: Record<string, unknown> = {}) =>
+      frame.current?.contentWindow?.postMessage(
+        { source: "tanmay-home", type, ...data },
+        location.origin,
+      ),
+    [],
+  );
+  const pause = useCallback(() => {
+    desired.current = "paused";
+    send("pause");
+  }, [send]);
   useEffect(() => {
-    if (!expanded) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    region.current?.focus({ preventScroll: true });
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [expanded]);
-  useEffect(() => {
-    const g = new Game();
-    game.current = g;
-    let saved = 0;
     try {
-      saved = Math.max(
-        0,
-        Math.min(31, Number(localStorage.getItem(SAVE)) || 0),
-      );
-      setUnlocked(saved);
+      const saved = localStorage.getItem("mario-last-stage");
+      if (saved && STAGES.includes(saved)) setLastStage(saved);
     } catch {}
-    g.sound = (kind) => {
-      const a = audio.current;
-      if (!a || !soundOn.current) return;
-      const o = a.createOscillator(),
-        v = a.createGain();
-      o.type = "square";
-      o.frequency.setValueAtTime(
-        kind === "coin"
-          ? 880
-          : kind === "jump"
-            ? 220
-            : kind === "power"
-              ? 440
-              : 130,
-        a.currentTime,
-      );
-      o.frequency.exponentialRampToValueAtTime(
-        kind === "hurt" ? 45 : 660,
-        a.currentTime + 0.12,
-      );
-      v.gain.setValueAtTime(0.035, a.currentTime);
-      v.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 0.16);
-      o.connect(v);
-      v.connect(a.destination);
-      o.start();
-      o.stop(a.currentTime + 0.17);
+  }, []);
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (
+        event.origin !== location.origin ||
+        event.source !== frame.current?.contentWindow ||
+        event.data?.source !== "tanmay-mario"
+      )
+        return;
+      const data = event.data;
+      if (data.type === "ready") {
+        setState("playing");
+        if (desired.current === "paused") send("pause");
+      } else if (data.type === "paused") setState("paused");
+      else if (data.type === "playing") setState("playing");
+      else if (data.type === "error") setState("error");
+      else if (data.type === "exit") setExpanded(false);
+      else if (data.type === "status") {
+        setPower(data.power);
+        if (STAGES.includes(data.world)) {
+          setStage(data.world);
+          setLastStage(data.world);
+          try {
+            localStorage.setItem("mario-last-stage", data.world);
+          } catch {}
+        }
+      }
     };
-    let frame = 0,
-      previous = 0,
-      accumulator = 0,
-      lastHud = "",
-      lastDrawState = "";
-    const pause = () => {
-      input.current = emptyInput();
-      if (g.state === "playing") g.state = "paused";
-    };
+    window.addEventListener("message", receive);
     const visibility = () => {
       if (document.hidden) pause();
     };
+    window.addEventListener("blur", pause);
+    document.addEventListener("visibilitychange", visibility);
     const observer = new IntersectionObserver((entries) => {
       if (!entries[0].isIntersecting) pause();
     });
     if (region.current) observer.observe(region.current);
-    window.addEventListener("blur", pause);
-    document.addEventListener("visibilitychange", visibility);
-    const tick = (now: number) => {
-      accumulator += previous ? Math.min((now - previous) / 1000, 0.05) : 0;
-      previous = now;
-      while (accumulator >= 1 / 60) {
-        g.tick(1 / 60, input.current);
-        accumulator -= 1 / 60;
-      }
-      const ctx = canvas.current?.getContext("2d");
-      if (ctx && (g.state === "playing" || lastDrawState !== g.state))
-        draw(ctx, g);
-      lastDrawState = g.state;
-      const next = {
-        state: g.state,
-        level: g.levelIndex,
-        score: g.score,
-        coins: g.coins,
-        lives: g.lives,
-        time: Math.ceil(g.time),
-        message: g.message,
-      };
-      const signature = JSON.stringify(next);
-      if (signature !== lastHud) {
-        setHud(next);
-        lastHud = signature;
-      }
-      if (
-        g.state === "clear" &&
-        g.levelIndex < 31 &&
-        g.levelIndex + 1 > saved
-      ) {
-        saved = g.levelIndex + 1;
-        setUnlocked(saved);
-        try {
-          localStorage.setItem(SAVE, String(saved));
-        } catch {}
-      }
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
     return () => {
-      cancelAnimationFrame(frame);
       observer.disconnect();
+      window.removeEventListener("message", receive);
       window.removeEventListener("blur", pause);
       document.removeEventListener("visibilitychange", visibility);
-      void audio.current?.close();
     };
-  }, []);
-  function act() {
-    const g = game.current;
-    if (!g) return;
-    input.current = emptyInput();
-    if (g.state === "paused") g.state = "playing";
-    else if (g.state === "clear") g.advance();
-    else if (g.state === "dead") g.load(g.levelIndex, true);
-    else g.start(selected);
+  }, [pause, send]);
+  useEffect(() => {
+    if (!expanded) return;
+    const old = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    region.current?.focus({ preventScroll: true });
+    return () => {
+      document.body.style.overflow = old;
+    };
+  }, [expanded]);
+  useEffect(() => {
+    if (state !== "loading") return;
+    const timer = setTimeout(
+      () => setState((current) => (current === "loading" ? "error" : current)),
+      20000,
+    );
+    return () => clearTimeout(timer);
+  }, [state]);
+  function play() {
+    desired.current = "playing";
+    if (!loaded) {
+      setLoaded(true);
+      setState("loading");
+    } else send("resume");
     region.current?.focus({ preventScroll: true });
     if (!expanded)
       region.current?.scrollIntoView({
         block: "center",
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
           ? "instant"
           : "smooth",
       });
   }
   function key(event: React.KeyboardEvent, pressed: boolean) {
-    if (pressed && event.key === "Escape" && expanded) {
+    if (pressed && event.key === "Escape") {
       event.preventDefault();
       setExpanded(false);
-      input.current = emptyInput();
-      if (game.current?.state === "playing") game.current.state = "paused";
+      pause();
       return;
     }
     if (
-      event.target instanceof HTMLSelectElement ||
-      event.target instanceof HTMLButtonElement
+      event.target instanceof HTMLButtonElement ||
+      event.target instanceof HTMLSelectElement
     )
       return;
-    const map: Record<string, keyof Input> = {
-      ArrowLeft: "left",
-      a: "left",
-      ArrowRight: "right",
-      d: "right",
-      ArrowUp: "jump",
-      w: "jump",
-      " ": "jump",
-      z: "jump",
-      Shift: "run",
-      x: "run",
-      ArrowDown: "down",
-      s: "down",
-    };
-    const action = map[event.key];
+    const action =
+      keys[event.key.length === 1 ? event.key.toLowerCase() : event.key];
     if (action) {
       event.preventDefault();
-      input.current[action] = pressed;
+      send("input", { action, pressed });
     }
-    if (
-      pressed &&
-      !event.repeat &&
-      (event.key === "Escape" || event.key === "p")
-    ) {
+    if (pressed && !event.repeat && event.key === "p") {
       event.preventDefault();
-      const g = game.current;
-      if (g) {
-        if (g.state === "playing") {
-          g.state = "paused";
-          input.current = emptyInput();
-        } else if (g.state === "paused") act();
-      }
+      if (state === "paused") play();
+      else pause();
     }
-    if (pressed && event.key === "Enter" && game.current?.state !== "playing")
-      act();
   }
-  const touch = (label: string, action: keyof Input) => (
-    <button
-      type="button"
-      aria-label={label}
-      onPointerDown={(e) => {
-        e.preventDefault();
-        e.currentTarget.setPointerCapture(e.pointerId);
-        input.current[action] = true;
-      }}
-      onPointerUp={() => {
-        input.current[action] = false;
-      }}
-      onPointerCancel={() => {
-        input.current[action] = false;
-      }}
-      onLostPointerCapture={() => {
-        input.current[action] = false;
-      }}
-    >
-      {label}
-    </button>
-  );
+  function touch(label: string, action: Action) {
+    return (
+      <button
+        type="button"
+        aria-label={label}
+        disabled={state !== "playing" || (action === "fire" && power !== 3)}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          send("input", { action, pressed: true });
+        }}
+        onPointerUp={() => send("input", { action, pressed: false })}
+        onPointerCancel={() => send("input", { action, pressed: false })}
+        onLostPointerCapture={() => send("input", { action, pressed: false })}
+      >
+        {label}
+      </button>
+    );
+  }
   return (
     <div
       ref={region}
       className={`${styles.playground} ${expanded ? styles.expanded : ""}`}
       role="region"
-      aria-label="Super Tanmay Bros game"
+      aria-label="Super Mario Bros game"
       tabIndex={0}
       onKeyDown={(e) => key(e, true)}
       onKeyUp={(e) => key(e, false)}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) {
-          input.current = emptyInput();
-          if (game.current?.state === "playing") game.current.state = "paused";
+          send("release");
+          pause();
         }
       }}
     >
       <div className={styles.top}>
-        <span>SUPER TANMAY BROS.</span>
-        <span>
-          WORLD {Math.floor(hud.level / 4) + 1}-{(hud.level % 4) + 1}
-        </span>
+        <span>SUPER MARIO BROS.</span>
+        <span>WORLD {stage}</span>
       </div>
       <div className={styles.screen}>
-        <canvas
-          ref={canvas}
-          width={WIDTH}
-          height={HEIGHT}
-          aria-label="Side-scrolling platform game. Arrow keys move, Space jumps, Shift runs. Press P to pause."
-        />
-        <div className={styles.hud} aria-hidden="true">
-          <span>
-            SCORE
-            <br />
-            {String(hud.score).padStart(6, "0")}
-          </span>
-          <span>
-            COINS
-            <br />
-            {String(hud.coins).padStart(2, "0")}
-          </span>
-          <span>
-            LIVES
-            <br />
-            {hud.lives}
-          </span>
-          <span>
-            TIME
-            <br />
-            {hud.time}
-          </span>
-        </div>
-        {hud.state !== "playing" && (
+        {loaded && (
+          <iframe
+            ref={frame}
+            src="/mario/index.html"
+            title="Super Mario Bros playable game"
+            className={styles.frame}
+            allow="autoplay"
+          />
+        )}
+        {state !== "playing" && (
           <div className={styles.overlay}>
             <div className={styles.panel}>
-              <span className={styles.eyebrow}>
-                8 WORLDS · 32 STAGES · ONE DISTRACTION
-              </span>
+              <span className={styles.eyebrow}>THE ORIGINAL 32 COURSES</span>
               <h3>
-                {hud.state === "title"
-                  ? "Just one level."
-                  : hud.state === "paused"
-                    ? "Take a breather."
-                    : hud.state === "dead"
-                      ? "That gap was personal."
-                      : hud.state === "over"
-                        ? "Okay. One more try."
-                        : hud.state === "won"
-                          ? "You actually did it."
-                          : "Flag secured."}
+                {state === "paused"
+                  ? "Take a breather."
+                  : state === "loading"
+                    ? "Warming up the pipes…"
+                    : state === "error"
+                      ? "One second."
+                      : "Just one level."}
               </h3>
               <p>
-                {hud.state === "title"
-                  ? "I like Mario. This got a little out of hand."
-                  : hud.state === "won"
-                    ? "All 32 stages. You deserve a very long walk outside."
-                    : hud.state === "clear"
-                      ? worldNames[Math.floor(hud.level / 4)] + " — cleared."
-                      : hud.state === "dead"
-                        ? "Your checkpoint is waiting."
-                        : "Your next good jump is right there."}
+                {state === "loading"
+                  ? "Loading the game."
+                  : state === "error"
+                    ? "The game couldn’t load. Give it another try."
+                    : state === "paused"
+                      ? "Right where you left it."
+                      : "Famous last words."}
               </p>
-              {(hud.state === "title" ||
-                hud.state === "over" ||
-                hud.state === "won") &&
-                unlocked > 0 && (
-                  <label className={styles.select}>
-                    Start at{" "}
-                    <select
-                      value={selected}
-                      onChange={(e) => setSelected(Number(e.target.value))}
-                    >
-                      {Array.from({ length: unlocked + 1 }, (_, i) => (
-                        <option key={i} value={i}>
-                          World {Math.floor(i / 4) + 1}-{(i % 4) + 1}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-              <button type="button" className={styles.start} onClick={act}>
-                {hud.state === "paused"
-                  ? "RESUME"
-                  : hud.state === "clear"
-                    ? "ONWARD →"
-                    : hud.state === "dead"
-                      ? "TRY AGAIN"
+              {state !== "loading" && (
+                <button
+                  className={styles.start}
+                  type="button"
+                  onClick={() => {
+                    if (state === "error") {
+                      setLoaded(false);
+                      setState("title");
+                    } else play();
+                  }}
+                >
+                  {state === "paused"
+                    ? "RESUME"
+                    : state === "error"
+                      ? "RETRY"
                       : "LET’S PLAY →"}
-              </button>
+                </button>
+              )}
             </div>
           </div>
         )}
       </div>
       <div className={styles.controls}>
         <span>
-          ← → move · SPACE jump · ↓ enter pipe · SHIFT run / fire · P pause
+          ← → move · SPACE jump / swim
+          <br />
+          SHIFT run · X fire · ↓ pipe · P pause
         </span>
         <div>
           <button
             type="button"
+            disabled={!loaded || state === "loading" || state === "error"}
             onClick={() => {
-              const g = game.current;
-              if (g?.state === "playing") {
-                g.state = "paused";
-                input.current = emptyInput();
-              } else if (g?.state === "paused") act();
+              if (state === "paused") play();
+              else pause();
             }}
-            disabled={hud.state !== "playing" && hud.state !== "paused"}
           >
-            {hud.state === "paused" ? "Resume" : "Pause"}
+            {state === "paused" ? "Resume" : "Pause"}
           </button>
           <button
             type="button"
             aria-pressed={sound}
+            disabled={!loaded || state === "loading" || state === "error"}
             onClick={() => {
-              const next = !sound;
-              setSound(next);
-              soundOn.current = next;
-              if (next) {
-                audio.current ??= new AudioContext();
-                void audio.current.resume();
-              }
+              setSound(!sound);
+              send("sound", { enabled: !sound });
+              region.current?.focus({ preventScroll: true });
             }}
           >
             Sound {sound ? "on" : "off"}
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setExpanded((value) => !value);
-            }}
-          >
+          <button type="button" onClick={() => setExpanded((v) => !v)}>
             {expanded ? "Back to page" : "Fit screen"}
           </button>
         </div>
@@ -395,12 +288,57 @@ export default function PixelPlayground() {
         </div>
         <div>
           {touch("RUN", "run")}
+          {touch("FIRE", "fire")}
           {touch("JUMP", "jump")}
         </div>
       </div>
-      <p className={styles.note} role="status">
-        {hud.message ||
-          "Stand on a pipe and press ↓ to explore. Hit ? blocks from below. Watch your step."}
+      {loaded && state !== "loading" && (
+        <div className={styles.course}>
+          <label>
+            Course{" "}
+            <select
+              aria-label="Choose course"
+              value={stage}
+              onChange={(e) => {
+                setStage(e.target.value);
+                desired.current = "playing";
+                send("stage", { stage: e.target.value });
+                region.current?.focus({ preventScroll: true });
+              }}
+            >
+              {STAGES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span>
+            {power === 3
+              ? "Flower ready. X / FIRE to shoot."
+              : "Find a fire flower to use X / FIRE."}
+          </span>
+        </div>
+      )}
+      {!loaded && lastStage !== "1-1" && (
+        <p className={styles.note}>
+          Last visit: world {lastStage}. You can choose a course after starting.
+        </p>
+      )}
+      <p className={styles.note}>
+        Game:{" "}
+        <a
+          href="https://github.com/dapperAuteur/FullScreenMario"
+          target="_blank"
+          rel="noreferrer"
+        >
+          FullScreenMario
+        </a>{" "}
+        by Josh Goldberg & contributors.{" "}
+        <a href="/mario/CREDITS.md" target="_blank" rel="noreferrer">
+          Credits & license
+        </a>
+        . Mario belongs to Nintendo.
       </p>
     </div>
   );

@@ -2,7 +2,7 @@
   --game-ink: #101c2b;
   --game-cream: #fff1cd;
   --game-gold: #f3c966;
-  width: min(880px, 100%, max(320px, calc((100svh - 240px) * 2)));
+  width: min(640px, 100%, max(320px, calc((100svh - 300px) * 32 / 29)));
   margin: 24px auto 0;
   scroll-margin-block: 80px 16px;
   border: 3px solid var(--color-panel-edge);
@@ -28,7 +28,7 @@
 }
 .screen {
   position: relative;
-  aspect-ratio: 2/1;
+  aspect-ratio: 32/29;
 }
 .screen canvas {
   width: 100%;
@@ -145,16 +145,16 @@
   display: flex;
   justify-content: space-between;
   padding: 0 16px 12px;
-  gap: 12px;
+  gap: 8px;
 }
 .touch > div {
   display: flex;
-  gap: 8px;
+  gap: 4px;
 }
 .touch button {
   touch-action: none;
   user-select: none;
-  min-width: 48px;
+  min-width: 40px;
   min-height: 44px;
   background: #263949;
   font-weight: bold;
@@ -174,7 +174,7 @@
   border: 1px solid var(--game-cream);
 }
 .playground.expanded {
-  --game-width: min(100%, max(280px, calc((100dvh - 274px) * 2)));
+  --game-width: min(100%, max(280px, calc((100dvh - 290px) * 32 / 29)));
   position: fixed;
   inset: 64px 0 0;
   z-index: 40;
@@ -192,7 +192,7 @@
 }
 .playground.expanded .screen {
   width: var(--game-width);
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 32 / 29;
   flex: none;
 }
 .playground.expanded .top,
@@ -213,7 +213,7 @@
     padding: 12px 10px;
   }
   .screen {
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 32 / 29;
   }
   .screen canvas {
     object-fit: contain;
@@ -310,7 +310,7 @@
 }
 @media (max-height: 520px) and (min-width: 601px) {
   .playground.expanded {
-    --game-width: min(100%, calc((100dvh - 192px) * 2));
+    --game-width: min(100%, calc((100dvh - 212px) * 32 / 29));
   }
   .playground.expanded .top {
     padding: 8px 12px;
@@ -350,5 +350,59 @@
   }
   .playground.expanded .start {
     padding: 10px;
+  }
+}
+
+.frame {
+  border: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+.course {
+  padding: 0 12px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.course label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.course select {
+  background: var(--game-ink);
+  color: var(--game-cream);
+  border: 1px solid var(--game-cream);
+  padding: 5px;
+}
+.course span {
+  color: #b9c8cb;
+  font-size: 10px;
+}
+.note a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.playground.expanded .course {
+  width: var(--game-width);
+  flex: none;
+}
+.touch button {
+  padding: 9px 7px;
+  font-size: 10px;
+}
+@media (max-width: 600px) {
+  .playground {
+    width: 100%;
+  }
+  .course {
+    font-size: 10px;
+  }
+  .course span {
+    max-width: 180px;
   }
 }
