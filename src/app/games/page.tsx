@@ -31,6 +31,7 @@ interface Game {
 }
 
 const games: Game[] = [
+  { id: "underworld", title: "Underworld", description: "A Hades-inspired escape: boons, bosses, and one more run", icon: "⚔", path: "/games/underworld", category: "arcade", isNew: true, isDeep: true },
   // Original games
   {
     id: "slevens",

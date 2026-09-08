@@ -908,3 +908,19 @@ body {
   .site-nav-mobile { animation: none; }
   .site-nav-link, .site-nav-button, .pixel-card, .pixel-btn { transition: none; }
 }
+
+/* The home is its own quiet scene; its illustration supplies the texture. */
+body:has(main[data-home])::before,
+body:has(main[data-home])::after { display: none; }
+.site-nav[data-home] { background: #111b29; border-color: #354453; backdrop-filter: none; }
+.site-nav[data-home] .site-nav-brand > span:first-child { color: #e7bd7b; }
+.site-nav[data-home] .site-nav-link { color: #b0b9c1; }
+.site-nav[data-home] .site-nav-link[aria-current="page"] { color: #e7bd7b; border-color: #a58c68; }
+[data-theme="light"] .site-nav[data-home] { background: #e9e5da; border-color: #b1a798; }
+[data-theme="light"] .site-nav[data-home] .site-nav-link { color: #5e6667; }
+[data-theme="light"] .site-nav[data-home] .site-nav-brand > span:first-child,
+[data-theme="light"] .site-nav[data-home] .site-nav-link[aria-current="page"] { color: #825426; }
+
+/* Keep pointer and frame time available to the room and canvas game. */
+body:has(main[data-immersive])::before, body:has(main[data-immersive])::after { display: none; }
+body:has(main[data-immersive]) { cursor: auto; }

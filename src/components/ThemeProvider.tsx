@@ -25,26 +25,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Dark is the brand; first-time visitors get it regardless of OS
     // preference. Light mode remains a deliberate toggle (persisted).
-    const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved) {
-      setTheme(saved);
-    }
+    try {
+      const saved = localStorage.getItem("theme");
+      if (saved === "light" || saved === "dark") setTheme(saved);
+    } catch { /* Storage may be unavailable in private browsing. */ }
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    try { localStorage.setItem("theme", theme); } catch {}
   }, [theme, mounted]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }, []);
-
-  if (!mounted) {
-    return <div className="min-h-screen bg-[#0a0a0f]" />;
-  }
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

@@ -22,7 +22,7 @@ const keys: Record<string, Action> = {
   x: "fire",
   k: "fire",
 };
-export default function PixelPlayground() {
+export default function PixelPlayground({ onExit, embedded = false }: { onExit?: () => void; embedded?: boolean }) {
   const region = useRef<HTMLDivElement>(null),
     frame = useRef<HTMLIFrameElement>(null),
     desired = useRef("playing");
@@ -68,7 +68,7 @@ export default function PixelPlayground() {
       } else if (data.type === "paused") setState("paused");
       else if (data.type === "playing") setState("playing");
       else if (data.type === "error") setState("error");
-      else if (data.type === "exit") setExpanded(false);
+      else if (data.type === "exit") { setExpanded(false); onExit?.(); }
       else if (data.type === "status") {
         setPower(data.power);
         if (STAGES.includes(data.world)) {
@@ -96,7 +96,7 @@ export default function PixelPlayground() {
       window.removeEventListener("blur", pause);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [pause, send]);
+  }, [pause, send, onExit]);
   useEffect(() => {
     if (!expanded) return;
     const old = document.body.style.overflow;
@@ -175,7 +175,7 @@ export default function PixelPlayground() {
   return (
     <div
       ref={region}
-      className={`${styles.playground} ${expanded ? styles.expanded : ""}`}
+      className={`${styles.playground} ${expanded ? styles.expanded : ""} ${embedded ? styles.embedded : ""}`}
       role="region"
       aria-label="Super Mario Bros game"
       tabIndex={0}
@@ -275,9 +275,9 @@ export default function PixelPlayground() {
           >
             Sound {sound ? "on" : "off"}
           </button>
-          <button type="button" onClick={() => setExpanded((v) => !v)}>
+          {!embedded && <button type="button" onClick={() => setExpanded((v) => !v)}>
             {expanded ? "Back to page" : "Fit screen"}
-          </button>
+          </button>}
         </div>
       </div>
       <div className={styles.touch}>

@@ -406,3 +406,8 @@
     max-width: 180px;
   }
 }
+
+.embedded {
+  width: min(520px, 100%, max(280px, calc((100dvh - 350px) * 32 / 29)));
+  margin: 0 auto;
+}

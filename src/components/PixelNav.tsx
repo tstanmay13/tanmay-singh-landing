@@ -56,6 +56,7 @@ export default function PixelNav() {
     <nav
       className="pixel-nav site-nav"
       aria-label="Main navigation"
+      data-home={pathname === "/" || undefined}
       onKeyDown={(event) => {
         if (event.key === "Escape" && menuOpen) {
           setOpenPath(null);

@@ -1,0 +1,821 @@
+.page {
+  --ash-bg: #141e23;
+  --ash-panel: #1e2b2f;
+  --ash-raised: #293a3c;
+  --ash-line: #53645a;
+  --ash-ink: #eee2c8;
+  --ash-muted: #b0beb1;
+  --ash-gold: #d9be80;
+  --ash-red: #d58478;
+  --ash-green: #a8c7ab;
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px 32px 50px;
+  color: var(--ash-ink);
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--ash-muted);
+}
+.header a:hover {
+  color: var(--ash-gold);
+}
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin: 44px 0 30px;
+}
+.title h1 {
+  font: clamp(25px, 4vw, 46px) / 1.4 var(--font-pixel);
+  letter-spacing: -2px;
+  color: var(--ash-ink);
+  margin: 10px 0 0;
+}
+.title p {
+  color: var(--ash-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.title > p {
+  text-align: right;
+}
+.house {
+  display: grid;
+  grid-template-columns: 0.85fr 1.3fr;
+  background: var(--ash-bg);
+  border: 1px solid var(--ash-line);
+  box-shadow: 0 8px 0 var(--ash-panel);
+}
+.houseArt {
+  min-height: 570px;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 50% 38%,
+    var(--ash-raised),
+    var(--ash-bg) 70%
+  );
+  border-right: 1px solid var(--ash-line);
+}
+.moon {
+  position: absolute;
+  top: 14%;
+  left: calc(50% - 31px);
+  width: 62px;
+  height: 62px;
+  background: var(--ash-gold);
+  box-shadow: 0 0 55px color-mix(in srgb, var(--ash-gold) 20%, transparent);
+  border-radius: 50%;
+}
+.temple {
+  position: absolute;
+  top: 35%;
+  left: 15%;
+  width: 70%;
+  height: 200px;
+  border-top: 19px double var(--ash-line);
+  border-bottom: 12px double var(--ash-line);
+  display: flex;
+  justify-content: space-between;
+}
+.temple::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: -12%;
+  width: 124%;
+  height: 62px;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: var(--ash-line);
+  border-bottom: 8px solid var(--ash-gold);
+}
+.temple i {
+  width: 13%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ash-line) 0 5px,
+    var(--ash-raised) 5px 9px
+  );
+  border-top: 9px solid var(--ash-muted);
+  border-bottom: 9px solid var(--ash-muted);
+  z-index: 1;
+}
+.temple b {
+  position: absolute;
+  inset: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--ash-gold);
+  font-size: 70px;
+  text-shadow: 0 0 45px var(--ash-red);
+}
+.stairs {
+  position: absolute;
+  top: calc(35% + 200px);
+  left: 12%;
+  width: 76%;
+  height: 70px;
+  background: repeating-linear-gradient(
+    var(--ash-line) 0 3px,
+    var(--ash-panel) 3px 12px
+  );
+  clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
+}
+.houseCaption {
+  position: absolute;
+  bottom: 38px;
+  left: 25px;
+  right: 25px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ash-muted);
+}
+.preparation {
+  padding: 32px;
+}
+.page h2 {
+  font-size: 27px;
+  line-height: 1.35;
+  margin: 10px 0 14px;
+}
+.page h3 {
+  font-size: 19px;
+  line-height: 1.4;
+}
+.page p {
+  line-height: 1.7;
+}
+.eyebrow {
+  color: var(--ash-gold);
+  font-size: 12px;
+}
+.preparation > p:not(.eyebrow) {
+  font-size: 14px;
+  color: var(--ash-muted);
+}
+.page fieldset {
+  border: 0;
+  padding: 0;
+  margin: 24px 0;
+  min-width: 0;
+}
+.page legend {
+  font-size: 12px;
+  color: var(--ash-muted);
+  margin-bottom: 10px;
+}
+.weaponList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.weaponList button,
+.keepsakes button {
+  border: 1px solid var(--ash-line);
+  padding: 13px 9px;
+  text-align: left;
+  cursor: pointer;
+  background: var(--ash-panel);
+}
+.weaponList button[aria-pressed="true"],
+.keepsakes button[aria-pressed="true"] {
+  border-color: var(--ash-gold);
+  background: var(--ash-raised);
+}
+.weaponList b {
+  font-size: 29px;
+  color: var(--ash-gold);
+  display: block;
+}
+.weaponList strong {
+  display: block;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.page small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ash-muted);
+}
+.keepsakes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  font-size: 12px;
+}
+.keepsakes small {
+  font-size: 10px;
+  margin-top: 5px;
+}
+.options {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  font-size: 12px;
+  margin: 20px 0;
+}
+.options label {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.options select {
+  background: var(--ash-panel);
+  border: 1px solid var(--ash-line);
+  padding: 8px;
+  color: var(--ash-ink);
+}
+.options input {
+  accent-color: var(--ash-gold);
+}
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  padding: 15px 20px;
+  border: 1px solid var(--ash-gold);
+  background: var(--ash-gold);
+  color: var(--ash-bg);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.primary:hover {
+  filter: brightness(1.12);
+}
+.page .small {
+  font-size: 11px;
+  color: var(--ash-muted);
+  margin-top: 14px;
+}
+.page button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.page button:focus-visible,
+.page a:focus-visible,
+.page select:focus-visible,
+.page canvas:focus-visible {
+  outline: 2px solid var(--ash-gold);
+  outline-offset: 4px;
+}
+.game {
+  width: min(100%, calc((100dvh - 220px) * 16 / 9));
+  margin-inline: auto;
+  border: 1px solid var(--ash-line);
+  background: var(--ash-bg);
+}
+.hud {
+  display: flex;
+  gap: 23px;
+  align-items: center;
+  padding: 14px 19px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.hud > div:first-child {
+  margin-right: auto;
+}
+.hud strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ash-muted);
+  margin-top: 4px;
+}
+.hud button {
+  cursor: pointer;
+  border: 1px solid var(--ash-line);
+  padding: 8px 12px;
+}
+.health {
+  width: 190px;
+  color: var(--ash-red);
+}
+.health span {
+  font-size: 12px;
+}
+.health meter {
+  display: block;
+  width: 100%;
+  height: 8px;
+  margin-top: 5px;
+  appearance: none;
+  background: var(--ash-raised);
+}
+.health meter::-webkit-meter-bar {
+  background: var(--ash-raised);
+  border: none;
+  border-radius: 0;
+}
+.health meter::-webkit-meter-optimum-value {
+  background: var(--ash-red);
+}
+.health meter::-moz-meter-bar {
+  background: var(--ash-red);
+}
+.stage {
+  position: relative;
+}
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  touch-action: none;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ash-bg) 85%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+}
+.panel {
+  width: 450px;
+  max-width: 100%;
+  text-align: center;
+}
+.panel h2 {
+  font-size: 28px;
+}
+.panel > p {
+  color: var(--ash-muted);
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+.panel .eyebrow {
+  color: var(--ash-gold);
+}
+.widePanel {
+  width: 850px;
+}
+.boonChoices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: left;
+  margin-top: 20px;
+}
+.boonChoices button {
+  background: var(--ash-panel);
+  border: 1px solid var(--god-color);
+  padding: 20px;
+  cursor: pointer;
+  text-align: left;
+}
+.boonChoices button:hover {
+  background: var(--ash-raised);
+}
+.godGlyph {
+  display: block;
+  font-size: 35px;
+  color: var(--god-color);
+  line-height: 1;
+  margin-bottom: 17px;
+}
+.boonChoices small {
+  color: var(--god-color);
+}
+.boonChoices h3 {
+  margin: 8px 0;
+}
+.boonChoices p {
+  font-size: 12px;
+  color: var(--ash-muted);
+  min-height: 60px;
+}
+.boonChoices strong {
+  display: block;
+  color: var(--god-color);
+  font-size: 11px;
+  margin-top: 15px;
+}
+.doorChoices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 600px;
+  margin: 20px auto 0;
+}
+.doorChoices button {
+  border: 1px solid var(--ash-line);
+  padding: 23px;
+  background: var(--ash-panel);
+  cursor: pointer;
+}
+.doorChoices button:hover {
+  border-color: var(--ash-gold);
+}
+.doorChoices button > span {
+  font-size: 40px;
+  color: var(--ash-gold);
+}
+.doorChoices h3 {
+  margin: 9px 0;
+}
+.doorChoices p {
+  font-size: 12px;
+  color: var(--ash-muted);
+}
+.doorChoices strong {
+  display: block;
+  margin-top: 15px;
+  font-size: 11px;
+  color: var(--ash-gold);
+}
+.shop {
+  max-width: 550px;
+  margin: 20px auto;
+}
+.shop button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 20px;
+  padding: 15px;
+  border-bottom: 1px solid var(--ash-line);
+  background: var(--ash-panel);
+  cursor: pointer;
+  font-size: 13px;
+}
+.shop strong {
+  color: var(--ash-gold);
+}
+.widePanel > .primary {
+  max-width: 550px;
+  margin: auto;
+}
+.quiet {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--ash-muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.status {
+  display: flex;
+  gap: 23px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  color: var(--ash-muted);
+  font-size: 11px;
+}
+.status b {
+  color: var(--ash-green);
+  margin-left: 5px;
+}
+.status > span:last-child {
+  margin-left: auto;
+}
+.build {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+  margin: 20px 0;
+  padding: 15px 18px;
+  background: var(--ash-bg);
+  border: 1px solid var(--ash-line);
+  font-size: 12px;
+}
+.build > span:first-child {
+  color: var(--ash-muted);
+}
+.build small {
+  display: inline;
+}
+.build p {
+  color: var(--ash-muted);
+  font-size: 12px;
+}
+.build strong {
+  color: var(--ash-gold);
+  font-weight: 400;
+}
+.controls {
+  color: var(--ash-muted);
+  font-size: 12px;
+  max-width: 850px;
+}
+.mirror {
+  margin-top: 35px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  padding: 30px;
+  border: 1px solid var(--ash-line);
+  background: var(--ash-bg);
+}
+.mirror h2 {
+  font-size: 24px;
+}
+.mirror p {
+  font-size: 13px;
+  color: var(--ash-muted);
+}
+.mirror p strong {
+  color: var(--ash-gold);
+}
+.upgrades button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--ash-line);
+  gap: 20px;
+  cursor: pointer;
+}
+.upgrades strong {
+  font-size: 13px;
+}
+.upgrades strong small {
+  display: inline;
+}
+.upgrades b {
+  font-size: 12px;
+  color: var(--ash-gold);
+  white-space: nowrap;
+}
+.runStats {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 28px 0;
+  font-size: 12px;
+  color: var(--ash-muted);
+}
+.runStats b {
+  display: block;
+  font-size: 23px;
+  color: var(--ash-gold);
+  margin-top: 10px;
+}
+.audio {
+  margin-top: 35px;
+  padding: 27px 0;
+  border-top: 1px solid var(--ash-line);
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.audio h2 {
+  font-size: 19px;
+}
+.audio p {
+  font-size: 12px;
+  color: var(--ash-muted);
+}
+.audioButtons {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+  font-size: 12px;
+  color: var(--ash-gold);
+}
+.audioButtons button {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.audio iframe {
+  max-width: 100%;
+  border: 1px solid var(--ash-line);
+}
+.footer {
+  border-top: 1px solid var(--ash-line);
+  padding-top: 22px;
+  display: flex;
+  gap: 30px;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ash-muted);
+}
+.footer p {
+  max-width: 630px;
+}
+.footer a {
+  white-space: nowrap;
+}
+.touchControls {
+  display: none;
+  touch-action: none;
+  user-select: none;
+  gap: 20px;
+  justify-content: space-between;
+  padding: 15px;
+}
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 42px);
+  grid-template-rows: repeat(2, 40px);
+  gap: 3px;
+}
+.dpad button:first-child {
+  grid-column: 2;
+}
+.dpad button:nth-child(2) {
+  grid-row: 2;
+}
+.dpad button:nth-child(3) {
+  grid-row: 2;
+  grid-column: 2;
+}
+.dpad button:nth-child(4) {
+  grid-row: 2;
+  grid-column: 3;
+}
+.touchActions {
+  display: grid;
+  grid-template-columns: repeat(2, 65px);
+  gap: 5px;
+}
+.touchControls button {
+  border: 1px solid var(--ash-line);
+  background: var(--ash-raised);
+  font-size: 12px;
+  min-height: 40px;
+  touch-action: none;
+}
+.touchActions button:last-child {
+  background: var(--ash-gold);
+  color: var(--ash-bg);
+}
+@media (pointer: coarse) {
+  .touchControls {
+    display: flex;
+  }
+}
+@media (max-width: 750px) {
+  .page {
+    padding: 20px 13px 35px;
+  }
+  .header {
+    font-size: 10px;
+  }
+  .header > span {
+    display: none;
+  }
+  .title {
+    margin: 25px 0;
+  }
+  .title h1 {
+    letter-spacing: -1px;
+  }
+  .title > p {
+    display: none;
+  }
+  .house {
+    grid-template-columns: 1fr;
+  }
+  .houseArt {
+    min-height: 250px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ash-line);
+  }
+  .moon {
+    top: 20px;
+    width: 40px;
+    height: 40px;
+    left: calc(50% - 20px);
+  }
+  .temple {
+    top: 105px;
+    height: 95px;
+    left: calc(50% - 105px);
+    width: 210px;
+  }
+  .temple::before {
+    height: 37px;
+  }
+  .temple b {
+    font-size: 35px;
+    inset: 0;
+  }
+  .stairs {
+    top: 200px;
+    height: 35px;
+    width: 240px;
+    left: calc(50% - 120px);
+  }
+  .houseCaption {
+    display: none;
+  }
+  .preparation {
+    padding: 23px 18px;
+  }
+  .hud {
+    gap: 12px;
+    padding: 10px;
+    font-size: 10px;
+  }
+  .hud strong {
+    font-size: 9px;
+  }
+  .health {
+    width: 95px;
+  }
+  .hud button {
+    padding: 7px;
+  }
+  .hud > span {
+    display: none;
+  }
+  .status {
+    gap: 9px 18px;
+    font-size: 9px;
+  }
+  .status > span:last-child {
+    margin-left: 0;
+  }
+  .overlay {
+    position: relative;
+    min-height: 280px;
+    padding: 23px 15px;
+    border-top: 1px solid var(--ash-line);
+  }
+  .stage:has(.overlay) canvas {
+    max-height: 160px;
+    object-fit: cover;
+    opacity: 0.45;
+  }
+  .panel h2 {
+    font-size: 22px;
+  }
+  .boonChoices {
+    gap: 8px;
+  }
+  .boonChoices button {
+    padding: 12px 9px;
+  }
+  .boonChoices h3 {
+    font-size: 14px;
+  }
+  .boonChoices p {
+    font-size: 11px;
+    min-height: 100px;
+  }
+  .boonChoices small {
+    font-size: 10px;
+  }
+  .godGlyph {
+    font-size: 27px;
+  }
+  .boonChoices strong {
+    font-size: 10px;
+  }
+  .doorChoices {
+    gap: 10px;
+  }
+  .doorChoices button {
+    padding: 16px 10px;
+  }
+  .doorChoices h3 {
+    font-size: 16px;
+  }
+  .mirror {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 24px;
+  }
+  .footer {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .audio {
+    gap: 20px;
+  }
+  .touchControls {
+    display: flex;
+  }
+  .controls {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

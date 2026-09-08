@@ -3,9 +3,10 @@ import ClientLayout from "@/components/ClientLayout";
 import "./globals.css";
 
 const DESCRIPTION =
-  "I live in NYC. I make games and whatever else I get stuck on. There's an arcade on this site.";
+  "Come hang out. A little pixel world of games, travel, mythology, music, and things I make. Tanmay Singh, New York.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://tanmay-singh.com"),
   title: "Tanmay Singh",
   description: DESCRIPTION,
   keywords: [
