@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "Press Start";
+  src: url("Fonts/pressstart2p-webfont.woff") format("woff");
+  font-display: swap;
+}
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+#game {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 512px;
+  height: 464px;
+  transform-origin: center;
+  image-rendering: pixelated;
+}
+canvas {
+  image-rendering: pixelated;
+}
+#error {
+  position: fixed;
+  inset: 30% 10%;
+  font: 16px monospace;
+  text-align: center;
+}
+#dataDisplay {
+  font-size: 12px !important;
+  padding-top: 12px !important;
+}
+#dataDisplay td {
+  line-height: 1.5;
+}
