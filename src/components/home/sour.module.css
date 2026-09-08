@@ -1,0 +1,261 @@
+.game {
+  color: #efe4ca;
+}
+.ferrari {
+  margin: 32px 0;
+  padding-top: 22px;
+  border-top: 1px solid #b9a98440;
+}
+.ferrari svg {
+  width: 100%;
+  height: auto;
+  border: 1px solid #78847466;
+}
+.ferrari > p {
+  font-size: 12px;
+  color: #b9c3b9;
+  margin: 12px 0;
+}
+.toyControls {
+  display: flex;
+  gap: 8px;
+}
+.toyControls button {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 7px;
+  font-size: 11px;
+  border: 1px solid #a28c6888;
+  color: #e3c38d;
+  background: #24383a;
+}
+.toyControls button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.gameTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #e3c38d;
+}
+.gameTitle > span {
+  font: 10px/1.6 var(--font-pixel);
+}
+.gameTitle > small {
+  font-size: 10px;
+  color: #acbdb5;
+}
+.stage {
+  position: relative;
+  border: 1px solid #7b82665c;
+  background: #182c34;
+  user-select: none;
+  overflow: hidden;
+}
+.stage[data-shaking="true"] {
+  touch-action: none;
+  cursor: ew-resize;
+}
+.bar {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 232px;
+}
+.bar text {
+  user-select: none;
+}
+.bottle {
+  transform-origin: 77px 115px;
+  transition: transform 0.28s ease;
+}
+.tin {
+  transform-origin: 172px 140px;
+  transition: transform 0.16s ease;
+}
+.pour {
+  animation: pouring 0.35s linear infinite;
+}
+.egg {
+  animation: egg 0.25s ease-out both;
+}
+.ice {
+  animation: ice 0.3s ease-out both;
+}
+.spray {
+  animation: spray 0.6s ease-out both;
+}
+.cheers {
+  animation: cheers 1.8s ease-in-out 3;
+  transform-origin: 295px 130px;
+}
+.swipeHint {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #e1c59c;
+  font-size: 10px;
+  pointer-events: none;
+}
+.instructions {
+  margin: 15px 0 10px;
+  min-height: 54px;
+}
+.instructions h3 {
+  font-size: 15px;
+  margin: 0 0 4px;
+  color: #f5e8ce;
+}
+.instructions p {
+  font-size: 12px;
+  color: #b9c3b9;
+  line-height: 1.5;
+  margin: 0;
+}
+.progress {
+  height: 5px;
+  background: #3b4d4a;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.progress i {
+  display: block;
+  height: 100%;
+  background: #e2bd7b;
+  transform-origin: left;
+  transition: transform 0.08s linear;
+}
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 15px;
+  background: #cbb581;
+  border: 1px solid #e7d4a4;
+  color: #203238;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 3px #796e50;
+  user-select: none;
+  touch-action: none;
+}
+.action:hover {
+  background: #dec797;
+}
+.action[data-active="true"],
+.action:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px #796e50;
+}
+.action > span {
+  font-size: 19px;
+}
+.tapAlternative {
+  display: block;
+  margin: 8px auto 0;
+  padding: 6px 12px;
+  min-height: 32px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #bbbfae;
+  font-size: 10px;
+}
+.recipe {
+  margin: 20px 0;
+  border-top: 1px solid #b9a98440;
+  padding-top: 13px;
+  font-size: 12px;
+  color: #c2c5b9;
+}
+.recipe summary {
+  cursor: pointer;
+  color: #e2c793;
+  padding: 5px 0;
+}
+.recipe p {
+  margin: 12px 0;
+}
+.recipe ul,
+.recipe ol {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+.recipe ul {
+  list-style: disc;
+}
+.recipe ol {
+  list-style: decimal;
+}
+.recipe li {
+  padding: 3px 0;
+}
+@keyframes pouring {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+@keyframes egg {
+  from {
+    transform: translateY(-8px);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes ice {
+  from {
+    transform: translateY(-25px);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes spray {
+  from {
+    opacity: 1;
+    transform: translate(-5px, -5px);
+  }
+  to {
+    opacity: 0;
+    transform: translate(3px, 5px);
+  }
+}
+@keyframes cheers {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.88);
+  }
+}
+@media (max-width: 760px) {
+  .bar {
+    max-height: 160px;
+  }
+  .instructions {
+    margin-top: 12px;
+    min-height: 46px;
+  }
+  .instructions h3 {
+    font-size: 14px;
+  }
+  .instructions p {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game *,
+  .game *::before,
+  .game *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

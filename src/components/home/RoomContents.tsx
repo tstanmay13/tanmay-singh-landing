@@ -11,7 +11,14 @@ import {
 } from "@/content/home/collections";
 import type { RoomObject } from "./PixelHome";
 import styles from "./home.module.css";
-import { CardBinder, SourMixer } from "./HomeToys";
+import { CardBinder } from "./HomeToys";
+
+const SourMixer = dynamic(() => import("./SourGame"), {
+  loading: () => <p role="status">Setting out the shaker…</p>,
+});
+const FerrariToy = dynamic(() => import("./FerrariToy"), {
+  loading: () => <p role="status">Getting the little red car…</p>,
+});
 
 const Mario = dynamic(() => import("@/components/PixelPlayground"), {
   loading: () => <p role="status">Getting the television ready…</p>,
@@ -174,10 +181,12 @@ export default function RoomContents({
   active,
   onExplore,
   onClose,
+  onServe,
 }: {
   active: RoomObject;
   onExplore: (object: RoomObject) => void;
   onClose: () => void;
+  onServe?: () => void;
 }) {
   switch (active) {
     case "games":
@@ -257,6 +266,7 @@ export default function RoomContents({
             The cards, the teams, and the small things that make a place mine.
           </p>
           <CardBinder />
+          <FerrariToy />
           <div className={styles.keepsakes}>
             {KEEPSAKES.map((item) => (
               <article key={item.name} data-color={item.color}>
@@ -384,7 +394,7 @@ export default function RoomContents({
     case "drink":
       return (
         <>
-          <SourMixer />
+          <SourMixer onServe={onServe} />
           <p className={styles.lead}>
             I love a whiskey sour, and I love making one. It’s what I’d offer if
             you were actually here.

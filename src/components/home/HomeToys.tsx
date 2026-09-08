@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import styles from "./home.module.css";
 const favorites = [
@@ -29,51 +29,94 @@ const favorites = [
 ];
 export function CardBinder() {
   const [flipped, setFlipped] = useState<string[]>([]);
+  const [opened, setOpened] = useState(false);
+  const firstCard = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (opened) firstCard.current?.focus({ preventScroll: true });
+  }, [opened]);
   return (
     <section className={styles.binder} aria-label="My favorite Pokémon">
       <p className={styles.caption}>
-        A few favorites. Tap a card to turn it over.
+        {opened
+          ? "Three familiar faces. Swipe through, or tap a card to turn it over."
+          : "A little pack of my favorites. Go on, open it."}
       </p>
-      <div className={styles.binderCards}>
-        {favorites.map((card) => (
-          <button
-            key={card.name}
-            data-color={card.color}
-            className={styles.collectible}
-            aria-pressed={flipped.includes(card.name)}
-            aria-label={`Flip ${card.name} card`}
-            onClick={() =>
-              setFlipped((current) =>
-                current.includes(card.name)
-                  ? current.filter((name) => name !== card.name)
-                  : [...current, card.name],
-              )
-            }
-          >
-            <span className={styles.cardInner}>
-              <span className={styles.cardFront}>
-                <strong>{card.name}</strong>
-                <span className={styles.cardPortrait}>
-                  <Image
-                    unoptimized
-                    src={`/home/sprites/${card.image}`}
-                    alt=""
-                    width="96"
-                    height="96"
-                  />
+      {!opened ? (
+        <button
+          className={styles.favoritePack}
+          onClick={() => {
+            setOpened(true);
+            setFlipped([]);
+          }}
+          aria-label="Open the Pokémon favorites pack"
+        >
+          <span className={styles.packSeal}>Pull here ↓</span>
+          <span className={styles.packBall} aria-hidden="true">
+            ◓
+          </span>
+          <strong>
+            The good
+            <br />
+            company pack
+          </strong>
+          <small>Gengar & friends · 3 favorites</small>
+          <span>Tap to open</span>
+        </button>
+      ) : (
+        <div className={styles.binderCards}>
+          {favorites.map((card, index) => (
+            <button
+              key={card.name}
+              ref={index === 0 ? firstCard : undefined}
+              data-color={card.color}
+              className={styles.collectible}
+              style={{ animationDelay: `${index * 110}ms` }}
+              aria-pressed={flipped.includes(card.name)}
+              aria-label={`Flip ${card.name} card`}
+              onClick={() =>
+                setFlipped((current) =>
+                  current.includes(card.name)
+                    ? current.filter((name) => name !== card.name)
+                    : [...current, card.name],
+                )
+              }
+            >
+              <span className={styles.cardInner}>
+                <span
+                  className={styles.cardFront}
+                  aria-hidden={flipped.includes(card.name)}
+                >
+                  <strong>{card.name}</strong>
+                  <span className={styles.cardPortrait}>
+                    <Image
+                      unoptimized
+                      src={`/home/sprites/${card.image}`}
+                      alt=""
+                      width="96"
+                      height="96"
+                    />
+                  </span>
+                  <small>Tanmay’s favorites</small>
+                  <span aria-hidden="true">✦ ✦ ✦</span>
                 </span>
-                <small>Tanmay’s favorites</small>
-                <span aria-hidden="true">✦ ✦ ✦</span>
+                <span
+                  className={styles.cardBack}
+                  aria-hidden={!flipped.includes(card.name)}
+                >
+                  <strong>{card.title}</strong>
+                  <span>{card.story}</span>
+                  <small>Turn back over ↶</small>
+                </span>
               </span>
-              <span className={styles.cardBack}>
-                <strong>{card.title}</strong>
-                <span>{card.story}</span>
-                <small>Turn back over ↶</small>
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {opened && (
+        <button className={styles.packAgain} onClick={() => setOpened(false)}>
+          Pack them up again ↶
+        </button>
+      )}
       <p className={styles.finePrint}>
         Favorite Pokémon, illustrated as keepsake cards.{" "}
         <a
@@ -85,112 +128,6 @@ export function CardBinder() {
         </a>
         .
       </p>
-    </section>
-  );
-}
-const recipe = [
-  ["Rye", "2 oz"],
-  ["Fresh lemon juice", "1 oz · or ½ oz bottled lemon juice"],
-  ["Turbinado syrup", "½ oz"],
-  ["Egg white", "1 fresh egg white, not from a carton"],
-];
-const method = [
-  "Dry shake",
-  "Add ice & shake",
-  "Double strain",
-  "Angostura spray",
-];
-const instructions = [
-  "No ice yet. Shake vigorously for 30 seconds to emulsify the egg white.",
-  "Add ice, then give it another long shake: 30–45 seconds.",
-  "Fine strain through a second strainer into a coupe.",
-  "Finish with a spray of Angostura bitters. Cheers.",
-];
-export function SourMixer() {
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [step, setStep] = useState(0);
-  const all = ingredients.length === recipe.length;
-  return (
-    <section className={styles.mixer} aria-label="Tanmay’s whiskey sour recipe">
-      <div className={styles.recipeHead}>
-        <div>
-          <p className={styles.caption}>From my actual cocktail notes</p>
-          <h3>My whiskey sour</h3>
-          <p>Rye, a proper egg-white foam, and a very long shake.</p>
-        </div>
-        <div
-          className={styles.drinkScene}
-          data-shaken={step > 0}
-          aria-hidden="true"
-        >
-          <span
-            className={styles.lemon}
-            style={{
-              opacity: ingredients.includes("Fresh lemon juice") ? 1 : 0,
-            }}
-          />
-          <span className={styles.glass}>
-            <i
-              style={{
-                transform: `scaleY(${ingredients.length / recipe.length})`,
-                transformOrigin: "bottom",
-                borderTopWidth: step > 0 ? 15 : 0,
-              }}
-            />
-            <b />
-          </span>
-        </div>
-      </div>
-      <p className={styles.caption}>Tap to add the ingredients</p>
-      <div className={styles.ingredientButtons}>
-        {recipe.map(([ingredient, amount]) => (
-          <button
-            key={ingredient}
-            disabled={step > 0}
-            aria-pressed={ingredients.includes(ingredient)}
-            onClick={() =>
-              setIngredients((current) =>
-                current.includes(ingredient)
-                  ? current.filter((item) => item !== ingredient)
-                  : [...current, ingredient],
-              )
-            }
-          >
-            <span>
-              {ingredients.includes(ingredient) ? "✓ " : "+ "}
-              {ingredient}
-            </span>
-            <small>{amount}</small>
-          </button>
-        ))}
-      </div>
-      <ol className={styles.recipeSteps}>
-        {method.map((name, index) => (
-          <li key={name} data-done={step > index}>
-            <strong>{name}</strong>
-            <span>{instructions[index]}</span>
-          </li>
-        ))}
-      </ol>
-      <p className={styles.caption} aria-live="polite">
-        {step === 4
-          ? "Cheers. Stay a while."
-          : all
-            ? instructions[step]
-            : "Four ingredients. Then we shake."}
-      </p>
-      <button
-        className={styles.primaryLink}
-        disabled={!all}
-        onClick={() => {
-          if (step === 4) {
-            setStep(0);
-            setIngredients([]);
-          } else setStep((current) => current + 1);
-        }}
-      >
-        {step === 4 ? "Make another" : method[step]}
-      </button>
     </section>
   );
 }

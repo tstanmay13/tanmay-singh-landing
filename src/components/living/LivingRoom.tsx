@@ -165,12 +165,26 @@ export default function LivingRoom() {
   const [labels, setLabels] = useState(false);
   const [menu, setMenu] = useState(false);
   const [ghost, setGhost] = useState(0);
+  const [served, setServed] = useState(false);
   const [hidden, setHidden] = useState(false);
   const arrival = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTrigger = useRef<HTMLElement | null>(null);
   const homeButton = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
   const object = OBJECTS.find((item) => item.id === selected);
+  const ghostSpots = [
+    { x: 44, y: 72 },
+    { x: 19, y: 44 },
+    { x: 84, y: 28 },
+  ];
+  const ghostSpot = ghostSpots[Math.min(Math.max(ghost - 1, 0), 2)];
+  const catchGhost = () => {
+    const next = ghost >= 4 ? 1 : ghost + 1;
+    setGhost(next);
+    const spot = next < 4 ? ghostSpots[next - 1] : { x: 60, y: 61 };
+    go({ x: spot.x / 100, y: spot.y / 100, zoom: 1.35 });
+  };
+  const onServe = useCallback(() => setServed(true), []);
 
   const explore = useCallback(
     (id: ObjectId) => {
@@ -290,6 +304,14 @@ export default function LivingRoom() {
             <i />
             <i />
           </div>
+          <div className={styles.shootingStar} aria-hidden="true">
+            <i />
+          </div>
+          <div className={styles.kyogreShimmer} aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
           <div className={styles.tvGlow} aria-hidden="true" />
           <div className={styles.monitorCursor} aria-hidden="true" />
           <div className={styles.candleGlow} aria-hidden="true" />
@@ -317,7 +339,11 @@ export default function LivingRoom() {
               style={
                 { "--x": `${item.x}%`, "--y": `${item.y}%` } as CSSProperties
               }
-              aria-label={item.name}
+              aria-label={
+                item.id === "drink" && served
+                  ? "Your whiskey sour — make another"
+                  : item.name
+              }
               aria-expanded={selected === item.id}
               onFocus={(event) => {
                 if (event.currentTarget.matches(":focus-visible")) {
@@ -345,20 +371,44 @@ export default function LivingRoom() {
           <button
             className={styles.gengar}
             aria-label="Say hello to Gengar"
-            onClick={() => setGhost((v) => v + 1)}
+            onClick={() => {
+              if (ghost === 0 || ghost >= 4) catchGhost();
+            }}
             tabIndex={selected ? -1 : 0}
           >
             <span className={styles.gengarEyes} aria-hidden="true" />
             {ghost > 0 && (
               <span key={ghost} className={styles.ghostReply} role="status">
-                {
-                  ["Gengaaaar.", "That’s my seat.", "One more run?", "Boo."][
-                    (ghost - 1) % 4
-                  ]
-                }
+                {ghost >= 4
+                  ? "You caught me. That’s still my seat."
+                  : "Catch me if you can!"}
               </span>
             )}
           </button>
+          {ghost > 0 && ghost < 4 && (
+            <button
+              className={styles.ghostVisitor}
+              style={{ left: `${ghostSpot.x}%`, top: `${ghostSpot.y}%` }}
+              onClick={catchGhost}
+              aria-label={`Catch Gengar, hiding spot ${ghost} of 3`}
+              tabIndex={selected ? -1 : 0}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/home/sprites/gengar.png"
+                width="96"
+                height="96"
+                alt=""
+                draggable={false}
+              />
+              <span>Catch me! {ghost}/3</span>
+            </button>
+          )}
+          {served && (
+            <span className={styles.servedDrink} aria-hidden="true">
+              ✦ Made by you
+            </span>
+          )}
         </div>
       </div>
 
@@ -520,6 +570,7 @@ export default function LivingRoom() {
                 active={active}
                 onExplore={explore}
                 onClose={stepBack}
+                onServe={onServe}
               />
             )}
           </div>

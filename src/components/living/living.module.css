@@ -565,6 +565,142 @@
   animation: ghost 8s ease-in-out infinite;
   pointer-events: none;
 }
+.ghostVisitor {
+  position: absolute;
+  width: 7%;
+  min-width: 64px;
+  max-width: 105px;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  transition:
+    left 0.8s ease,
+    top 0.8s ease;
+}
+.ghostVisitor img {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 5px 2px #141c3655);
+  animation: visitorFloat 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.ghostVisitor > span {
+  display: block;
+  margin-top: -5px;
+  padding: 5px 8px;
+  background: #302946ed;
+  color: #eedcf8;
+  border: 1px solid #c3a1e070;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.world[data-reading="true"] .ghostVisitor,
+.world[data-reading="true"] .servedDrink {
+  visibility: hidden;
+}
+.world[data-moving="false"] .ghostVisitor img {
+  animation-play-state: paused;
+}
+.servedDrink {
+  position: absolute;
+  left: 60%;
+  top: 72%;
+  transform: translateX(-50%);
+  padding: 5px 8px;
+  color: #f5ddb3;
+  background: #332e26df;
+  border: 1px solid #d4b57c70;
+  font-size: 9px;
+  pointer-events: none;
+}
+.shootingStar {
+  position: absolute;
+  left: 36%;
+  top: 7%;
+  width: 31%;
+  height: 15%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.shootingStar > i {
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  left: 18%;
+  top: 15%;
+  background: linear-gradient(90deg, transparent, #f5e4b7);
+  transform: rotate(24deg);
+  opacity: 0;
+  animation: shootingStar 29s linear infinite;
+}
+.kyogreShimmer {
+  position: absolute;
+  left: 77%;
+  top: 26%;
+  width: 9%;
+  height: 7%;
+  pointer-events: none;
+}
+.kyogreShimmer i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #f5cbe4;
+  box-shadow:
+    0 -3px #f5cbe45e,
+    0 3px #f5cbe45e,
+    3px 0 #f5cbe45e,
+    -3px 0 #f5cbe45e;
+  opacity: 0;
+  animation: shiny 12s ease-in-out infinite;
+}
+.kyogreShimmer i:nth-child(2) {
+  left: 75%;
+  top: 15%;
+  animation-delay: -1.3s;
+}
+.kyogreShimmer i:nth-child(3) {
+  left: 55%;
+  top: 75%;
+  animation-delay: -2s;
+}
+@keyframes visitorFloat {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes shootingStar {
+  0%,
+  88% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(24deg);
+  }
+  89% {
+    opacity: 0.8;
+  }
+  92% {
+    opacity: 0;
+    transform: translate(190px, 80px) rotate(24deg);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes shiny {
+  0%,
+  75%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  83% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  90% {
+    opacity: 0;
+  }
+}
 .ghostReply {
   position: absolute;
   bottom: 102%;
@@ -695,6 +831,7 @@
   font-size: 25px;
 }
 .storyBody {
+  overflow-anchor: none;
   padding: 23px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -882,6 +1019,9 @@
   }
 }
 @media (max-width: 760px) {
+  .story[data-kind="drink"] {
+    height: 58svh;
+  }
   .world[data-reading="true"] .viewport {
     right: 0;
   }
