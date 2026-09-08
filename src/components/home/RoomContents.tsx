@@ -11,7 +11,9 @@ import {
 } from "@/content/home/collections";
 import type { RoomObject } from "./PixelHome";
 import styles from "./home.module.css";
-import { CardBinder } from "./HomeToys";
+const PackOpener = dynamic(() => import("./PackOpener"), {
+  loading: () => <p role="status">Getting the packs…</p>,
+});
 
 const SourMixer = dynamic(() => import("./SourGame"), {
   loading: () => <p role="status">Setting out the shaker…</p>,
@@ -265,7 +267,7 @@ export default function RoomContents({
           <p className={styles.lead}>
             The cards, the teams, and the small things that make a place mine.
           </p>
-          <CardBinder />
+          <PackOpener />
           <FerrariToy />
           <div className={styles.keepsakes}>
             {KEEPSAKES.map((item) => (

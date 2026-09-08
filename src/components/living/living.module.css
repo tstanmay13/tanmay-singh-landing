@@ -272,8 +272,7 @@
 .world[data-reading="true"] .object {
   visibility: hidden;
 }
-.world[data-reading="true"] .lampButton,
-.world[data-reading="true"] .gengar {
+.world[data-reading="true"] .lampButton {
   pointer-events: none;
 }
 .lampButton {
@@ -545,61 +544,8 @@
 .stereoLights i:nth-child(5) {
   animation-delay: -0.9s;
 }
-.gengar {
-  position: absolute;
-  left: 56%;
-  top: 54%;
-  width: 9%;
-  height: 12%;
-  z-index: 4;
-}
-.gengarEyes {
-  position: absolute;
-  left: 23%;
-  top: 36%;
-  width: 42%;
-  height: 16%;
-  background:
-    radial-gradient(ellipse at 20% 50%, #f5496433, transparent 35%),
-    radial-gradient(ellipse at 78% 50%, #f5496433, transparent 35%);
-  animation: ghost 8s ease-in-out infinite;
-  pointer-events: none;
-}
-.ghostVisitor {
-  position: absolute;
-  width: 7%;
-  min-width: 64px;
-  max-width: 105px;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  transition:
-    left 0.8s ease,
-    top 0.8s ease;
-}
-.ghostVisitor img {
-  width: 100%;
-  height: auto;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 5px 2px #141c3655);
-  animation: visitorFloat 1.6s ease-in-out infinite;
-  pointer-events: none;
-}
-.ghostVisitor > span {
-  display: block;
-  margin-top: -5px;
-  padding: 5px 8px;
-  background: #302946ed;
-  color: #eedcf8;
-  border: 1px solid #c3a1e070;
-  font-size: 9px;
-  white-space: nowrap;
-}
-.world[data-reading="true"] .ghostVisitor,
 .world[data-reading="true"] .servedDrink {
   visibility: hidden;
-}
-.world[data-moving="false"] .ghostVisitor img {
-  animation-play-state: paused;
 }
 .servedDrink {
   position: absolute;
@@ -664,11 +610,6 @@
   top: 75%;
   animation-delay: -2s;
 }
-@keyframes visitorFloat {
-  50% {
-    transform: translateY(-5px);
-  }
-}
 @keyframes shootingStar {
   0%,
   88% {
@@ -700,20 +641,6 @@
   90% {
     opacity: 0;
   }
-}
-.ghostReply {
-  position: absolute;
-  bottom: 102%;
-  left: 10%;
-  padding: 9px 12px;
-  background: #342b4ff2;
-  border: 1px solid #cbb1e7;
-  color: #f6eaff;
-  font-size: 11px;
-  white-space: nowrap;
-  transform-origin: bottom left;
-  animation: reply 4.5s both;
-  pointer-events: none;
 }
 .guide {
   position: absolute;
@@ -864,8 +791,7 @@
 }
 .world[data-moving="false"] .scene > div,
 .world[data-moving="false"] .scene > div *,
-.world[data-moving="false"] .stereoLights *,
-.world[data-moving="false"] .gengarEyes {
+.world[data-moving="false"] .stereoLights * {
   animation-play-state: paused !important;
 }
 @keyframes invitation {
@@ -978,31 +904,6 @@
     transform: scaleY(1);
   }
 }
-@keyframes ghost {
-  0%,
-  75%,
-  100% {
-    opacity: 0.2;
-  }
-  85% {
-    opacity: 1;
-  }
-}
-@keyframes reply {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  7%,
-  80% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-}
 @media (max-width: 1000px) {
   .footer > p {
     display: none;
@@ -1019,6 +920,9 @@
   }
 }
 @media (max-width: 760px) {
+  .story[data-kind="keepsakes"] {
+    height: 62svh;
+  }
   .story[data-kind="drink"] {
     height: 58svh;
   }
@@ -1165,8 +1069,5 @@
   .world *::after {
     animation: none !important;
     transition: none !important;
-  }
-  .ghostReply {
-    opacity: 1;
   }
 }

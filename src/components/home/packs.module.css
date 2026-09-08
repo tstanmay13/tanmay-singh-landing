@@ -1,0 +1,382 @@
+.opener {
+  --pack-ink: var(--home-ink);
+  --pack-muted: var(--home-muted);
+  --pack-gold: var(--home-gold);
+  color: var(--pack-ink);
+  margin: 22px 0 32px;
+}
+.intro {
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+.sets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.sets button {
+  min-height: 46px;
+  padding: 9px;
+  font-size: 12px;
+  border: 1px solid var(--home-border);
+  color: var(--pack-muted);
+  background: var(--home-panel);
+}
+.sets button[aria-pressed="true"] {
+  border-color: var(--pack-gold);
+  color: var(--pack-gold);
+  background: var(--home-panel-raised);
+}
+.stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--pack-muted);
+  margin: 14px 0;
+}
+.stats button {
+  color: var(--pack-gold);
+  min-height: 34px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.sealed {
+  text-align: center;
+  padding: 6px 0 15px;
+}
+.sealed > p {
+  font-size: 12px;
+  margin: 16px 0 5px;
+}
+.sealed > small {
+  color: var(--pack-muted);
+  font-size: 10px;
+}
+.pack {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+  width: min(180px, 65%);
+  transform: rotate(-4deg);
+  transition: transform 0.25s;
+  touch-action: pan-y;
+}
+.pack:hover {
+  transform: rotate(1deg) translateY(-4px);
+}
+.pack img {
+  width: 100%;
+  height: 285px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(7px 8px 3px #080d2055);
+  user-select: none;
+}
+.pack > span {
+  display: block;
+  background: var(--home-panel-raised);
+  color: var(--pack-gold);
+  border: 1px solid var(--home-border);
+  padding: 9px 3px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.revealHeading {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--pack-muted);
+  margin: 15px 0;
+}
+.revealHeading button {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--pack-gold);
+}
+.reveal {
+  width: min(220px, 75%);
+  aspect-ratio: 245/342;
+  display: block;
+  margin: 12px auto;
+  perspective: 900px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.turn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: cardTurn 0.4s ease-out both;
+}
+.turn[data-hit="true"] {
+  filter: drop-shadow(0 0 11px #edc17c70);
+}
+.cardArt {
+  display: block;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 7px;
+  aspect-ratio: 245/342;
+  background: var(--home-panel-raised);
+}
+.cardArt img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.cardArt i {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    transparent 25%,
+    #efffe530 43%,
+    #edbaf82b 48%,
+    #b8efff25 53%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.4;
+  transform: translateX(-80%);
+  animation: foil 1.4s ease-out both;
+}
+.cardArt[data-finish="reverse"] i {
+  opacity: 0.6;
+}
+.cardBack {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  border: 8px solid #aab9cf;
+  border-radius: 8px;
+  color: #ead191;
+  background: repeating-radial-gradient(
+    ellipse at 50% 50%,
+    #203f75 0 8px,
+    #224f84 8px 12px,
+    #244470 12px 25px
+  );
+  box-shadow: inset 0 0 0 2px #152648;
+}
+.cardBack > span {
+  font-size: 77px;
+  line-height: 1.2;
+  color: #e9e2d1;
+  text-shadow: 3px 4px #111e36;
+}
+.cardBack strong {
+  font: 10px/1.8 var(--font-pixel);
+  text-align: center;
+}
+.cardBack small {
+  font-size: 10px;
+}
+.pullLabel {
+  text-align: center;
+  min-height: 53px;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.pullLabel strong {
+  display: block;
+}
+.pullLabel span {
+  display: block;
+  font-size: 10px;
+  color: var(--pack-muted);
+  margin-top: 4px;
+}
+.pullLabel span[data-hit="true"] {
+  color: var(--pack-gold);
+}
+.primary {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--pack-gold);
+  color: var(--pack-gold);
+  background: var(--home-panel-raised);
+  padding: 11px 15px;
+  font-size: 12px;
+}
+.packResult {
+  font-size: 12px;
+  color: var(--pack-gold);
+  margin: 12px 0;
+}
+.results,
+.binderGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px 8px;
+  margin: 18px 0;
+}
+.results button,
+.binderGrid button {
+  min-width: 0;
+  text-align: left;
+}
+.results button > span:last-child,
+.binderGrid button > span:last-child {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  line-height: 1.4;
+  margin-top: 5px;
+  color: var(--pack-muted);
+}
+.binderHead {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: start;
+  margin: 17px 0;
+}
+.binderHead h3 {
+  font-size: 14px;
+  margin: 0;
+}
+.binderHead button {
+  flex: none;
+  color: var(--pack-gold);
+  font-size: 10px;
+  padding: 4px 0;
+}
+.filter {
+  font-size: 11px;
+  color: var(--pack-muted);
+  border: 1px solid var(--home-border);
+  padding: 9px 12px;
+  min-height: 38px;
+}
+.empty {
+  margin: 30px 0;
+  color: var(--pack-muted);
+  font-size: 13px;
+}
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+}
+.pagination button {
+  color: var(--pack-gold);
+  min-height: 44px;
+}
+.pagination button:disabled {
+  opacity: 0.3;
+}
+.inspected > button {
+  color: var(--pack-gold);
+  padding: 10px 0 20px;
+  font-size: 12px;
+}
+.inspected .cardArt {
+  max-width: 245px;
+  margin: auto;
+}
+.inspected > p {
+  text-align: center;
+  font-size: 12px;
+  margin: 12px 0;
+}
+.saveNote {
+  font-size: 10px;
+  color: var(--pack-muted);
+  margin: 18px 0;
+  line-height: 1.7;
+}
+.odds {
+  border-top: 1px solid var(--home-border);
+  font-size: 11px;
+  padding-top: 14px;
+  color: var(--pack-muted);
+}
+.odds summary {
+  cursor: pointer;
+  color: var(--pack-gold);
+  min-height: 32px;
+}
+.odds > p {
+  margin: 13px 0;
+  line-height: 1.7;
+}
+.odds > a {
+  display: block;
+  color: var(--pack-gold);
+  margin: 8px 0;
+}
+.odds table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin: 17px 0;
+}
+.odds caption {
+  text-align: left;
+  color: var(--pack-ink);
+  padding-bottom: 8px;
+}
+.odds th,
+.odds td {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--home-border);
+  text-align: left;
+}
+.odds th:last-child,
+.odds td:last-child {
+  text-align: right;
+}
+@keyframes cardTurn {
+  from {
+    opacity: 0.3;
+    transform: rotateY(-75deg) translateX(9px);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0) translateX(0);
+  }
+}
+@keyframes foil {
+  to {
+    transform: translateX(80%);
+  }
+}
+@media (max-width: 760px) {
+  .pack img {
+    height: 230px;
+  }
+  .reveal,
+  .inspected .cardArt {
+    max-width: 170px;
+  }
+  .revealHeading {
+    margin: 8px 0;
+  }
+  .pullLabel {
+    min-height: 40px;
+    margin: 6px 0;
+  }
+  .stats {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opener * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
