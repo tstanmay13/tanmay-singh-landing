@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "next lint",
+    "lint": "eslint src scripts e2e tests",
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit",
     "test:unit": "vitest run",

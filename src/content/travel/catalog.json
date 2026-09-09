@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-09-02T07:40:57.220Z",
+  "generatedAt": "2026-09-09T10:37:36.650Z",
   "stats": {
     "countries": 11,
-    "cities": 110,
-    "visits": 9456
+    "cities": 113,
+    "visits": 9481
   },
   "countries": [
     {
@@ -1876,6 +1876,93 @@
       ]
     },
     {
+      "code": "TH",
+      "name": "Thailand",
+      "flag": "🇹🇭",
+      "visitCount": 30,
+      "dwellMs": 601558902,
+      "firstSeen": "2026-08-28",
+      "lastSeen": "2026-09-09",
+      "cities": [
+        {
+          "id": "1609350",
+          "name": "Bangkok",
+          "admin": "",
+          "countryCode": "TH",
+          "country": "Thailand",
+          "flag": "🇹🇭",
+          "lat": 13.754,
+          "lng": 100.5014,
+          "population": 5104476,
+          "visitCount": 10,
+          "spotCount": 6,
+          "dwellMs": 221360885,
+          "firstSeen": "2026-08-28",
+          "lastSeen": "2026-08-31",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1153671",
+          "name": "Chiang Mai",
+          "admin": "",
+          "countryCode": "TH",
+          "country": "Thailand",
+          "flag": "🇹🇭",
+          "lat": 18.7904,
+          "lng": 98.9847,
+          "population": 200952,
+          "visitCount": 12,
+          "spotCount": 9,
+          "dwellMs": 217668237,
+          "firstSeen": "2026-09-04",
+          "lastSeen": "2026-09-07",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1596216",
+          "name": "Ko Pha Ngan",
+          "admin": "",
+          "countryCode": "TH",
+          "country": "Thailand",
+          "flag": "🇹🇭",
+          "lat": 9.7195,
+          "lng": 99.9951,
+          "population": 0,
+          "visitCount": 6,
+          "spotCount": 4,
+          "dwellMs": 158465536,
+          "firstSeen": "2026-09-07",
+          "lastSeen": "2026-09-09",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1154689",
+          "name": "Ko Samui",
+          "admin": "",
+          "countryCode": "TH",
+          "country": "Thailand",
+          "flag": "🇹🇭",
+          "lat": 9.5357,
+          "lng": 99.9357,
+          "population": 50000,
+          "visitCount": 2,
+          "spotCount": 1,
+          "dwellMs": 4064244,
+          "firstSeen": "2026-09-09",
+          "lastSeen": "2026-09-09",
+          "years": [
+            "2026"
+          ]
+        }
+      ]
+    },
+    {
       "code": "MX",
       "name": "Mexico",
       "flag": "🇲🇽",
@@ -1925,29 +2012,48 @@
       ]
     },
     {
-      "code": "TH",
-      "name": "Thailand",
-      "flag": "🇹🇭",
-      "visitCount": 10,
-      "dwellMs": 221360885,
-      "firstSeen": "2026-08-28",
-      "lastSeen": "2026-08-31",
+      "code": "VN",
+      "name": "Vietnam",
+      "flag": "🇻🇳",
+      "visitCount": 19,
+      "dwellMs": 275688912,
+      "firstSeen": "2026-08-31",
+      "lastSeen": "2026-09-04",
       "cities": [
         {
-          "id": "1609350",
-          "name": "Bangkok",
+          "id": "1587919",
+          "name": "Bỉm Sơn",
           "admin": "",
-          "countryCode": "TH",
-          "country": "Thailand",
-          "flag": "🇹🇭",
-          "lat": 13.754,
-          "lng": 100.5014,
-          "population": 5104476,
+          "countryCode": "VN",
+          "country": "Vietnam",
+          "flag": "🇻🇳",
+          "lat": 20.0781,
+          "lng": 105.8603,
+          "population": 53754,
           "visitCount": 10,
           "spotCount": 6,
-          "dwellMs": 221360885,
-          "firstSeen": "2026-08-28",
-          "lastSeen": "2026-08-31",
+          "dwellMs": 213018950,
+          "firstSeen": "2026-09-01",
+          "lastSeen": "2026-09-04",
+          "years": [
+            "2026"
+          ]
+        },
+        {
+          "id": "1581130",
+          "name": "Hanoi",
+          "admin": "",
+          "countryCode": "VN",
+          "country": "Vietnam",
+          "flag": "🇻🇳",
+          "lat": 21.0245,
+          "lng": 105.8412,
+          "population": 1431270,
+          "visitCount": 9,
+          "spotCount": 7,
+          "dwellMs": 62669962,
+          "firstSeen": "2026-08-31",
+          "lastSeen": "2026-09-01",
           "years": [
             "2026"
           ]
@@ -2154,55 +2260,6 @@
           "lastSeen": "2025-05-19",
           "years": [
             "2025"
-          ]
-        }
-      ]
-    },
-    {
-      "code": "VN",
-      "name": "Vietnam",
-      "flag": "🇻🇳",
-      "visitCount": 14,
-      "dwellMs": 132348807,
-      "firstSeen": "2026-08-31",
-      "lastSeen": "2026-09-02",
-      "cities": [
-        {
-          "id": "1587919",
-          "name": "Bỉm Sơn",
-          "admin": "",
-          "countryCode": "VN",
-          "country": "Vietnam",
-          "flag": "🇻🇳",
-          "lat": 20.0781,
-          "lng": 105.8603,
-          "population": 53754,
-          "visitCount": 5,
-          "spotCount": 3,
-          "dwellMs": 69678845,
-          "firstSeen": "2026-09-01",
-          "lastSeen": "2026-09-02",
-          "years": [
-            "2026"
-          ]
-        },
-        {
-          "id": "1581130",
-          "name": "Hanoi",
-          "admin": "",
-          "countryCode": "VN",
-          "country": "Vietnam",
-          "flag": "🇻🇳",
-          "lat": 21.0245,
-          "lng": 105.8412,
-          "population": 1431270,
-          "visitCount": 9,
-          "spotCount": 7,
-          "dwellMs": 62669962,
-          "firstSeen": "2026-08-31",
-          "lastSeen": "2026-09-01",
-          "years": [
-            "2026"
           ]
         }
       ]

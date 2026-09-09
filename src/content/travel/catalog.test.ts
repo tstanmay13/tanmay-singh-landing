@@ -242,10 +242,30 @@ describe("travel catalog curation", () => {
     }
   });
 
-  it("starts every canonical place without photos or media", () => {
+  it("keeps Ko Phangan separate from the following Ko Samui stop", () => {
+    const phangan = requirePlace(reference("Ko Phangan", "", "TH"));
+    expect(requirePlace(reference("Ko Pha Ngan", "", "TH"))).toBe(phangan);
+    const samui = requirePlace(reference("Ko Samui", "", "TH"));
+    expect(phangan.id).not.toBe(samui.id);
+    expect(phangan.firstSeen.startsWith("2026-09-07")).toBe(true);
+    expect(samui.firstSeen.startsWith("2026-09-09")).toBe(true);
+    expect(phangan.media.length).toBeGreaterThan(0);
+    expect(samui.media.length).toBeGreaterThan(0);
+  });
+
+  it("corrects Ninh Binh while preserving the source aggregate", () => {
+    const corrected = requirePlace(reference("Ninh Bình", "", "VN"));
+    const source = travelCatalog.countries.find(country => country.code === "VN")!.cities.find(city => city.name === "Bỉm Sơn")!;
+    expect(requirePlace(reference("Bỉm Sơn", "", "VN"))).toBe(corrected);
+    expect(corrected).toMatchObject({ visitCount: source.visitCount, spotCount: source.spotCount, dwellMs: source.dwellMs, firstSeen: source.firstSeen, lastSeen: source.lastSeen });
+    expect(corrected.lat).toBeCloseTo(20.2581);
+    expect(corrected.lng).toBeCloseTo(105.9797);
+  });
+
+  it("exposes photos from the same canonical gallery and keeps homes empty", () => {
     for (const place of travelPlaces()) {
-      expect(place.photos).toEqual([]);
-      expect(place.media).toEqual([]);
+      expect(place.photos).toEqual(place.media.filter(item => item.type === "image"));
+      if (place.relationship !== "visited") expect(place.media).toEqual([]);
     }
   });
 });

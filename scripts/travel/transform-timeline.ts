@@ -256,7 +256,8 @@ function toPublicCatalog(tree: ReturnType<typeof groupTree>) {
       firstSeen: country.firstSeen.slice(0, 10),
       lastSeen: country.lastSeen.slice(0, 10),
       cities: country.cities.map((city) => ({
-        id: `${country.code}-${city.id}`,
+        // Runtime publicId adds the country prefix; preserve source IDs on reimport.
+        id: city.id,
         name: CITY_ALIASES[city.name] ?? city.name,
         admin: /^[A-Z]{2}$/.test(city.admin) ? city.admin : "",
         countryCode: country.code,

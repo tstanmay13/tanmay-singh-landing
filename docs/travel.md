@@ -34,12 +34,15 @@ Austin/Central Texas hub center.
 
 ## Residence chronology
 
-The public life-path for this release has four chapters:
+The public life-path currently has seven chapters:
 
 1. Murphy, Texas — past home
 2. Richardson, Texas — past home
 3. Austin, Texas — past home and travel hub
 4. New York City, New York — current home
+5. Uttar Pradesh, India — early home chapter
+6. Boston, Massachusetts — past home
+7. Bengaluru, India — past home
 
 No residence dates are encoded. Timeline `firstSeen` and `lastSeen` values are
 visit evidence and must never be presented as residence dates.
@@ -129,13 +132,14 @@ removes nonessential ocean, cloud, marker, camera, and ripple animation.
 
 ## Media
 
-Real photos are intentionally not part of this release. Every place starts
-with empty `photos` and `media` arrays. Cards render
-`PHOTOS COMING LATER` and never borrow another city’s placeholder image.
-
-The future publishing path remains: approved real media can be attached to the
-canonical place without changing marker identity, residence history, hubs, or
-visit counts.
+Reviewed local media is attached to canonical destinations through
+`src/content/travel/media.ts`. The current set covers Bangkok, Chiang Mai,
+Ko Phangan, Ko Samui, Ninh Bình, Hanoi, Kyoto, Osaka, Tokyo, Rome, Vatican
+City, and the San Gimignano landscape attached to the existing Poggibonsi
+timeline stop. Public copies are orientation-normalized WebP images with
+metadata removed. The Ninh Bình gallery also includes one short, silent,
+click-to-play golf clip with a poster; source originals and selection rationale
+remain private under the ignored `travel-studio/` workflow.
 
 ## Validation
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import {
@@ -421,6 +422,10 @@ export default function RoomContents({
     case "about":
       return (
         <>
+          <figure className={styles.aboutPortrait}>
+            <Image src="/travel/media/ko-phangan/tanmay.webp" alt="Tanmay relaxing on Ko Phangan." width={1350} height={1800} sizes="(max-width: 600px) 65vw, 240px" loading="lazy" />
+            <figcaption>Tanmay · Ko Phangan</figcaption>
+          </figure>
           <p className={styles.lead}>
             I live in New York. I make games and tools, travel when I can, and
             get very attached to fictional worlds.
