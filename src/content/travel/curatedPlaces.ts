@@ -97,6 +97,7 @@ const VENICE_KEY = key("IT", "Venice");
 const VATICAN_KEY = key("VA", "Vatican");
 const NINH_BINH_KEY = key("VN", "Ninh Bình");
 const KO_PHANGAN_KEY = key("TH", "Ko Phangan");
+const SAN_GIMIGNANO_KEY = key("IT", "San Gimignano");
 
 /**
  * Source aliases collapse into one canonical aggregate before metadata is
@@ -106,6 +107,8 @@ export const CANONICAL_PLACE_ALIASES: Readonly<Record<string, string>> = {
   [key("US", "New York", "NY")]: NEW_YORK_CITY_KEY,
   [key("US", "Manhattan", "NY")]: NEW_YORK_CITY_KEY,
   [key("IT", "Mestre")]: VENICE_KEY,
+  // This single imported stop is in San Gimignano, west of Poggibonsi.
+  [key("IT", "Poggibonsi")]: SAN_GIMIGNANO_KEY,
   [key("VA", "Rome")]: VATICAN_KEY,
   [key("TH", "Ko Pha Ngan")]: KO_PHANGAN_KEY,
   // The population-based import assigned the Tam Coc / Trang An stops here.
@@ -116,6 +119,7 @@ export const CANONICAL_PLACE_ALIASES: Readonly<Record<string, string>> = {
 export const CANONICAL_PLACE_NAMES: Readonly<Record<string, string>> = {
   [NEW_YORK_CITY_KEY]: "New York City",
   [VENICE_KEY]: "Venice",
+  [SAN_GIMIGNANO_KEY]: "San Gimignano",
   [VATICAN_KEY]: "Vatican",
   [KO_PHANGAN_KEY]: "Ko Phangan",
   [NINH_BINH_KEY]: "Ninh Bình",
@@ -342,6 +346,13 @@ export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
     importance: 98,
     featured: true,
     showAtZoom: "world",
+  },
+  [SAN_GIMIGNANO_KEY]: {
+    lat: 43.463,
+    lng: 11.042,
+    importance: 78,
+    featured: true,
+    showAtZoom: "country",
   },
   [key("IT", "Siena")]: {
     importance: 82,

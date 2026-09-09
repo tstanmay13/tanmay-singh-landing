@@ -36,21 +36,16 @@ Austin/Central Texas hub center.
 
 The public life-path currently has seven chapters:
 
-1. Murphy, Texas — past home
-2. Richardson, Texas — past home
-3. Austin, Texas — past home and travel hub
-4. New York City, New York — current home
-5. Uttar Pradesh, India — early home chapter
-6. Boston, Massachusetts — past home
-7. Bengaluru, India — past home
+1. Uttar Pradesh, India — 2000–2001
+2. Boston, Massachusetts — 2001–2002
+3. Bengaluru, India — 2002–2008
+4. Richardson, Texas — 2008–2013
+5. Murphy, Texas — 2013–2018
+6. Austin, Texas — 2018–2025
+7. New York City, New York — 2025–present
 
-No residence dates are encoded. Timeline `firstSeen` and `lastSeen` values are
-visit evidence and must never be presented as residence dates.
-
-Earlier personal history mentioned outside this four-marker release
-(Uttar Pradesh, Boston, and Bengaluru) is not part of the current path. It can
-be added without changing the model after the intended Uttar Pradesh
-granularity is chosen.
+These residence dates are explicitly curated. Timeline `firstSeen` and
+`lastSeen` values describe visits and must never replace residence dates.
 
 ## Explicit travel hubs
 
@@ -104,7 +99,7 @@ viewport immediately while panning.
 The header switches between two story modes:
 
 - `TRAVEL MAP` shows every destination;
-- `LIFE PATH` frames the four home chapters with explicit `01`–`04` markers.
+- `LIFE PATH` frames the seven home chapters with explicit `01`–`07` markers.
 
 Leaving LIFE PATH restores the prior camera.
 
@@ -135,8 +130,8 @@ removes nonessential ocean, cloud, marker, camera, and ripple animation.
 Reviewed local media is attached to canonical destinations through
 `src/content/travel/media.ts`. The current set covers Bangkok, Chiang Mai,
 Ko Phangan, Ko Samui, Ninh Bình, Hanoi, Kyoto, Osaka, Tokyo, Rome, Vatican
-City, and the San Gimignano landscape attached to the existing Poggibonsi
-timeline stop. Public copies are orientation-normalized WebP images with
+City, and San Gimignano. The imported Poggibonsi stop is aliased to San
+Gimignano using its original visit coordinates, preserving its visit history. Public copies are orientation-normalized WebP images with
 metadata removed. The Ninh Bình gallery also includes one short, silent,
 click-to-play golf clip with a poster; source originals and selection rationale
 remain private under the ignored `travel-studio/` workflow.

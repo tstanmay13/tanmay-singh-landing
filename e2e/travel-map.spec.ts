@@ -703,10 +703,22 @@ test("destination gallery opens locally and supports keyboard navigation", async
   const gallery = page.getByRole("dialog", { name: "Ko Phangan", exact: true });
   await expect(gallery).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("ko-phangan-gallery.png"), fullPage: true });
-  await expect(gallery.getByText("1 / 4", { exact: true })).toBeVisible();
+  await expect(gallery.getByText("1 / 11", { exact: true })).toBeVisible();
   await page.keyboard.press("ArrowRight");
-  await expect(gallery.getByText("2 / 4", { exact: true })).toBeVisible();
-  await expect(gallery.locator("img").first()).toHaveAttribute("src", /garden-shrines/);
+  await expect(gallery.getByText("2 / 11", { exact: true })).toBeVisible();
+  await expect(gallery.locator("img").first()).toHaveAttribute("src", /tanmay-relaxing/);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.keyboard.press("End");
+  await expect(gallery.getByText("11 / 11", { exact: true })).toBeVisible();
+  await expect(gallery.locator("figure img")).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("ko-phangan-mobile-gallery.png") });
+  await expect.poll(async () => gallery.locator('[aria-current="true"]').evaluate((button) => {
+    const item = button.getBoundingClientRect();
+    const rail = button.parentElement!.getBoundingClientRect();
+    return item.left >= rail.left && item.right <= rail.right;
+  })).toBe(true);
+  await page.keyboard.press("Home");
+  await expect(gallery.getByText("1 / 11", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(gallery).toHaveCount(0);
   await expect(card.getByRole("button", { name: /Open Ko Phangan gallery/i })).toBeFocused();

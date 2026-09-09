@@ -21,10 +21,12 @@ describe("reviewed travel media", () => {
         expect(item.width).toBeGreaterThan(0);
         expect(item.height).toBeGreaterThan(0);
         for (const src of [item.src, ...(item.poster ? [item.poster] : [])]) {
-          expect(src).toMatch(/^\/travel\/media\/[a-z-]+\/[a-z-]+\.(webp|mp4)$/);
+          expect(src).toMatch(/^\/travel\/media\/[a-z-]+\/[a-z0-9-]+\.(webp|mp4)$/);
           const file = resolve("public", src.slice(1));
           expect(existsSync(file), src).toBe(true);
-          total += statSync(file).size;
+          const bytes = statSync(file).size;
+          total += bytes;
+          expect(bytes, src).toBeLessThan((src.endsWith(".mp4") ? 8 : 1.5) * 1024 * 1024);
           if (src.endsWith(".webp")) {
             const meta = await sharp(file).metadata();
             expect(meta.exif).toBeUndefined();
@@ -39,7 +41,20 @@ describe("reviewed travel media", () => {
         }
       }
     }
-    expect(total).toBeLessThan(20 * 1024 * 1024);
+    expect(total).toBeLessThan(128 * 1024 * 1024);
+  });
+
+  it("keeps the corrected island and Tuscany galleries with their visit history", () => {
+    const places = travelPlaces();
+    const phangan = places.find(place => place.canonicalKey === "TH::ko phangan")!;
+    expect(phangan.media.some(item => item.src.endsWith("/haad-rin-pier.webp"))).toBe(true);
+    expect(PLACE_MEDIA["TH::ko samui"].some(item => item.src.includes("pier"))).toBe(false);
+    const tuscany = places.find(place => place.canonicalKey === "IT::san gimignano")!;
+    expect(tuscany.name).toBe("San Gimignano");
+    expect(tuscany.visitCount).toBe(1);
+    expect(tuscany.yearsVisited).toContain(2025);
+    expect(tuscany.media[0].src).toContain("/san-gimignano/");
+    expect(places.some(place => place.canonicalKey === "IT::poggibonsi")).toBe(false);
   });
 
   it("does not pull Haad Rin across the water to populous Samui", () => {
