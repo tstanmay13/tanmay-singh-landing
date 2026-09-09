@@ -44,6 +44,7 @@ function GalleryViewer({ place, start, onClose }: {
   onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const thumbnails = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const [index, setIndex] = useState(start);
   const item = place.media[index];
@@ -55,6 +56,15 @@ function GalleryViewer({ place, start, onClose }: {
     node?.showModal();
     return () => node?.close();
   }, []);
+
+  useEffect(() => {
+    const rail = thumbnails.current;
+    const active = rail?.querySelector<HTMLButtonElement>('[aria-current="true"]');
+    if (!rail || !active) return;
+    // Move only the thumbnail rail, leaving the dialog and map in place.
+    rail.scrollLeft += active.getBoundingClientRect().left - rail.getBoundingClientRect().left
+      - (rail.clientWidth - active.clientWidth) / 2;
+  }, [index]);
 
   return (
     <dialog
@@ -94,7 +104,7 @@ function GalleryViewer({ place, start, onClose }: {
         </figure>
         <nav className={styles.galleryNavigation} aria-label={`${place.name} gallery navigation`}>
           <button type="button" className={styles.galleryControl} onClick={() => move(-1)} disabled={count < 2} aria-label="Previous memory">←</button>
-          <div className={styles.galleryThumbnails}>
+          <div ref={thumbnails} className={styles.galleryThumbnails}>
             {place.media.map((media, position) => (
               <button
                 key={media.src}
