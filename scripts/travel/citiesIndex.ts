@@ -88,6 +88,17 @@ function pickCity(candidates: CityMatch[]) {
 
 /** Nearest real city: most populous ≥15k place within 25km, else closest named place. */
 export function matchCity(lat: number, lng: number): CityMatch | null {
+  // The population preference otherwise pulls Haad Rin across the sea to
+  // Ko Samui. Keep this island on its own named municipal center.
+  if (lat >= 9.65 && lat <= 9.83 && lng >= 99.9 && lng <= 100.1) {
+    const island = worldCities.find((city) => city.cityId === 1596216);
+    if (island) {
+      return {
+        ...island,
+        distanceKm: haversineKm(lat, lng, island.loc.coordinates[1], island.loc.coordinates[0]),
+      };
+    }
+  }
   const nearby = collectNearby(lat, lng, 2);
   if (nearby.length === 0) return null;
   return pickCity(nearby);

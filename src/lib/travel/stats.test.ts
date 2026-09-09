@@ -46,7 +46,7 @@ describe("canonical contextual travel statistics", () => {
   it("reports the exact world totals, countries, visit years, and homes", () => {
     expect(deriveWorldStats(places)).toEqual({
       kind: "world",
-      placeCount: 114,
+      placeCount: 117,
       countryCount: 12,
       countries: [
         "AU",
@@ -205,7 +205,7 @@ describe("canonical contextual travel statistics", () => {
     ];
     const canonical = canonicalStatsPlaces(withDuplicates);
 
-    expect(canonical).toHaveLength(114);
+    expect(canonical).toHaveLength(117);
     expect(
       canonical.filter(
         (place) => place.canonicalKey === austin.canonicalKey,
@@ -262,7 +262,7 @@ describe("visit year derivation", () => {
 describe("compact contextual HUD statistics", () => {
   it("emits exact labels and compact values for each context", () => {
     expect(requireContext({ kind: "world" }).hud).toEqual([
-      { id: "places", label: "PLACES", value: 114 },
+      { id: "places", label: "PLACES", value: 117 },
       { id: "countries", label: "COUNTRIES", value: 12 },
       { id: "visit-years", label: "VISIT YEARS", value: "2013–2026" },
       { id: "homes", label: "HOMES", value: 7 },

@@ -80,6 +80,11 @@ export type TravelMedia = {
   type: "image" | "video";
   alt: string;
   caption?: string;
+  width: number;
+  height: number;
+  poster?: string;
+  duration?: number;
+  captureDate?: string;
 };
 
 /**
@@ -108,6 +113,8 @@ export type TravelPlace = CatalogCity & {
 export type TravelPlaceMetadata = Partial<
   Pick<
     TravelPlace,
+    | "lat"
+    | "lng"
     | "hubId"
     | "importance"
     | "featured"

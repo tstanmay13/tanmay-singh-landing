@@ -1,4 +1,5 @@
 import catalogJson from "./catalog.json";
+import { PLACE_MEDIA } from "./media";
 import {
   CANONICAL_PLACE_ALIASES,
   CANONICAL_PLACE_NAMES,
@@ -152,6 +153,8 @@ function enrichPlace(
 
   return {
     ...city,
+    lat: metadata.lat ?? city.lat,
+    lng: metadata.lng ?? city.lng,
     hubId,
     importance: metadata.importance ?? DEFAULT_IMPORTANCE[category],
     featured: metadata.featured ?? false,
@@ -170,8 +173,8 @@ function enrichPlace(
           .filter((year) => Number.isInteger(year)),
       ),
     ].sort((left, right) => left - right),
-    photos: [],
-    media: [],
+    photos: (PLACE_MEDIA[city.canonicalKey] ?? []).filter((item) => item.type === "image"),
+    media: PLACE_MEDIA[city.canonicalKey] ?? [],
     relationship: metadata.relationship ?? "visited",
     ...(metadata.residenceOrder === undefined
       ? {}

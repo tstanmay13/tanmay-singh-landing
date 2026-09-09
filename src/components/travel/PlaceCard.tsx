@@ -7,12 +7,12 @@ import {
   nearbyHubMembers,
   placeCardAriaLabel,
   placeCardLabels,
-  placePhotoState,
   residenceChapterLabel,
   residenceDatesLabel,
   visitYearsLabel,
 } from "@/lib/travel/placeCard";
 import styles from "./travel.module.css";
+import TravelGallery from "./TravelGallery";
 
 export type PlaceCardProps = {
   place: TravelPlace;
@@ -32,7 +32,6 @@ export default function PlaceCard({
   const residenceChapter = residenceChapterLabel(place);
   const residenceDates = residenceDatesLabel(place);
   const visitYears = visitYearsLabel(place.yearsVisited);
-  const photoState = placePhotoState(place.photos);
   const nearby =
     place.category === "hub" ? nearbyHubMembers(place, hubMembers) : [];
   const isResidence =
@@ -111,28 +110,10 @@ export default function PlaceCard({
         </section>
       ) : null}
 
-      {photoState === "empty" ? (
-        <p className={styles.emptyStills}>{EMPTY_PHOTO_COPY}</p>
+      {place.media.length ? (
+        <TravelGallery key={place.canonicalKey} place={place} />
       ) : (
-        <section aria-label={`${place.name} stills`}>
-          <p className={styles.filmTag}>STILLS</p>
-          <div className={styles.album}>
-            {place.photos.map((photo, index) => (
-              <figure key={`${photo.src}-${index}`} className={styles.shot}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.src}
-                  alt={photo.alt}
-                  loading="lazy"
-                  decoding="async"
-                />
-                {photo.caption ? (
-                  <figcaption>{photo.caption}</figcaption>
-                ) : null}
-              </figure>
-            ))}
-          </div>
-        </section>
+        <p className={styles.emptyStills}>{EMPTY_PHOTO_COPY}</p>
       )}
     </aside>
   );

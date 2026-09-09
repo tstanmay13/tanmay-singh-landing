@@ -1255,3 +1255,40 @@
 @media (prefers-reduced-motion: reduce) {
   .oceanLife * { animation: none; }
 }
+
+/* Real photographs stay crisp and uncropped inside the pixel-art frame. */
+.galleryPreview { margin-top: 0.9rem; }
+.galleryCover { display: block; width: 100%; padding: 0; border: 3px solid var(--travel-border-strong); background: var(--travel-panel); color: var(--travel-text); cursor: pointer; text-align: left; }
+.galleryCover > img { display: block; width: 100%; height: auto; max-height: 240px; object-fit: contain; image-rendering: auto; }
+.galleryCover > span { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 0.65rem; font-family: var(--font-body), system-ui, sans-serif; font-size: 0.8rem; }
+.galleryCover strong { color: var(--travel-current); }
+.galleryCover:focus-visible, .galleryControl:focus-visible, .galleryThumbnail:focus-visible { outline: 3px solid var(--travel-current); outline-offset: 3px; }
+.galleryDialog { position: fixed; inset: 0; margin: auto; width: min(1100px, 96vw); max-width: 96vw; max-height: 94dvh; padding: 0; overflow: auto; border: 4px solid var(--travel-border-strong); background: var(--travel-panel-soft); color: var(--travel-text); box-shadow: 8px 8px 0 var(--travel-border-strong); font-family: var(--font-body), system-ui, sans-serif; overscroll-behavior: contain; }
+.galleryDialog::backdrop { background: color-mix(in srgb, var(--color-bg) 88%, transparent); }
+.galleryShell { padding: 1rem; }
+.galleryHeader { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.galleryHeader h2 { margin: 0; font-family: var(--font-pixel), monospace; font-size: clamp(0.85rem, 2vw, 1.2rem); line-height: 1.5; }
+.galleryHeader p { margin: 0.25rem 0 0; color: var(--travel-text-soft); font-size: 0.85rem; }
+.galleryControl { min-width: 44px; min-height: 44px; padding: 0.5rem 0.8rem; border: 2px solid var(--travel-border); background: var(--travel-panel); color: var(--travel-text); cursor: pointer; flex-shrink: 0; }
+.galleryControl:disabled { opacity: 0.4; cursor: default; }
+.galleryFigure { margin: 1rem 0; }
+.galleryCanvas { display: flex; justify-content: center; align-items: center; height: min(60dvh, 680px); background: var(--travel-panel); }
+.galleryMedia { display: block; width: 100%; height: 100%; object-fit: contain; image-rendering: auto; }
+.galleryFigure figcaption { display: flex; justify-content: space-between; gap: 1rem; padding-top: 0.75rem; min-height: 2.5rem; font-size: 0.9rem; line-height: 1.45; }
+.galleryPosition { white-space: nowrap; color: var(--travel-text-soft); font-variant-numeric: tabular-nums; }
+.galleryNavigation { display: flex; align-items: center; gap: 0.5rem; }
+.galleryThumbnails { display: flex; gap: 0.5rem; flex: 1; overflow: auto; padding: 5px; overscroll-behavior: contain; }
+.galleryThumbnail { position: relative; flex: 0 0 80px; min-height: 60px; padding: 0; border: 2px solid transparent; background: var(--travel-panel); cursor: pointer; }
+.galleryThumbnail[aria-current="true"] { border-color: var(--travel-current); }
+.galleryThumbnail img { display: block; width: 76px; height: 60px; object-fit: contain; image-rendering: auto; }
+.galleryThumbnail span { position: absolute; inset: auto 2px 2px auto; background: var(--travel-panel); color: var(--travel-text); padding: 0.1rem 0.25rem; }
+@media (max-width: 700px) {
+  .galleryShell { padding: 0.65rem; }
+  .galleryCanvas { height: 52dvh; }
+  .galleryFigure figcaption { flex-direction: column; gap: 0.25rem; }
+  .galleryCover > img { max-height: 170px; }
+  .galleryHeader h2 { font-size: 0.85rem; }
+}
+
+/* A restrained display finish; source pixels and scene content stay intact. */
+.galleryCover img, .galleryMedia { filter: contrast(1.02) saturate(1.025); }

@@ -419,7 +419,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("114");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("117");
   await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
@@ -690,4 +690,24 @@ test("map life stays decorative, clear of pins, and pauses with navigation", asy
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(life).toHaveCount(0);
+});
+
+test("destination gallery opens locally and supports keyboard navigation", async ({ page }, testInfo) => {
+  const map = await openReadyMap(page);
+  await page.getByRole("button", { name: "Focus map on Thailand" }).click();
+  await waitForSettled(map);
+  await map.getByRole("button", { name: "Ko Phangan, visited place." }).click();
+  const card = page.getByRole("dialog", { name: /Ko Phangan travel place details/i });
+  await expect(card).toBeVisible();
+  await card.getByRole("button", { name: /Open Ko Phangan gallery/i }).click();
+  const gallery = page.getByRole("dialog", { name: "Ko Phangan", exact: true });
+  await expect(gallery).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("ko-phangan-gallery.png"), fullPage: true });
+  await expect(gallery.getByText("1 / 4", { exact: true })).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(gallery.getByText("2 / 4", { exact: true })).toBeVisible();
+  await expect(gallery.locator("img").first()).toHaveAttribute("src", /garden-shrines/);
+  await page.keyboard.press("Escape");
+  await expect(gallery).toHaveCount(0);
+  await expect(card.getByRole("button", { name: /Open Ko Phangan gallery/i })).toBeFocused();
 });
