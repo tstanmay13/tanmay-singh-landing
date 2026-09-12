@@ -270,6 +270,20 @@ describe("travel catalog curation", () => {
     expect(requirePlace(reference("Thun", "BE", "CH")).media).toEqual([]);
   });
 
+  it("keeps photo-established stops separate from nearby Timeline cities", () => {
+    for (const [name, admin, country, count] of [
+      ["Fuji", "", "JP", 1],
+      ["Lauterbrunnen", "BE", "CH", 2],
+      ["Krattigen", "BE", "CH", 1],
+    ] as const) {
+      const place = requirePlace(reference(name, admin, country));
+      expect(place).toMatchObject({ relationship: "visited", visitCount: 0, dwellMs: 0 });
+      expect(place.media).toHaveLength(count);
+    }
+    expect(requirePlace(reference("Tokyo", "", "JP")).media.some(item => item.src.includes("/fuji/"))).toBe(false);
+    expect(requirePlace(reference("Thun", "BE", "CH")).media).toEqual([]);
+  });
+
   it("exposes photos from the same canonical gallery and keeps homes empty", () => {
     for (const place of travelPlaces()) {
       expect(place.photos).toEqual(place.media.filter(item => item.type === "image"));

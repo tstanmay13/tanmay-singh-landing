@@ -419,7 +419,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("125");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("128");
   await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
@@ -728,7 +728,13 @@ for (const { destination, count, folder } of [
   { destination: "Grand Teton National Park", count: 10, folder: "grand-teton-national-park" },
   { destination: "Yellowstone National Park", count: 11, folder: "yellowstone-national-park" },
   { destination: "Leissigen", count: 1, folder: "leissigen" },
+  { destination: "Fuji", count: 1, folder: "fuji" },
+  { destination: "Lauterbrunnen", count: 2, folder: "lauterbrunnen" },
+  { destination: "Krattigen", count: 1, folder: "krattigen" },
   { destination: "Houston", count: 3, folder: "houston" },
+  { destination: "Alvord", count: 1, folder: "alvord" },
+  { destination: "Plano", count: 1, folder: "plano" },
+  { destination: "Dallas", count: 1, folder: "dallas" },
   { destination: "Gun Barrel City", count: 1, folder: "gun-barrel-city" },
   { destination: "Tokyo", count: 10, folder: "tokyo" },
   { destination: "Kyoto", count: 7, folder: "kyoto" },

@@ -21,6 +21,43 @@ const EMPTY_VISIT_AGGREGATE = {
 
 /** Canonical places absent from the generated Timeline aggregate. */
 export const MANUAL_CITIES: ManualCatalogCity[] = [
+  // Photo locations establish these stops independently of Timeline aggregates.
+  {
+    ...EMPTY_VISIT_AGGREGATE,
+    id: "fuji",
+    name: "Fuji",
+    admin: "",
+    countryCode: "JP",
+    country: "Japan",
+    flag: "🇯🇵",
+    lat: 35.14,
+    lng: 138.65,
+    years: ["2026"],
+  },
+  {
+    ...EMPTY_VISIT_AGGREGATE,
+    id: "lauterbrunnen",
+    name: "Lauterbrunnen",
+    admin: "BE",
+    countryCode: "CH",
+    country: "Switzerland",
+    flag: "🇨🇭",
+    lat: 46.58,
+    lng: 7.96,
+    years: ["2025"],
+  },
+  {
+    ...EMPTY_VISIT_AGGREGATE,
+    id: "krattigen",
+    name: "Krattigen",
+    admin: "BE",
+    countryCode: "CH",
+    country: "Switzerland",
+    flag: "🇨🇭",
+    lat: 46.66,
+    lng: 7.73,
+    years: ["2025"],
+  },
   // May 2025 photo evidence; no synthetic Timeline counts or dwell time.
   {
     ...EMPTY_VISIT_AGGREGATE,

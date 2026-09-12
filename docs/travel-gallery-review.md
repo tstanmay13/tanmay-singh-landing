@@ -1,14 +1,14 @@
 # Expanded travel galleries
 
-This expansion adds 109 reviewed photographs. The catalog now contains 172 photographs
-and one existing silent golf video across 40 destinations. Public media,
-including the video poster, totals 72,472,040 bytes (69.11 MiB).
+This expansion adds 117 reviewed photographs. The catalog now contains 180 photographs
+and one existing silent golf video across 46 destinations. Public media,
+including the video poster, totals 75,224,394 bytes (71.74 MiB).
 
-Eight destinations established by photo evidence now have canonical pins: Grand Teton
+Eleven destinations established by photo evidence now have canonical pins: Grand Teton
 National Park, Yellowstone National Park, Teton Village, Rocky Mountain National Park,
-Wengen, Jungfraujoch, Interlaken, and Leissigen. They have no synthetic Timeline visit counts or
+Wengen, Jungfraujoch, Interlaken, Leissigen, Fuji, Lauterbrunnen, and Krattigen. They have no synthetic Timeline visit counts or
 dwell time. Existing travel history, Ko Phangan before Ko Samui, and all seven residence
-classifications are preserved. Updated statistics reflect 125 places, including 94 in
+classifications are preserved. Updated statistics reflect 128 places, including 94 in
 the United States.
 
 | Destination | Photos | Videos |
@@ -42,7 +42,7 @@ the United States.
 | Paris | 6 | 0 |
 | Vatican | 5 | 0 |
 | Wengen | 3 | 0 |
-| Jungfraujoch | 1 | 0 |
+| Jungfraujoch | 2 | 0 |
 | Interlaken | 1 | 0 |
 | Rocky Mountain National Park | 2 | 0 |
 | Grand Teton National Park | 10 | 0 |
@@ -53,6 +53,12 @@ the United States.
 | Houston | 3 | 0 |
 | Gun Barrel City | 1 | 0 |
 | Teton Village | 2 | 0 |
+| Fuji | 1 | 0 |
+| Lauterbrunnen | 2 | 0 |
+| Krattigen | 1 | 0 |
+| Alvord | 1 | 0 |
+| Plano | 1 | 0 |
+| Dallas | 1 | 0 |
 
 Images retain original framing and appearance. Public copies are local WebP assets
 with a maximum edge of 1,800 pixels and stripped sensitive metadata. Originals,
@@ -66,18 +72,11 @@ and assets while preserving map and gallery behavior.
 
 ## Validation
 
-- Production build passed, including type checking. Twelve existing lint warnings
-  remain in unrelated game files.
-- All 125 unit tests passed, including canonical mapping, local file availability,
-  image dimensions, metadata removal, and per-file/total size limits.
-- All 27 travel Playwright tests passed against the production build, including
-  local galleries for Tokyo, Kyoto, Chiang Mai, Ko Phangan, Grand Teton, Yellowstone, Leissigen, Houston and Gun Barrel City, mobile
-  layout, keyboard navigation, focus restoration, map gestures and reduced motion.
-- Final pan runs recorded a 113 ms desktop long task and a 57 ms mobile task.
-  An earlier desktop run exceeded the 200 ms cumulative budget at 378 ms; its isolated
-  rerun passed at 161 ms, and the final complete run passed.
-  Interaction assertions passed; this run does not establish zero-jank performance.
-- Representative screenshots were visually inspected.
+- Production build passed, including type checking; 12 pre-existing lint warnings remain in unrelated games.
+- All 126 unit tests passed, including canonical mappings, local asset availability, dimensions, metadata removal and media size budgets.
+- All 33 travel Playwright tests passed against the final production build. Coverage includes desktop/mobile gallery loading, keyboard navigation, focus restoration, map gestures, contextual statistics and reduced motion.
+- No tasks over 50 ms were observed during the final desktop/mobile pan measurements. This is a local measurement, not a guarantee of zero jank.
+- Representative screenshots below were visually inspected.
 
 ![Tokyo desktop gallery](screenshots/travel-expanded/tokyo-desktop.webp)
 
@@ -87,39 +86,65 @@ and assets while preserving map and gallery behavior.
 
 ![Yellowstone desktop gallery](screenshots/travel-expanded/yellowstone-desktop.webp)
 
-![Leissigen mobile gallery](screenshots/travel-expanded/leissigen-mobile.webp)
+![Fuji desktop gallery](screenshots/travel-expanded/fuji-desktop.webp)
 
-![Houston desktop gallery](screenshots/travel-expanded/houston-desktop.webp)
+![Lauterbrunnen mobile gallery](screenshots/travel-expanded/lauterbrunnen-mobile.webp)
 
-![Gun Barrel City mobile gallery](screenshots/travel-expanded/gun-barrel-city-mobile.webp)
+![Krattigen mobile gallery](screenshots/travel-expanded/krattigen-mobile.webp)
 
-## Review still outstanding
+![Plano mobile gallery](screenshots/travel-expanded/plano-mobile.webp)
 
-This PR is a reviewed expansion, not an exhaustive photo-library audit. The target
-of roughly ten public photos and thirty private originals has not been reached for
-most destinations. The Japan March 2026 and Thailand September 2026 dated query grids were traversed
-and expanded. Bangkok August, Rome and Venice date gaps were checked, as were
-Corpus Christi, College Station, Tool, Colorado July 11, newer Los Angeles and
-San Francisco trips. Date-only searches recovered Santa Cruz forest photos and Glen Rose wildlife; six missed Yellowstone stills were also recovered. South Padre, New Haven, Long Beach, Canyon Lake, Van, Durant and Fredericksburg queries were checked, with uncertain or ineligible candidates retained privately. Other US stops, Japan ski-area mapping and Swiss destinations
-remain open; query coverage does not establish a complete library audit. Some downloaded images remain private because their
-source mapping or small background details are uncertain.
+![Dallas desktop gallery](screenshots/travel-expanded/dallas-desktop.webp)
 
-Searches in Chicago, St. Louis, San Diego, Detroit, Mexico and Shreveport did not yield
-eligible public selections. Sydney results did not reliably establish the location.
-Corpus Christi now has one reviewed museum photograph. Ko Samui remains at four
-images because new seaside and airport candidates contained background people.
-College Station and Tool yielded no eligible additions in this pass. Exact search coverage and restart
-points are saved privately; no destination is marked fully reviewed merely from a query.
+## Selection coverage and exclusions
 
-No additional videos are public. Pending clips still need full visual and audio review;
-audio input was unavailable in this session, so downloaded clips remain private.
-The ATV original is retained privately because it contains two riders, which conflicts
-with the people rule. Downloaded Live Photo companions are not counted as reviewed videos.
+The private checklist records a named-location or dated-trip selection pass for all
+121 canonical non-residence destinations. Broad location searches were supplemented
+with chronological date grids and nearby locations; promising candidates were opened
+and their downloaded originals inspected. Google indexing and search results do not
+establish an exhaustive item-by-item library audit.
 
-Google Photos access recovered after Chrome was restarted. The Houston food batch
-was mapped using Google Photos Info, and December 28–30, 2018 lake-trip grids yielded
-a verified Gun Barrel City view. San Antonio, Poughkeepsie, Marlboro and Gainesville
-queries yielded no eligible additions. Other Google location gaps remain in progress.
-iCloud is deferred at the user’s request, and backup completeness is unverified. Shared albums are excluded from the requested backup scope.
-Neither photo library was modified, reorganized, or shared. No merge or deployment was
-performed by the agent.
+There are 539 downloaded source files in ignored local storage, including Live Photo
+companions and rejected/private alternatives. The target of roughly ten public photos
+and thirty private originals remains quality-dependent and was not reached for most
+places. Seventy-five destinations have no approved media. No unrelated image was used
+to fill them. Sources, capture dates, rationale, exclusions and query coverage remain
+in private manifests and the durable picking guide.
+
+Notable gaps include Chicago, St. Louis, San Diego, Detroit, Cancún and Playa del Carmen,
+where reviewed candidates contained people or private material; Sydney has no reliable
+eligible location match. Ōmachi and Nagano remain empty: the ramen photo was in Hakuba,
+and station clips show passengers. Grindelwald and Durant candidates remain private
+because of reflections or uncertain exact mapping. Ko Samui remains at four photos
+because the additional seaside and airport candidates contained people.
+
+The latest pass establishes Fuji, Lauterbrunnen and Krattigen from Google Photos Info
+and adds an Alpine display at Jungfraujoch. It also adds verified Alvord, Plano and Dallas
+food photographs. Fuji is separate from Tokyo; Krattigen and Lauterbrunnen are separate
+from Thun. No synthetic Timeline counts or dwell time were assigned.
+
+No additional videos are public. Full audio review was unavailable in this session,
+so new clips remain private even where their visuals were promising. An audio-stream
+survey covered 148 saved clips under 50 MB; 139 short clips were decoded throughout
+to test for silence. Only one was exactly silent, and its associated scene had already
+failed the people review. This technical check is not a substitute for listening.
+The ATV original contains two riders and fails the people rule. Bonfire candidates
+and downloaded Live Photo companions remain private and unapproved.
+
+iCloud is deferred at the user’s request, and iCloud-to-Google backup completeness is
+unverified. Shared albums remain outside the requested backup scope. Neither photo
+library was modified, reorganized or shared. No merge or deployment was performed
+by the agent.
+
+## Destinations without approved media
+
+These locations were checked in the documented query pass but have no eligible, confidently mapped public selection. Exact search scope and individual exclusions remain private.
+
+| Country | Destinations |
+| --- | --- |
+| US | Albany, Arlington, Aurora, Baton Rouge, Beaumont, Brenham, Canton, Canyon Lake, Chicago, College Station, Columbus, Corsicana, Cypress, DeSoto, Dearborn, Denton, Denver, Detroit, Durant, Fairplay, Fort Worth, Fredericksburg, Fremont, Frisco (CO), Frisco (TX), Gainesville, Garland, Georgetown, Giddings, Henderson, Hillsboro, Irving, Jennings, Ken Caryl, Lakewood, Long Beach, Mansfield, Marlboro, Moose Wilson Road, New Braunfels, New Haven, Oceanside, Orange, Poughkeepsie, Rockwall, Round Rock, Rowlett, San Antonio, San Diego, San Francisco, San Jose, San Marcos, Seven Points, Shreveport, South Padre Island, St. Louis, Temple, The Villages, The Woodlands, Tool, Tyler, Van, Waco, Watsonville, Waxahachie, West, Williams |
+| JP | Nagano, Ōmachi |
+| MX | Cancún, Playa del Carmen |
+| IT | Arezzo, Siena |
+| CH | Thun |
+| AU | Sydney |

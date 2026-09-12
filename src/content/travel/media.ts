@@ -1252,6 +1252,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "A beer in the snow at Jungfraujoch.",
       "caption": "A beer in the snow at Jungfraujoch.",
       "captureDate": "2025-05-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/jungfraujoch/alpine-snow-globe.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "An illuminated Alpine miniature display at Jungfraujoch.",
+      "caption": "An illuminated Alpine miniature display at Jungfraujoch.",
+      "captureDate": "2025-05-18"
     }
   ],
   "CH:BE:interlaken": [
@@ -1639,6 +1648,81 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Clouds over the lake in Gun Barrel City.",
       "caption": "Clouds over the lake in Gun Barrel City.",
       "captureDate": "2018-12-29"
+    }
+  ],
+  "JP::fuji": [
+    {
+      "type": "image",
+      "src": "/travel/media/fuji/mount-fuji-from-train.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Mount Fuji seen from a train passing through Fuji.",
+      "caption": "Mount Fuji seen from a train passing through Fuji.",
+      "captureDate": "2026-03-21"
+    }
+  ],
+  "CH:BE:lauterbrunnen": [
+    {
+      "type": "image",
+      "src": "/travel/media/lauterbrunnen/alpine-valley.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Snow and mountain slopes in the Lauterbrunnen area.",
+      "caption": "Snow and mountain slopes in the Lauterbrunnen area.",
+      "captureDate": "2025-05-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/lauterbrunnen/clouds-over-peaks.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Clouds above snowy peaks in the Lauterbrunnen area.",
+      "caption": "Clouds above snowy peaks in the Lauterbrunnen area.",
+      "captureDate": "2025-05-18"
+    }
+  ],
+  "CH:BE:krattigen": [
+    {
+      "type": "image",
+      "src": "/travel/media/krattigen/lake-and-pines.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Lake Thun and mountains seen through trees from Krattigen.",
+      "caption": "Lake Thun and mountains seen through trees from Krattigen.",
+      "captureDate": "2025-05-17"
+    }
+  ],
+  "US:TX:alvord": [
+    {
+      "type": "image",
+      "src": "/travel/media/alvord/grilled-chicken.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Grilled chicken and sliced onions in Alvord.",
+      "caption": "Grilled chicken and sliced onions in Alvord.",
+      "captureDate": "2020-11-25"
+    }
+  ],
+  "US:TX:plano": [
+    {
+      "type": "image",
+      "src": "/travel/media/plano/sushi-rolls.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Sushi rolls served in Plano.",
+      "caption": "Sushi rolls served in Plano.",
+      "captureDate": "2021-12-16"
+    }
+  ],
+  "US:TX:dallas": [
+    {
+      "type": "image",
+      "src": "/travel/media/dallas/fried-chicken.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Fried chicken, fries, macaroni and a biscuit in Dallas.",
+      "caption": "Fried chicken, fries, macaroni and a biscuit in Dallas.",
+      "captureDate": "2025-11-24"
     }
   ]
 };
