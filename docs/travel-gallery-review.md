@@ -1,8 +1,8 @@
 # Expanded travel galleries
 
-This expansion adds 69 reviewed photographs. The catalog now contains 132 photographs
-and one existing silent golf video across 34 destinations. Public media,
-including the video poster, totals 51,892,816 bytes (49.49 MiB).
+This expansion adds 93 reviewed photographs. The catalog now contains 156 photographs
+and one existing silent golf video across 35 destinations. Public media,
+including the video poster, totals 64,678,502 bytes (61.68 MiB).
 
 Seven destinations established by photo evidence now have canonical pins: Grand Teton
 National Park, Yellowstone National Park, Teton Village, Rocky Mountain National Park,
@@ -22,24 +22,25 @@ the United States.
 | Granby | 1 | 0 |
 | Jackson | 1 | 0 |
 | Breckenridge | 1 | 0 |
-| Grand Canyon | 3 | 0 |
-| Tokyo | 6 | 0 |
-| Kyoto | 1 | 0 |
-| Osaka | 1 | 0 |
+| Grand Canyon | 4 | 0 |
+| Corpus Christi | 1 | 0 |
+| Tokyo | 10 | 0 |
+| Kyoto | 7 | 0 |
+| Osaka | 3 | 0 |
 | Bangkok | 7 | 0 |
-| Chiang Mai | 11 | 0 |
-| Ko Phangan | 11 | 0 |
+| Chiang Mai | 15 | 0 |
+| Ko Phangan | 14 | 0 |
 | Ko Samui | 4 | 0 |
 | Ninh Bình | 14 | 1 |
 | Hanoi | 8 | 0 |
-| Venice | 3 | 0 |
+| Venice | 4 | 0 |
 | Florence | 2 | 0 |
-| Rome | 3 | 0 |
+| Rome | 4 | 0 |
 | San Gimignano | 1 | 0 |
 | Madrid | 4 | 0 |
 | Barcelona | 3 | 0 |
 | Paris | 6 | 0 |
-| Vatican | 4 | 0 |
+| Vatican | 5 | 0 |
 | Wengen | 3 | 0 |
 | Jungfraujoch | 1 | 0 |
 | Interlaken | 1 | 0 |
@@ -64,32 +65,39 @@ and assets while preserving map and gallery behavior.
   remain in unrelated game files.
 - All 124 unit tests passed, including canonical mapping, local file availability,
   image dimensions, metadata removal, and per-file/total size limits.
-- All 19 existing travel Playwright tests passed against the production build,
-  including mobile navigation, keyboard behavior, map gestures and reduced motion.
-- Pan runs recorded desktop long tasks of 69 and 81 ms, and one mobile task of 124 ms.
+- All 23 travel Playwright tests passed against the production build, including
+  local galleries for Tokyo, Kyoto, Chiang Mai, Ko Phangan and Grand Teton, mobile
+  layout, keyboard navigation, focus restoration, map gestures and reduced motion.
+- Pan runs recorded one desktop long task of 75 ms and one mobile task of 156 ms.
   Interaction assertions passed; this run does not establish zero-jank performance.
-- The additional Grand Teton gallery test passed on desktop and mobile (20 total).
-  Representative screenshots were visually inspected.
+- Representative screenshots were visually inspected.
 
-![Desktop gallery](screenshots/travel-expanded/desktop-gallery.webp)
+![Tokyo desktop gallery](screenshots/travel-expanded/tokyo-desktop.webp)
 
-![Mobile gallery](screenshots/travel-expanded/mobile-gallery.webp)
+![Kyoto mobile gallery](screenshots/travel-expanded/kyoto-mobile.webp)
+
+![Chiang Mai desktop gallery](screenshots/travel-expanded/chiang-mai-desktop.webp)
 
 ## Review still outstanding
 
-This draft is a reviewed expansion, not an exhaustive photo-library audit. The target
+This PR is a reviewed expansion, not an exhaustive photo-library audit. The target
 of roughly ten public photos and thirty private originals has not been reached for
-most destinations. Japan and Thailand/Vietnam need further expansion, as do remaining
-US trips and date gaps in Europe. Some downloaded images remain private because their
+most destinations. The Japan March 2026 and Thailand September 2026 dated query grids were traversed
+and expanded. Bangkok August, Rome and Venice date gaps were checked, as were
+Corpus Christi, College Station, Tool, Colorado July 11, newer Los Angeles and
+San Francisco trips. Other US stops, Japan ski-area mapping and Swiss destinations
+remain open; query coverage does not establish a complete library audit. Some downloaded images remain private because their
 source mapping or small background details are uncertain.
 
 Searches in Chicago, St. Louis, San Diego, Detroit, Mexico and Shreveport did not yield
 eligible public selections. Sydney results did not reliably establish the location.
-Corpus Christi has promising museum candidates, but selection/download was not verified
-before browser and native Chrome control failed. Exact search coverage and restart
+Corpus Christi now has one reviewed museum photograph. Ko Samui remains at four
+images because new seaside and airport candidates contained background people.
+College Station and Tool yielded no eligible additions in this pass. Exact search coverage and restart
 points are saved privately; no destination is marked fully reviewed merely from a query.
 
-No additional videos are public. Pending clips still need full visual and audio review.
+No additional videos are public. Pending clips still need full visual and audio review;
+audio input was unavailable in this session, so downloaded clips remain private.
 The ATV original is retained privately because it contains two riders, which conflicts
 with the people rule. Downloaded Live Photo companions are not counted as reviewed videos.
 

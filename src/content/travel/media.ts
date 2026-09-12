@@ -139,6 +139,33 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Tanmay on Ko Phangan.",
       "caption": "Tanmay on Ko Phangan.",
       "captureDate": "2026-09-07"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/ko-phangan/sandy-lane.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A narrow sandy lane on Ko Phangan.",
+      "caption": "A narrow sandy lane on Ko Phangan.",
+      "captureDate": "2026-09-08"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/ko-phangan/beach-chairs.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Blue loungers beside the sea on Ko Phangan.",
+      "caption": "Blue loungers beside the sea on Ko Phangan.",
+      "captureDate": "2026-09-07"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/ko-phangan/leafy-stairs.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A leafy stairway on Ko Phangan.",
+      "caption": "A leafy stairway on Ko Phangan.",
+      "captureDate": "2026-09-07"
     }
   ],
   "TH::chiang mai": [
@@ -153,20 +180,29 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
+      "src": "/travel/media/chiang-mai/temple-garden.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Sculptures and plants in a Chiang Mai temple garden.",
+      "caption": "Sculptures and plants in a Chiang Mai temple garden.",
+      "captureDate": "2026-09-05"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/chiang-mai/white-sculptures.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "White sculptures beneath a tree in Chiang Mai.",
+      "caption": "White sculptures beneath a tree in Chiang Mai.",
+      "captureDate": "2026-09-05"
+    },
+    {
+      "type": "image",
       "src": "/travel/media/chiang-mai/mural-lane.webp",
       "width": 1350,
       "height": 1800,
       "alt": "A quiet lane beside a colorful mural in Chiang Mai.",
       "caption": "A quiet lane beside a colorful mural in Chiang Mai.",
-      "captureDate": "2026-09-05"
-    },
-    {
-      "type": "image",
-      "src": "/travel/media/chiang-mai/mango-coconut-sauce.webp",
-      "width": 1350,
-      "height": 1800,
-      "alt": "Mango sticky rice with coconut sauce in Chiang Mai.",
-      "caption": "Mango sticky rice with coconut sauce in Chiang Mai.",
       "captureDate": "2026-09-05"
     },
     {
@@ -180,15 +216,6 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
-      "src": "/travel/media/chiang-mai/courtyard-pool.webp",
-      "width": 1350,
-      "height": 1800,
-      "alt": "Palms around a quiet courtyard pool in Chiang Mai.",
-      "caption": "Palms around a quiet courtyard pool in Chiang Mai.",
-      "captureDate": "2026-09-06"
-    },
-    {
-      "type": "image",
       "src": "/travel/media/chiang-mai/resting-cat.webp",
       "width": 1350,
       "height": 1800,
@@ -198,11 +225,20 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
-      "src": "/travel/media/chiang-mai/curry-noodles.webp",
+      "src": "/travel/media/chiang-mai/courtyard-pool.webp",
       "width": 1350,
       "height": 1800,
-      "alt": "Curry noodles with lime, shallots and pickled greens in Chiang Mai.",
-      "caption": "Curry noodles with lime, shallots and pickled greens in Chiang Mai.",
+      "alt": "Palms around a quiet courtyard pool in Chiang Mai.",
+      "caption": "Palms around a quiet courtyard pool in Chiang Mai.",
+      "captureDate": "2026-09-06"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/chiang-mai/pool-fountains.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Three fountains beneath tropical plants in Chiang Mai.",
+      "caption": "Three fountains beneath tropical plants in Chiang Mai.",
       "captureDate": "2026-09-06"
     },
     {
@@ -216,6 +252,33 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
+      "src": "/travel/media/chiang-mai/mango-coconut-sauce.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Mango sticky rice with coconut sauce in Chiang Mai.",
+      "caption": "Mango sticky rice with coconut sauce in Chiang Mai.",
+      "captureDate": "2026-09-05"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/chiang-mai/curry-noodles.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Curry noodles with lime, shallots and pickled greens in Chiang Mai.",
+      "caption": "Curry noodles with lime, shallots and pickled greens in Chiang Mai.",
+      "captureDate": "2026-09-06"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/chiang-mai/breakfast-eggs.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Eggs with vegetables and sausage in Chiang Mai.",
+      "caption": "Eggs with vegetables and sausage in Chiang Mai.",
+      "captureDate": "2026-09-07"
+    },
+    {
+      "type": "image",
       "src": "/travel/media/chiang-mai/orchid-drink.webp",
       "width": 1350,
       "height": 1800,
@@ -225,20 +288,20 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
-      "src": "/travel/media/chiang-mai/courtyard-lights.webp",
-      "width": 1350,
-      "height": 1800,
-      "alt": "Courtyard trees wrapped in lights in Chiang Mai.",
-      "caption": "Courtyard trees wrapped in lights in Chiang Mai.",
-      "captureDate": "2026-09-06"
-    },
-    {
-      "type": "image",
       "src": "/travel/media/chiang-mai/pineapple-rice.webp",
       "width": 1350,
       "height": 1800,
       "alt": "Rice served in a pineapple in Chiang Mai.",
       "caption": "Rice served in a pineapple in Chiang Mai.",
+      "captureDate": "2026-09-06"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/chiang-mai/courtyard-lights.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Courtyard trees wrapped in lights in Chiang Mai.",
+      "caption": "Courtyard trees wrapped in lights in Chiang Mai.",
       "captureDate": "2026-09-06"
     }
   ],
@@ -529,6 +592,60 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Vermilion torii gates in Kyoto.",
       "caption": "Vermilion torii gates in Kyoto.",
       "captureDate": "2026-03-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/kyoto/garden-pond.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Trees and shrubs reflected in a Kyoto garden pond.",
+      "caption": "Trees and shrubs reflected in a Kyoto garden pond.",
+      "captureDate": "2026-03-17"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/kyoto/spring-blossoms.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Pink and yellow blossoms in a Kyoto garden.",
+      "caption": "Pink and yellow blossoms in a Kyoto garden.",
+      "captureDate": "2026-03-17"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/kyoto/garden-cat.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A black-and-white cat beside plants in Kyoto.",
+      "caption": "A black-and-white cat beside plants in Kyoto.",
+      "captureDate": "2026-03-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/kyoto/steak-dinner.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "A steak dinner set in Kyoto.",
+      "caption": "A steak dinner set in Kyoto.",
+      "captureDate": "2026-03-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/kyoto/evening-drink.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A pink drink beside candlelight in Kyoto.",
+      "caption": "A pink drink beside candlelight in Kyoto.",
+      "captureDate": "2026-03-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/kyoto/fruit-dessert.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Fruit and dessert in Kyoto.",
+      "caption": "Fruit and dessert in Kyoto.",
+      "captureDate": "2026-03-18"
     }
   ],
   "JP::osaka": [
@@ -540,6 +657,24 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Osaka after dark.",
       "caption": "Osaka after dark.",
       "captureDate": "2026-03-20"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/osaka/woodland-path.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A shaded woodland path in Osaka.",
+      "caption": "A shaded woodland path in Osaka.",
+      "captureDate": "2026-03-20"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/osaka/okonomiyaki.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Okonomiyaki on a griddle in Osaka.",
+      "caption": "Okonomiyaki on a griddle in Osaka.",
+      "captureDate": "2026-03-19"
     }
   ],
   "JP::tokyo": [
@@ -563,6 +698,51 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
+      "src": "/travel/media/tokyo/garden-waterfall.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A waterfall and garden in Tokyo.",
+      "caption": "A waterfall and garden in Tokyo.",
+      "captureDate": "2026-03-22"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/koi-pond.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Koi beneath a stone bridge in Tokyo.",
+      "caption": "Koi beneath a stone bridge in Tokyo.",
+      "captureDate": "2026-03-22"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/seafood-bowl.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A seafood rice bowl topped with roe in Tokyo.",
+      "caption": "A seafood rice bowl topped with roe in Tokyo.",
+      "captureDate": "2026-03-12"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/tanmay-march.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Tanmay in Tokyo.",
+      "caption": "Tanmay in Tokyo.",
+      "captureDate": "2026-03-21"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/knife-display.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Kitchen knives on display in Tokyo.",
+      "caption": "Kitchen knives on display in Tokyo.",
+      "captureDate": "2026-03-22"
+    },
+    {
+      "type": "image",
       "src": "/travel/media/tokyo/salmon-nigiri.webp",
       "width": 1350,
       "height": 1800,
@@ -581,21 +761,12 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     },
     {
       "type": "image",
-      "src": "/travel/media/tokyo/garden-waterfall.webp",
+      "src": "/travel/media/tokyo/tuna-nigiri.webp",
       "width": 1350,
       "height": 1800,
-      "alt": "A waterfall and garden in Tokyo.",
-      "caption": "A waterfall and garden in Tokyo.",
-      "captureDate": "2026-03-22"
-    },
-    {
-      "type": "image",
-      "src": "/travel/media/tokyo/knife-display.webp",
-      "width": 1350,
-      "height": 1800,
-      "alt": "Kitchen knives on display in Tokyo.",
-      "caption": "Kitchen knives on display in Tokyo.",
-      "captureDate": "2026-03-22"
+      "alt": "Tuna nigiri on a stone plate in Tokyo.",
+      "caption": "Tuna nigiri on a stone plate in Tokyo.",
+      "captureDate": "2026-03-11"
     }
   ],
   "IT::rome": [
@@ -624,6 +795,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "height": 1800,
       "alt": "Ancient ruins in Rome.",
       "caption": "Ancient ruins in Rome.",
+      "captureDate": "2025-05-24"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/rome/pantheon-oculus.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The Pantheon’s coffered dome and oculus in Rome.",
+      "caption": "The Pantheon’s coffered dome and oculus in Rome.",
       "captureDate": "2025-05-24"
     }
   ],
@@ -662,6 +842,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "height": 1800,
       "alt": "A carved relief in the Vatican Museums.",
       "caption": "A carved relief in the Vatican Museums.",
+      "captureDate": "2025-05-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/vatican/gilded-ceiling.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Gilded ceiling panels in the Vatican Museums.",
+      "caption": "Gilded ceiling panels in the Vatican Museums.",
       "captureDate": "2025-05-23"
     }
   ],
@@ -904,6 +1093,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "A sunlit canal-side facade in Venice.",
       "caption": "A sunlit canal-side facade in Venice.",
       "captureDate": "2025-05-19"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/venice/golden-mosaic.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Golden ceiling mosaics in Venice.",
+      "caption": "Golden ceiling mosaics in Venice.",
+      "captureDate": "2025-05-20"
     }
   ],
   "FR::paris": [
@@ -1267,6 +1465,26 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Trees along the Grand Canyon rim.",
       "caption": "Trees along the Grand Canyon rim.",
       "captureDate": "2016-07-28"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-canyon/cliffside-pines.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Pine-covered cliffs at the Grand Canyon.",
+      "caption": "Pine-covered cliffs at the Grand Canyon.",
+      "captureDate": "2016-07-28"
+    }
+  ],
+  "US:TX:corpus christi": [
+    {
+      "type": "image",
+      "src": "/travel/media/corpus-christi/blue-ghost-display.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "An anti-aircraft gun display in Corpus Christi.",
+      "caption": "An anti-aircraft gun display in Corpus Christi.",
+      "captureDate": "2014-07-04"
     }
   ]
 };

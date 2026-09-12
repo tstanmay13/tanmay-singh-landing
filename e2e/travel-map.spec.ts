@@ -703,13 +703,13 @@ test("destination gallery opens locally and supports keyboard navigation", async
   const gallery = page.getByRole("dialog", { name: "Ko Phangan", exact: true });
   await expect(gallery).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("ko-phangan-gallery.png"), fullPage: true });
-  await expect(gallery.getByText("1 / 11", { exact: true })).toBeVisible();
+  await expect(gallery.getByText("1 / 14", { exact: true })).toBeVisible();
   await page.keyboard.press("ArrowRight");
-  await expect(gallery.getByText("2 / 11", { exact: true })).toBeVisible();
+  await expect(gallery.getByText("2 / 14", { exact: true })).toBeVisible();
   await expect(gallery.locator("img").first()).toHaveAttribute("src", /tanmay-relaxing/);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.keyboard.press("End");
-  await expect(gallery.getByText("11 / 11", { exact: true })).toBeVisible();
+  await expect(gallery.getByText("14 / 14", { exact: true })).toBeVisible();
   await expect(gallery.locator("figure img")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("ko-phangan-mobile-gallery.png") });
   await expect.poll(async () => gallery.locator('[aria-current="true"]').evaluate((button) => {
@@ -718,30 +718,37 @@ test("destination gallery opens locally and supports keyboard navigation", async
     return item.left >= rail.left && item.right <= rail.right;
   })).toBe(true);
   await page.keyboard.press("Home");
-  await expect(gallery.getByText("1 / 11", { exact: true })).toBeVisible();
+  await expect(gallery.getByText("1 / 14", { exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(gallery).toHaveCount(0);
   await expect(card.getByRole("button", { name: /Open Ko Phangan gallery/i })).toBeFocused();
 });
 
-test("photo-evidenced park opens its local gallery on desktop and mobile", async ({ page }, testInfo) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/travel?city=Grand%20Teton%20National%20Park");
-  const card = page.getByRole("dialog", { name: /Grand Teton National Park travel place details/i });
-  await expect(card).toBeVisible();
-  const opener = card.getByRole("button", { name: /Open Grand Teton National Park gallery/i });
-  await opener.click();
-  const gallery = page.getByRole("dialog", { name: "Grand Teton National Park", exact: true });
-  await expect(gallery.getByText("1 / 10", { exact: true })).toBeVisible();
-  const mainImage = gallery.locator("figure img");
-  await expect.poll(() => mainImage.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-  await expect(mainImage).toHaveAttribute("src", /grand-teton-national-park/);
-  await page.screenshot({ path: testInfo.outputPath("expanded-desktop-gallery.png") });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.keyboard.press("End");
-  await expect(gallery.getByText("10 / 10", { exact: true })).toBeVisible();
-  await expect.poll(() => mainImage.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
-  await page.screenshot({ path: testInfo.outputPath("expanded-mobile-gallery.png") });
-  await page.keyboard.press("Escape");
-  await expect(opener).toBeFocused();
-});
+for (const { destination, count, folder } of [
+  { destination: "Grand Teton National Park", count: 10, folder: "grand-teton-national-park" },
+  { destination: "Tokyo", count: 10, folder: "tokyo" },
+  { destination: "Kyoto", count: 7, folder: "kyoto" },
+  { destination: "Chiang Mai", count: 15, folder: "chiang-mai" },
+]) {
+  test(`${destination} opens its local gallery on desktop and mobile`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`/travel?city=${encodeURIComponent(destination)}`);
+    const card = page.getByRole("dialog", { name: new RegExp(`${destination} travel place details`, "i") });
+    await expect(card).toBeVisible();
+    const opener = card.getByRole("button", { name: new RegExp(`Open ${destination} gallery`, "i") });
+    await opener.click();
+    const gallery = page.getByRole("dialog", { name: destination, exact: true });
+    await expect(gallery.getByText(`1 / ${count}`, { exact: true })).toBeVisible();
+    const mainImage = gallery.locator("figure img");
+    await expect.poll(() => mainImage.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect(mainImage).toHaveAttribute("src", new RegExp(folder));
+    await page.screenshot({ path: testInfo.outputPath("expanded-desktop-gallery.png") });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.keyboard.press("End");
+    await expect(gallery.getByText(`${count} / ${count}`, { exact: true })).toBeVisible();
+    await expect.poll(() => mainImage.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await page.screenshot({ path: testInfo.outputPath("expanded-mobile-gallery.png") });
+    await page.keyboard.press("Escape");
+    await expect(opener).toBeFocused();
+  });
+}
