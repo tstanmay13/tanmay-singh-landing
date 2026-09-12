@@ -108,7 +108,9 @@ audio input was unavailable in this session, so downloaded clips remain private.
 The ATV original is retained privately because it contains two riders, which conflicts
 with the people rule. Downloaded Live Photo companions are not counted as reviewed videos.
 
-iCloud review remains deferred, including Japan, and personal-library backup completeness
-has not been established. Shared albums are excluded from the requested backup scope.
+Further selection is currently blocked: Google Photos controls stopped responding after
+existing-tab and fresh-tab recovery attempts. iCloud opened but requires Apple Account
+sign-in, so its review (including Japan) and personal-library backup completeness
+have not been established. Shared albums are excluded from the requested backup scope.
 Neither photo library was modified, reorganized, or shared. No merge or deployment was
 performed by the agent.
