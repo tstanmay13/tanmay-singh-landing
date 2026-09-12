@@ -728,6 +728,8 @@ for (const { destination, count, folder } of [
   { destination: "Grand Teton National Park", count: 10, folder: "grand-teton-national-park" },
   { destination: "Yellowstone National Park", count: 11, folder: "yellowstone-national-park" },
   { destination: "Leissigen", count: 1, folder: "leissigen" },
+  { destination: "Houston", count: 3, folder: "houston" },
+  { destination: "Gun Barrel City", count: 1, folder: "gun-barrel-city" },
   { destination: "Tokyo", count: 10, folder: "tokyo" },
   { destination: "Kyoto", count: 7, folder: "kyoto" },
   { destination: "Chiang Mai", count: 15, folder: "chiang-mai" },

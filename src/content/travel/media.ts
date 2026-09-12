@@ -1600,5 +1600,45 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "caption": "A white deer in the sunshine near Glen Rose.",
       "captureDate": "2019-03-21"
     }
+  ],
+  "US:TX:houston": [
+    {
+      "type": "image",
+      "src": "/travel/media/houston/naan.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Naan served in Houston.",
+      "caption": "Naan served in Houston.",
+      "captureDate": "2022-03-13"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/houston/curry.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Curry served in Houston.",
+      "caption": "Curry served in Houston.",
+      "captureDate": "2022-03-13"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/houston/grilled-platter.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A grilled platter served in Houston.",
+      "caption": "A grilled platter served in Houston.",
+      "captureDate": "2022-03-13"
+    }
+  ],
+  "US:TX:gun barrel city": [
+    {
+      "type": "image",
+      "src": "/travel/media/gun-barrel-city/lake-under-clouds.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Clouds over the lake in Gun Barrel City.",
+      "caption": "Clouds over the lake in Gun Barrel City.",
+      "captureDate": "2018-12-29"
+    }
   ]
 };

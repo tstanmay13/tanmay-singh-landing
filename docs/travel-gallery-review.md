@@ -1,8 +1,8 @@
 # Expanded travel galleries
 
-This expansion adds 105 reviewed photographs. The catalog now contains 168 photographs
-and one existing silent golf video across 38 destinations. Public media,
-including the video poster, totals 71,439,644 bytes (68.13 MiB).
+This expansion adds 109 reviewed photographs. The catalog now contains 172 photographs
+and one existing silent golf video across 40 destinations. Public media,
+including the video poster, totals 72,472,040 bytes (69.11 MiB).
 
 Eight destinations established by photo evidence now have canonical pins: Grand Teton
 National Park, Yellowstone National Park, Teton Village, Rocky Mountain National Park,
@@ -50,6 +50,8 @@ the United States.
 | Leissigen | 1 | 0 |
 | Santa Cruz | 2 | 0 |
 | Glen Rose | 3 | 0 |
+| Houston | 3 | 0 |
+| Gun Barrel City | 1 | 0 |
 | Teton Village | 2 | 0 |
 
 Images retain original framing and appearance. Public copies are local WebP assets
@@ -68,10 +70,12 @@ and assets while preserving map and gallery behavior.
   remain in unrelated game files.
 - All 125 unit tests passed, including canonical mapping, local file availability,
   image dimensions, metadata removal, and per-file/total size limits.
-- All 25 travel Playwright tests passed against the production build, including
-  local galleries for Tokyo, Kyoto, Chiang Mai, Ko Phangan, Grand Teton, Yellowstone and Leissigen, mobile
+- All 27 travel Playwright tests passed against the production build, including
+  local galleries for Tokyo, Kyoto, Chiang Mai, Ko Phangan, Grand Teton, Yellowstone, Leissigen, Houston and Gun Barrel City, mobile
   layout, keyboard navigation, focus restoration, map gestures and reduced motion.
-- Pan runs recorded no desktop long tasks and one mobile task of 54 ms.
+- Final pan runs recorded a 113 ms desktop long task and a 57 ms mobile task.
+  An earlier desktop run exceeded the 200 ms cumulative budget at 378 ms; its isolated
+  rerun passed at 161 ms, and the final complete run passed.
   Interaction assertions passed; this run does not establish zero-jank performance.
 - Representative screenshots were visually inspected.
 
@@ -84,6 +88,10 @@ and assets while preserving map and gallery behavior.
 ![Yellowstone desktop gallery](screenshots/travel-expanded/yellowstone-desktop.webp)
 
 ![Leissigen mobile gallery](screenshots/travel-expanded/leissigen-mobile.webp)
+
+![Houston desktop gallery](screenshots/travel-expanded/houston-desktop.webp)
+
+![Gun Barrel City mobile gallery](screenshots/travel-expanded/gun-barrel-city-mobile.webp)
 
 ## Review still outstanding
 
@@ -108,9 +116,10 @@ audio input was unavailable in this session, so downloaded clips remain private.
 The ATV original is retained privately because it contains two riders, which conflicts
 with the people rule. Downloaded Live Photo companions are not counted as reviewed videos.
 
-Further selection is currently blocked: Google Photos controls stopped responding after
-existing-tab and fresh-tab recovery attempts. iCloud opened but requires Apple Account
-sign-in, so its review (including Japan) and personal-library backup completeness
-have not been established. Shared albums are excluded from the requested backup scope.
+Google Photos access recovered after Chrome was restarted. The Houston food batch
+was mapped using Google Photos Info, and December 28–30, 2018 lake-trip grids yielded
+a verified Gun Barrel City view. San Antonio, Poughkeepsie, Marlboro and Gainesville
+queries yielded no eligible additions. Other Google location gaps remain in progress.
+iCloud is deferred at the user’s request, and backup completeness is unverified. Shared albums are excluded from the requested backup scope.
 Neither photo library was modified, reorganized, or shared. No merge or deployment was
 performed by the agent.
