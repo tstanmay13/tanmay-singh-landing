@@ -130,6 +130,36 @@ export const CANONICAL_PLACE_NAMES: Readonly<Record<string, string>> = {
  * distance. Unlisted places receive stable defaults in catalog.ts.
  */
 export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
+  [key("CH", "Wengen", "BE")]: {
+    importance: 88,
+    featured: true,
+    showAtZoom: "country",
+  },
+  [key("CH", "Jungfraujoch")]: {
+    importance: 92,
+    featured: true,
+    showAtZoom: "country",
+  },
+  [key("CH", "Interlaken", "BE")]: {
+    importance: 86,
+    featured: true,
+    showAtZoom: "country",
+  },
+  [key("US", "Grand Teton National Park", "WY")]: {
+    importance: 92,
+    featured: true,
+    showAtZoom: "country",
+  },
+  [key("US", "Yellowstone National Park", "WY")]: {
+    importance: 94,
+    featured: true,
+    showAtZoom: "country",
+  },
+  [key("US", "Teton Village", "WY")]: {
+    importance: 72,
+    featured: true,
+    showAtZoom: "country",
+  },
   // Residence chapters: editorial order and dates, not inferred from visits.
   [key("IN", "Uttar Pradesh", "UP")]: {
     importance: 82,
@@ -363,6 +393,11 @@ export const PLACE_METADATA: Readonly<Record<string, TravelPlaceMetadata>> = {
     importance: 96,
     featured: true,
     showAtZoom: "world",
+  },
+  [key("US", "Rocky Mountain National Park", "CO")]: {
+    importance: 88,
+    featured: true,
+    showAtZoom: "country",
   },
   [key("ES", "Barcelona")]: {
     importance: 98,
