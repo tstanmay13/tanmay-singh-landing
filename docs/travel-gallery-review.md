@@ -1,49 +1,75 @@
 # Expanded travel galleries
 
-The galleries contain 63 photographs and one silent golf video across 12
-destinations. This expansion adds 44 photographs to the previous selection.
-Public media, including the video poster, totals 27,611,522 bytes (26.33 MiB).
+This expansion adds 69 reviewed photographs. The catalog now contains 132 photographs
+and one existing silent golf video across 34 destinations. Public media,
+including the video poster, totals 51,892,816 bytes (49.49 MiB).
+
+Seven destinations established by photo evidence now have canonical pins: Grand Teton
+National Park, Yellowstone National Park, Teton Village, Rocky Mountain National Park,
+Wengen, Jungfraujoch, and Interlaken. They have no synthetic Timeline visit counts or
+dwell time. Existing travel history, Ko Phangan before Ko Samui, and all seven residence
+classifications are preserved. Updated statistics reflect 124 places, including 94 in
+the United States.
 
 | Destination | Photos | Videos |
 | --- | ---: | ---: |
-| Ko Phangan | 11 | 0 |
-| Chiang Mai | 11 | 0 |
-| Ko Samui | 3 | 0 |
-| Bangkok | 7 | 0 |
-| Ninh Bình | 14 | 1 |
-| Hanoi | 8 | 0 |
-| Tokyo | 4 | 0 |
+| Seattle | 4 | 0 |
+| Las Vegas | 4 | 0 |
+| Los Angeles | 1 | 0 |
+| Nashville | 1 | 0 |
+| Lake Placid | 1 | 0 |
+| New Orleans | 2 | 0 |
+| Granby | 1 | 0 |
+| Jackson | 1 | 0 |
+| Breckenridge | 1 | 0 |
+| Grand Canyon | 3 | 0 |
+| Tokyo | 6 | 0 |
 | Kyoto | 1 | 0 |
 | Osaka | 1 | 0 |
-| Rome | 1 | 0 |
-| Vatican | 1 | 0 |
+| Bangkok | 7 | 0 |
+| Chiang Mai | 11 | 0 |
+| Ko Phangan | 11 | 0 |
+| Ko Samui | 4 | 0 |
+| Ninh Bình | 14 | 1 |
+| Hanoi | 8 | 0 |
+| Venice | 3 | 0 |
+| Florence | 2 | 0 |
+| Rome | 3 | 0 |
 | San Gimignano | 1 | 0 |
+| Madrid | 4 | 0 |
+| Barcelona | 3 | 0 |
+| Paris | 6 | 0 |
+| Vatican | 4 | 0 |
+| Wengen | 3 | 0 |
+| Jungfraujoch | 1 | 0 |
+| Interlaken | 1 | 0 |
+| Rocky Mountain National Park | 2 | 0 |
+| Grand Teton National Park | 10 | 0 |
+| Yellowstone National Park | 5 | 0 |
+| Teton Village | 2 | 0 |
 
-Haad Rin pier belongs to Ko Phangan. The imported Poggibonsi stop is
-canonicalized as San Gimignano using the original visit coordinates, while
-preserving the visit count and year. Residence classifications are unchanged.
+Images retain original framing and appearance. Public copies are local WebP assets
+with a maximum edge of 1,800 pixels and stripped sensitive metadata. Originals,
+Google Photos source links, review decisions, and the evolving picking guide remain
+in ignored `travel-studio/media-review/`. Portraits use explicit existing Tanmay labels
+and a visual quality review; no people were cropped or edited out.
 
-Images retain their original framing and aspect ratio. Public WebP copies
-are limited to 1,800 pixels on the longest edge, with sensitive metadata
-removed. Originals and private source manifests remain in ignored
-`travel-studio/media-review/`. Portrait selection uses Google Photos' existing
-Tanmay label and visual quality review. No people were removed or cropped out.
-
-The viewer loads one main item at a time, keeps the active thumbnail visible
-on narrow screens, supports arrows/Home/End/Escape, and restores focus to the
-gallery opener. The golf video remains click-to-play, without autoplay or
-eager video loading.
+The existing accessible gallery provides responsive images, lazy loading, keyboard
+navigation, focus restoration, and click-to-play video. This change expands its data
+and assets while preserving map and gallery behavior.
 
 ## Validation
 
-- 124 unit tests passed, including canonical mappings, file availability,
+- Production build passed, including type checking. Twelve existing lint warnings
+  remain in unrelated game files.
+- All 124 unit tests passed, including canonical mapping, local file availability,
   image dimensions, metadata removal, and per-file/total size limits.
-- All 19 travel Playwright tests passed, including mobile navigation,
-  focus restoration, map gestures, decorative layers, and reduced motion.
-- Desktop and mobile pan tests recorded no long tasks above 50 ms.
-- Production build passed. Twelve existing lint warnings in unrelated game
-  files remain.
-- Desktop and mobile gallery screenshots were visually inspected.
+- All 19 existing travel Playwright tests passed against the production build,
+  including mobile navigation, keyboard behavior, map gestures and reduced motion.
+- Pan runs recorded desktop long tasks of 69 and 81 ms, and one mobile task of 124 ms.
+  Interaction assertions passed; this run does not establish zero-jank performance.
+- The additional Grand Teton gallery test passed on desktop and mobile (20 total).
+  Representative screenshots were visually inspected.
 
 ![Desktop gallery](screenshots/travel-expanded/desktop-gallery.webp)
 
@@ -51,21 +77,23 @@ eager video loading.
 
 ## Review still outstanding
 
-This is a reviewed expansion, not an exhaustive library audit. The approximate
-targets of ten public photographs and thirty private originals per destination
-have not been reached everywhere. Japan expansion, the remaining Europe trips,
-Mexico, Australia, and US travel destinations still need further review.
-Destinations without suitable reviewed media remain empty.
+This draft is a reviewed expansion, not an exhaustive photo-library audit. The target
+of roughly ten public photos and thirty private originals has not been reached for
+most destinations. Japan and Thailand/Vietnam need further expansion, as do remaining
+US trips and date gaps in Europe. Some downloaded images remain private because their
+source mapping or small background details are uncertain.
 
-Chrome blocked Google's original-download host with `ERR_BLOCKED_BY_CLIENT`
-during the Japan review. Two further Tokyo candidates were recorded privately
-but are excluded from the public counts because their originals were not saved.
+Searches in Chicago, St. Louis, San Diego, Detroit, Mexico and Shreveport did not yield
+eligible public selections. Sydney results did not reliably establish the location.
+Corpus Christi has promising museum candidates, but selection/download was not verified
+before browser and native Chrome control failed. Exact search coverage and restart
+points are saved privately; no destination is marked fully reviewed merely from a query.
 
-A Ninh Bình cave video was inspected across all 480 frames and retained
-privately. Its audio could not be reviewed in this session, so it is excluded
-from the website. No additional unreviewed videos are published.
+No additional videos are public. Pending clips still need full visual and audio review.
+The ATV original is retained privately because it contains two riders, which conflicts
+with the people rule. Downloaded Live Photo companions are not counted as reviewed videos.
 
-iCloud personal-library backup completeness has not been established. Selected
-Google Photos items show original-quality backups; this does not prove that all
-iCloud items have matching Google copies. Shared-album review is also partial.
-Neither photo library was modified or reorganized.
+iCloud review remains deferred, including Japan, and personal-library backup completeness
+has not been established. Shared albums are excluded from the requested backup scope.
+Neither photo library was modified, reorganized, or shared. No merge or deployment was
+performed by the agent.

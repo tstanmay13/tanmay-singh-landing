@@ -29,6 +29,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Curry, rice and coconut on Ko Samui.",
       "caption": "Curry, rice and coconut on Ko Samui.",
       "captureDate": "2026-09-09"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/ko-samui/forested-hills.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Forested hills on Ko Samui.",
+      "caption": "Forested hills on Ko Samui.",
+      "captureDate": "2026-09-10"
     }
   ],
   "TH::ko phangan": [
@@ -569,6 +578,24 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Ramen in Tokyo.",
       "caption": "Ramen in Tokyo.",
       "captureDate": "2026-03-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/garden-waterfall.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A waterfall and garden in Tokyo.",
+      "caption": "A waterfall and garden in Tokyo.",
+      "captureDate": "2026-03-22"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/knife-display.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Kitchen knives on display in Tokyo.",
+      "caption": "Kitchen knives on display in Tokyo.",
+      "captureDate": "2026-03-22"
     }
   ],
   "IT::rome": [
@@ -580,6 +607,24 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "The illuminated Trevi Fountain in Rome.",
       "caption": "The illuminated Trevi Fountain in Rome.",
       "captureDate": "2025-05-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/rome/pasta.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Pasta in Rome.",
+      "caption": "Pasta in Rome.",
+      "captureDate": "2025-05-24"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/rome/ancient-ruins.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Ancient ruins in Rome.",
+      "caption": "Ancient ruins in Rome.",
+      "captureDate": "2025-05-24"
     }
   ],
   "VA::vatican": [
@@ -590,6 +635,33 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "height": 1800,
       "alt": "A painted and gilded ceiling in Vatican City.",
       "caption": "A painted and gilded ceiling in Vatican City.",
+      "captureDate": "2025-05-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/vatican/painted-vault.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Painted walls and a vaulted ceiling in the Vatican Museums.",
+      "caption": "Painted walls and a vaulted ceiling in the Vatican Museums.",
+      "captureDate": "2025-05-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/vatican/museum-sculpture.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A sculpture in the Vatican Museums.",
+      "caption": "A sculpture in the Vatican Museums.",
+      "captureDate": "2025-05-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/vatican/carved-relief.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A carved relief in the Vatican Museums.",
+      "caption": "A carved relief in the Vatican Museums.",
       "captureDate": "2025-05-23"
     }
   ],
@@ -602,6 +674,599 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Rolling Tuscan hills from San Gimignano.",
       "caption": "Rolling Tuscan hills from San Gimignano.",
       "captureDate": "2025-05-22"
+    }
+  ],
+  "US:WY:grand teton national park": [
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/oxbow-bend.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Mount Moran reflected in the Snake River at Oxbow Bend.",
+      "caption": "Mount Moran reflected in the Snake River at Oxbow Bend.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/oxbow-bend-portrait.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Tanmay at Oxbow Bend in Grand Teton National Park.",
+      "caption": "Tanmay at Oxbow Bend in Grand Teton National Park.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/jackson-lake-shore.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "Waves and rounded stones along Jackson Lake.",
+      "caption": "Waves and rounded stones along Jackson Lake.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/lake-and-peaks.webp",
+      "width": 1800,
+      "height": 1355,
+      "alt": "Jackson Lake and the Teton Range beyond the forest.",
+      "caption": "Jackson Lake and the Teton Range beyond the forest.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/hidden-falls.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Hidden Falls cascading through the forest.",
+      "caption": "Hidden Falls cascading through the forest.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/canyon-trail.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "A rocky trail beneath peaks in Grand Teton National Park.",
+      "caption": "A rocky trail beneath peaks in Grand Teton National Park.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/fox-in-meadow.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "A fox among grasses and wildflowers in Grand Teton National Park.",
+      "caption": "A fox among grasses and wildflowers in Grand Teton National Park.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/forest-cascades.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "Rushing water beneath the trees in Grand Teton National Park.",
+      "caption": "Rushing water beneath the trees in Grand Teton National Park.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/lakeside-reeds.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Reeds along the water beneath the Teton Range.",
+      "caption": "Reeds along the water beneath the Teton Range.",
+      "captureDate": "2026-06-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-teton-national-park/evening-peaks.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Evening light over the Teton Range.",
+      "caption": "Evening light over the Teton Range.",
+      "captureDate": "2026-06-18"
+    }
+  ],
+  "US:WY:yellowstone national park": [
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/grand-prismatic.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Colorful mineral edges of Grand Prismatic Spring.",
+      "caption": "Colorful mineral edges of Grand Prismatic Spring.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/turquoise-pool.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "A turquoise thermal pool in Yellowstone National Park.",
+      "caption": "A turquoise thermal pool in Yellowstone National Park.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/grazing-bison.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "A bison grazing in Yellowstone National Park.",
+      "caption": "A bison grazing in Yellowstone National Park.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/lake-and-clouds.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Clouds over Yellowstone Lake.",
+      "caption": "Clouds over Yellowstone Lake.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/bison-and-river.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "A bison beside a river in Yellowstone National Park.",
+      "caption": "A bison beside a river in Yellowstone National Park.",
+      "captureDate": "2026-06-16"
+    }
+  ],
+  "US:WY:teton village": [
+    {
+      "type": "image",
+      "src": "/travel/media/teton-village/mountain-overlook.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "A view over Jackson Hole from the mountain above Teton Village.",
+      "caption": "A view over Jackson Hole from the mountain above Teton Village.",
+      "captureDate": "2026-06-17"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/teton-village/dinner.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Dinner in Teton Village.",
+      "caption": "Dinner in Teton Village.",
+      "captureDate": "2026-06-18"
+    }
+  ],
+  "US:WY:jackson": [
+    {
+      "type": "image",
+      "src": "/travel/media/jackson/moose.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A moose beside the water near Jackson, Wyoming.",
+      "caption": "A moose beside the water near Jackson, Wyoming.",
+      "captureDate": "2026-06-19"
+    }
+  ],
+  "US:NY:lake placid": [
+    {
+      "type": "image",
+      "src": "/travel/media/lake-placid/autumn-fox.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A fox walking through autumn leaves in Lake Placid.",
+      "caption": "A fox walking through autumn leaves in Lake Placid.",
+      "captureDate": "2025-10-14"
+    }
+  ],
+  "IT::florence": [
+    {
+      "type": "image",
+      "src": "/travel/media/florence/cathedral-dome.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The painted dome inside Florence Cathedral.",
+      "caption": "The painted dome inside Florence Cathedral.",
+      "captureDate": "2025-05-21"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/florence/cathedral-clock.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The clock and mosaics inside Florence Cathedral.",
+      "caption": "The clock and mosaics inside Florence Cathedral.",
+      "captureDate": "2025-05-21"
+    }
+  ],
+  "IT::venice": [
+    {
+      "type": "image",
+      "src": "/travel/media/venice/chandelier-corridor.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A chandelier-lit museum corridor in Venice.",
+      "caption": "A chandelier-lit museum corridor in Venice.",
+      "captureDate": "2025-05-20"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/venice/mosaic-dome.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Golden mosaics inside St. Mark’s Basilica in Venice.",
+      "caption": "Golden mosaics inside St. Mark’s Basilica in Venice.",
+      "captureDate": "2025-05-20"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/venice/canal-facade.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A sunlit canal-side facade in Venice.",
+      "caption": "A sunlit canal-side facade in Venice.",
+      "captureDate": "2025-05-19"
+    }
+  ],
+  "FR::paris": [
+    {
+      "type": "image",
+      "src": "/travel/media/paris/eiffel-tower.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The Eiffel Tower framed by trees in Paris.",
+      "caption": "The Eiffel Tower framed by trees in Paris.",
+      "captureDate": "2025-05-15"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/paris/carved-ceiling.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A carved ceiling in the Louvre.",
+      "caption": "A carved ceiling in the Louvre.",
+      "captureDate": "2025-05-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/paris/mirror-portrait.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Tanmay in Paris.",
+      "caption": "Tanmay in Paris.",
+      "captureDate": "2025-05-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/paris/stained-glass.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A stained-glass window in Paris.",
+      "caption": "A stained-glass window in Paris.",
+      "captureDate": "2025-05-15"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/paris/gothic-spire.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A Gothic spire above the rooftops of Paris.",
+      "caption": "A Gothic spire above the rooftops of Paris.",
+      "captureDate": "2025-05-15"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/paris/gilded-ceiling.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A gilded, painted ceiling in the Louvre.",
+      "caption": "A gilded, painted ceiling in the Louvre.",
+      "captureDate": "2025-05-16"
+    }
+  ],
+  "CH:BE:wengen": [
+    {
+      "type": "image",
+      "src": "/travel/media/wengen/valley-and-sheep.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Sheep grazing above the Lauterbrunnen valley near Wengen.",
+      "caption": "Sheep grazing above the Lauterbrunnen valley near Wengen.",
+      "captureDate": "2025-05-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/wengen/wengen-sign.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The Wengen sign against an Alpine backdrop.",
+      "caption": "The Wengen sign against an Alpine backdrop.",
+      "captureDate": "2025-05-18"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/wengen/flowering-meadow.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A flowering meadow above Wengen.",
+      "caption": "A flowering meadow above Wengen.",
+      "captureDate": "2025-05-18"
+    }
+  ],
+  "CH::jungfraujoch": [
+    {
+      "type": "image",
+      "src": "/travel/media/jungfraujoch/beer-in-the-snow.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A beer in the snow at Jungfraujoch.",
+      "caption": "A beer in the snow at Jungfraujoch.",
+      "captureDate": "2025-05-18"
+    }
+  ],
+  "CH:BE:interlaken": [
+    {
+      "type": "image",
+      "src": "/travel/media/interlaken/fondue.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Fondue in Interlaken.",
+      "caption": "Fondue in Interlaken.",
+      "captureDate": "2025-05-17"
+    }
+  ],
+  "ES::madrid": [
+    {
+      "type": "image",
+      "src": "/travel/media/madrid/evening-skyline.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Evening clouds over Madrid.",
+      "caption": "Evening clouds over Madrid.",
+      "captureDate": "2025-05-12"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/madrid/royal-palace.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "The Royal Palace courtyard in Madrid.",
+      "caption": "The Royal Palace courtyard in Madrid.",
+      "captureDate": "2025-05-12"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/madrid/salmon-toast.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Salmon toast in Madrid.",
+      "caption": "Salmon toast in Madrid.",
+      "captureDate": "2025-05-12"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/madrid/sculpture-detail.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Sculpture detail in Madrid.",
+      "caption": "Sculpture detail in Madrid.",
+      "captureDate": "2025-05-11"
+    }
+  ],
+  "ES::barcelona": [
+    {
+      "type": "image",
+      "src": "/travel/media/barcelona/altar-canopy.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The illuminated altar canopy inside the Sagrada Família in Barcelona.",
+      "caption": "The illuminated altar canopy inside the Sagrada Família in Barcelona.",
+      "captureDate": "2025-05-14"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/barcelona/stained-glass.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Blue and green stained glass inside the Sagrada Família in Barcelona.",
+      "caption": "Blue and green stained glass inside the Sagrada Família in Barcelona.",
+      "captureDate": "2025-05-14"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/barcelona/branching-ceiling.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Branching columns and the ceiling of the Sagrada Família in Barcelona.",
+      "caption": "Branching columns and the ceiling of the Sagrada Família in Barcelona.",
+      "captureDate": "2025-05-14"
+    }
+  ],
+  "US:CO:rocky mountain national park": [
+    {
+      "type": "image",
+      "src": "/travel/media/rocky-mountain-national-park/forest-wildlife.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Wildlife resting among the trees in Rocky Mountain National Park.",
+      "caption": "Wildlife resting among the trees in Rocky Mountain National Park.",
+      "captureDate": "2024-07-13"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/rocky-mountain-national-park/elk-meadow.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Elk grazing in Rocky Mountain National Park.",
+      "caption": "Elk grazing in Rocky Mountain National Park.",
+      "captureDate": "2024-07-13"
+    }
+  ],
+  "US:CO:granby": [
+    {
+      "type": "image",
+      "src": "/travel/media/granby/evening-portrait.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Tanmay in Granby.",
+      "caption": "Tanmay in Granby.",
+      "captureDate": "2024-07-11"
+    }
+  ],
+  "US:TN:nashville": [
+    {
+      "type": "image",
+      "src": "/travel/media/nashville/plated-chaat.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Chaat in Nashville.",
+      "caption": "Chaat in Nashville.",
+      "captureDate": "2023-03-27"
+    }
+  ],
+  "US:CO:breckenridge": [
+    {
+      "type": "image",
+      "src": "/travel/media/breckenridge/ski-portrait.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Tanmay at Breckenridge Ski Resort.",
+      "caption": "Tanmay at Breckenridge Ski Resort.",
+      "captureDate": "2023-02-24"
+    }
+  ],
+  "US:WA:seattle": [
+    {
+      "type": "image",
+      "src": "/travel/media/seattle/dessert.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Dessert in Seattle.",
+      "caption": "Dessert in Seattle.",
+      "captureDate": "2023-03-06"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/seattle/avocado-roll.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "An avocado-topped sushi roll in Seattle.",
+      "caption": "An avocado-topped sushi roll in Seattle.",
+      "captureDate": "2023-03-06"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/seattle/crispy-rice.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Crispy rice topped with fish and jalapeño in Seattle.",
+      "caption": "Crispy rice topped with fish and jalapeño in Seattle.",
+      "captureDate": "2023-03-06"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/seattle/avocado-toast.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Avocado toast and coffee in Seattle.",
+      "caption": "Avocado toast and coffee in Seattle.",
+      "captureDate": "2021-08-29"
+    }
+  ],
+  "US:NV:las vegas": [
+    {
+      "type": "image",
+      "src": "/travel/media/las-vegas/plated-dinner.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Dinner in Las Vegas.",
+      "caption": "Dinner in Las Vegas.",
+      "captureDate": "2022-08-28"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/las-vegas/oysters.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Oysters on ice in Las Vegas.",
+      "caption": "Oysters on ice in Las Vegas.",
+      "captureDate": "2022-08-28"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/las-vegas/hells-kitchen.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Hell’s Kitchen at Caesars Palace.",
+      "caption": "Hell’s Kitchen at Caesars Palace.",
+      "captureDate": "2022-08-28"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/las-vegas/fish-dinner.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Fish with lemon and capers in Las Vegas.",
+      "caption": "Fish with lemon and capers in Las Vegas.",
+      "captureDate": "2022-08-27"
+    }
+  ],
+  "US:LA:new orleans": [
+    {
+      "type": "image",
+      "src": "/travel/media/new-orleans/smoky-cocktail.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A smoky cocktail in New Orleans.",
+      "caption": "A smoky cocktail in New Orleans.",
+      "captureDate": "2022-03-12"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/new-orleans/eggs-benedict.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Eggs Benedict in New Orleans.",
+      "caption": "Eggs Benedict in New Orleans.",
+      "captureDate": "2022-03-12"
+    }
+  ],
+  "US:CA:los angeles": [
+    {
+      "type": "image",
+      "src": "/travel/media/los-angeles/hillside-evening.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "An evening view over the hills of Los Angeles.",
+      "caption": "An evening view over the hills of Los Angeles.",
+      "captureDate": "2018-07-31"
+    }
+  ],
+  "US:AZ:grand canyon": [
+    {
+      "type": "image",
+      "src": "/travel/media/grand-canyon/storm-light.webp",
+      "width": 1800,
+      "height": 1020,
+      "alt": "Clouds over the Grand Canyon.",
+      "caption": "Clouds over the Grand Canyon.",
+      "captureDate": "2016-07-28"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-canyon/canyon-strata.webp",
+      "width": 1800,
+      "height": 1013,
+      "alt": "Layered cliffs of the Grand Canyon.",
+      "caption": "Layered cliffs of the Grand Canyon.",
+      "captureDate": "2016-07-28"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/grand-canyon/rim-trees.webp",
+      "width": 1800,
+      "height": 1020,
+      "alt": "Trees along the Grand Canyon rim.",
+      "caption": "Trees along the Grand Canyon rim.",
+      "captureDate": "2016-07-28"
     }
   ]
 };

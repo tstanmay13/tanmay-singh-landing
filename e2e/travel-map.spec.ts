@@ -419,7 +419,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("117");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("124");
   await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
@@ -436,7 +436,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
     timeout: 2_500,
   });
   await waitForSettled(map);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("90");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("94");
   await expect(page.locator('[data-stat="major-hubs"] dd')).toHaveText("3");
   const hud = page.locator("header");
   const usaHub = map.locator('button[data-entity-id="hub:dfw"]');
@@ -722,4 +722,26 @@ test("destination gallery opens locally and supports keyboard navigation", async
   await page.keyboard.press("Escape");
   await expect(gallery).toHaveCount(0);
   await expect(card.getByRole("button", { name: /Open Ko Phangan gallery/i })).toBeFocused();
+});
+
+test("photo-evidenced park opens its local gallery on desktop and mobile", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/travel?city=Grand%20Teton%20National%20Park");
+  const card = page.getByRole("dialog", { name: /Grand Teton National Park travel place details/i });
+  await expect(card).toBeVisible();
+  const opener = card.getByRole("button", { name: /Open Grand Teton National Park gallery/i });
+  await opener.click();
+  const gallery = page.getByRole("dialog", { name: "Grand Teton National Park", exact: true });
+  await expect(gallery.getByText("1 / 10", { exact: true })).toBeVisible();
+  const mainImage = gallery.locator("figure img");
+  await expect.poll(() => mainImage.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await expect(mainImage).toHaveAttribute("src", /grand-teton-national-park/);
+  await page.screenshot({ path: testInfo.outputPath("expanded-desktop-gallery.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.keyboard.press("End");
+  await expect(gallery.getByText("10 / 10", { exact: true })).toBeVisible();
+  await expect.poll(() => mainImage.evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await page.screenshot({ path: testInfo.outputPath("expanded-mobile-gallery.png") });
+  await page.keyboard.press("Escape");
+  await expect(opener).toBeFocused();
 });
