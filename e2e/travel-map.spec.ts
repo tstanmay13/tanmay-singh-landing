@@ -419,7 +419,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("124");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("125");
   await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
@@ -726,6 +726,8 @@ test("destination gallery opens locally and supports keyboard navigation", async
 
 for (const { destination, count, folder } of [
   { destination: "Grand Teton National Park", count: 10, folder: "grand-teton-national-park" },
+  { destination: "Yellowstone National Park", count: 11, folder: "yellowstone-national-park" },
+  { destination: "Leissigen", count: 1, folder: "leissigen" },
   { destination: "Tokyo", count: 10, folder: "tokyo" },
   { destination: "Kyoto", count: 7, folder: "kyoto" },
   { destination: "Chiang Mai", count: 15, folder: "chiang-mai" },

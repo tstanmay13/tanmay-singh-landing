@@ -262,6 +262,14 @@ describe("travel catalog curation", () => {
     expect(corrected.lng).toBeCloseTo(105.9797);
   });
 
+  it("maps the Lake Thun photo to Leissigen without inventing a Timeline visit", () => {
+    const place = requirePlace(reference("Leissigen", "BE", "CH"));
+    expect(place).toMatchObject({ relationship: "visited", visitCount: 0, dwellMs: 0 });
+    expect(place.media[0].src).toBe("/travel/media/leissigen/lake-thun.webp");
+    expect(place.yearsVisited).toContain(2025);
+    expect(requirePlace(reference("Thun", "BE", "CH")).media).toEqual([]);
+  });
+
   it("exposes photos from the same canonical gallery and keeps homes empty", () => {
     for (const place of travelPlaces()) {
       expect(place.photos).toEqual(place.media.filter(item => item.type === "image"));

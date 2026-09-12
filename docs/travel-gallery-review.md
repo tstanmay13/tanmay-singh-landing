@@ -1,14 +1,14 @@
 # Expanded travel galleries
 
-This expansion adds 93 reviewed photographs. The catalog now contains 156 photographs
-and one existing silent golf video across 35 destinations. Public media,
-including the video poster, totals 64,678,502 bytes (61.68 MiB).
+This expansion adds 105 reviewed photographs. The catalog now contains 168 photographs
+and one existing silent golf video across 38 destinations. Public media,
+including the video poster, totals 71,439,644 bytes (68.13 MiB).
 
-Seven destinations established by photo evidence now have canonical pins: Grand Teton
+Eight destinations established by photo evidence now have canonical pins: Grand Teton
 National Park, Yellowstone National Park, Teton Village, Rocky Mountain National Park,
-Wengen, Jungfraujoch, and Interlaken. They have no synthetic Timeline visit counts or
+Wengen, Jungfraujoch, Interlaken, and Leissigen. They have no synthetic Timeline visit counts or
 dwell time. Existing travel history, Ko Phangan before Ko Samui, and all seven residence
-classifications are preserved. Updated statistics reflect 124 places, including 94 in
+classifications are preserved. Updated statistics reflect 125 places, including 94 in
 the United States.
 
 | Destination | Photos | Videos |
@@ -46,7 +46,10 @@ the United States.
 | Interlaken | 1 | 0 |
 | Rocky Mountain National Park | 2 | 0 |
 | Grand Teton National Park | 10 | 0 |
-| Yellowstone National Park | 5 | 0 |
+| Yellowstone National Park | 11 | 0 |
+| Leissigen | 1 | 0 |
+| Santa Cruz | 2 | 0 |
+| Glen Rose | 3 | 0 |
 | Teton Village | 2 | 0 |
 
 Images retain original framing and appearance. Public copies are local WebP assets
@@ -63,12 +66,12 @@ and assets while preserving map and gallery behavior.
 
 - Production build passed, including type checking. Twelve existing lint warnings
   remain in unrelated game files.
-- All 124 unit tests passed, including canonical mapping, local file availability,
+- All 125 unit tests passed, including canonical mapping, local file availability,
   image dimensions, metadata removal, and per-file/total size limits.
-- All 23 travel Playwright tests passed against the production build, including
-  local galleries for Tokyo, Kyoto, Chiang Mai, Ko Phangan and Grand Teton, mobile
+- All 25 travel Playwright tests passed against the production build, including
+  local galleries for Tokyo, Kyoto, Chiang Mai, Ko Phangan, Grand Teton, Yellowstone and Leissigen, mobile
   layout, keyboard navigation, focus restoration, map gestures and reduced motion.
-- Pan runs recorded one desktop long task of 75 ms and one mobile task of 156 ms.
+- Pan runs recorded no desktop long tasks and one mobile task of 54 ms.
   Interaction assertions passed; this run does not establish zero-jank performance.
 - Representative screenshots were visually inspected.
 
@@ -78,6 +81,10 @@ and assets while preserving map and gallery behavior.
 
 ![Chiang Mai desktop gallery](screenshots/travel-expanded/chiang-mai-desktop.webp)
 
+![Yellowstone desktop gallery](screenshots/travel-expanded/yellowstone-desktop.webp)
+
+![Leissigen mobile gallery](screenshots/travel-expanded/leissigen-mobile.webp)
+
 ## Review still outstanding
 
 This PR is a reviewed expansion, not an exhaustive photo-library audit. The target
@@ -85,7 +92,7 @@ of roughly ten public photos and thirty private originals has not been reached f
 most destinations. The Japan March 2026 and Thailand September 2026 dated query grids were traversed
 and expanded. Bangkok August, Rome and Venice date gaps were checked, as were
 Corpus Christi, College Station, Tool, Colorado July 11, newer Los Angeles and
-San Francisco trips. Other US stops, Japan ski-area mapping and Swiss destinations
+San Francisco trips. Date-only searches recovered Santa Cruz forest photos and Glen Rose wildlife; six missed Yellowstone stills were also recovered. South Padre, New Haven, Long Beach, Canyon Lake, Van, Durant and Fredericksburg queries were checked, with uncertain or ineligible candidates retained privately. Other US stops, Japan ski-area mapping and Swiss destinations
 remain open; query coverage does not establish a complete library audit. Some downloaded images remain private because their
 source mapping or small background details are uncertain.
 

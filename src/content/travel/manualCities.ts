@@ -24,6 +24,18 @@ export const MANUAL_CITIES: ManualCatalogCity[] = [
   // May 2025 photo evidence; no synthetic Timeline counts or dwell time.
   {
     ...EMPTY_VISIT_AGGREGATE,
+    id: "leissigen",
+    name: "Leissigen",
+    admin: "BE",
+    countryCode: "CH",
+    country: "Switzerland",
+    flag: "🇨🇭",
+    lat: 46.66,
+    lng: 7.78,
+    years: ["2025"],
+  },
+  {
+    ...EMPTY_VISIT_AGGREGATE,
     id: "wengen",
     name: "Wengen",
     admin: "BE",

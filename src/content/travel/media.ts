@@ -1002,6 +1002,60 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "A bison beside a river in Yellowstone National Park.",
       "caption": "A bison beside a river in Yellowstone National Park.",
       "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/forest-valley.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "A broad valley and forest in Yellowstone National Park.",
+      "caption": "A broad valley and forest in Yellowstone National Park.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/steaming-spring.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Steam rising from a thermal spring in Yellowstone.",
+      "caption": "Steam rising from a thermal spring in Yellowstone.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/steaming-mud-pool.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A steaming mud pool in Yellowstone.",
+      "caption": "A steaming mud pool in Yellowstone.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/bison-by-river.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A bison resting beside the river in Yellowstone.",
+      "caption": "A bison resting beside the river in Yellowstone.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/grazing-elk.webp",
+      "width": 1355,
+      "height": 1800,
+      "alt": "An elk grazing in Yellowstone National Park.",
+      "caption": "An elk grazing in Yellowstone National Park.",
+      "captureDate": "2026-06-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/yellowstone-national-park/canyon-and-lower-falls.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "The Yellowstone River and Lower Falls between canyon walls.",
+      "caption": "The Yellowstone River and Lower Falls between canyon walls.",
+      "captureDate": "2026-06-16"
     }
   ],
   "US:WY:teton village": [
@@ -1485,6 +1539,66 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "An anti-aircraft gun display in Corpus Christi.",
       "caption": "An anti-aircraft gun display in Corpus Christi.",
       "captureDate": "2014-07-04"
+    }
+  ],
+  "CH:BE:leissigen": [
+    {
+      "type": "image",
+      "src": "/travel/media/leissigen/lake-thun.webp",
+      "width": 1800,
+      "height": 1350,
+      "alt": "Lake Thun from Leissigen.",
+      "caption": "Lake Thun from Leissigen.",
+      "captureDate": "2025-05-17"
+    }
+  ],
+  "US:CA:santa cruz": [
+    {
+      "type": "image",
+      "src": "/travel/media/santa-cruz/forest-path.webp",
+      "width": 1020,
+      "height": 1800,
+      "alt": "Sunlight across a forest path near Santa Cruz.",
+      "caption": "Sunlight across a forest path near Santa Cruz.",
+      "captureDate": "2016-08-02"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/santa-cruz/tall-trees.webp",
+      "width": 1013,
+      "height": 1800,
+      "alt": "Tall trees and green undergrowth near Santa Cruz.",
+      "caption": "Tall trees and green undergrowth near Santa Cruz.",
+      "captureDate": "2016-08-02"
+    }
+  ],
+  "US:TX:glen rose": [
+    {
+      "type": "image",
+      "src": "/travel/media/glen-rose/giraffes.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Giraffes among fallen branches near Glen Rose.",
+      "caption": "Giraffes among fallen branches near Glen Rose.",
+      "captureDate": "2019-03-21"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/glen-rose/grazing-zebra.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A zebra grazing near Glen Rose.",
+      "caption": "A zebra grazing near Glen Rose.",
+      "captureDate": "2019-03-21"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/glen-rose/white-deer.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A white deer in the sunshine near Glen Rose.",
+      "caption": "A white deer in the sunshine near Glen Rose.",
+      "captureDate": "2019-03-21"
     }
   ]
 };
