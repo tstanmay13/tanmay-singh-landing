@@ -24,6 +24,18 @@ export const MANUAL_CITIES: ManualCatalogCity[] = [
   // Photo locations establish these stops independently of Timeline aggregates.
   {
     ...EMPTY_VISIT_AGGREGATE,
+    id: "hakuba",
+    name: "Hakuba",
+    admin: "",
+    countryCode: "JP",
+    country: "Japan",
+    flag: "🇯🇵",
+    lat: 36.68,
+    lng: 137.83,
+    years: ["2026"],
+  },
+  {
+    ...EMPTY_VISIT_AGGREGATE,
     id: "fuji",
     name: "Fuji",
     admin: "",

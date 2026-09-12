@@ -273,6 +273,7 @@ describe("travel catalog curation", () => {
   it("keeps photo-established stops separate from nearby Timeline cities", () => {
     for (const [name, admin, country, count] of [
       ["Fuji", "", "JP", 1],
+      ["Hakuba", "", "JP", 1],
       ["Lauterbrunnen", "BE", "CH", 2],
       ["Krattigen", "BE", "CH", 1],
     ] as const) {

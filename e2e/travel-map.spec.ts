@@ -419,7 +419,7 @@ test("contextual stats and keyboard controls stay scoped to the view", async ({
   page,
 }) => {
   const map = await openReadyMap(page);
-  await expect(page.locator('[data-stat="places"] dd')).toHaveText("128");
+  await expect(page.locator('[data-stat="places"] dd')).toHaveText("129");
   await expect(page.locator('[data-stat="countries"] dd')).toHaveText("12");
   await expect(page.getByRole("group", { name: "Map story mode" })).toBeVisible();
 
@@ -736,7 +736,14 @@ for (const { destination, count, folder } of [
   { destination: "Plano", count: 1, folder: "plano" },
   { destination: "Dallas", count: 1, folder: "dallas" },
   { destination: "Gun Barrel City", count: 1, folder: "gun-barrel-city" },
-  { destination: "Tokyo", count: 10, folder: "tokyo" },
+  { destination: "Tokyo", count: 11, folder: "tokyo" },
+  { destination: "Hakuba", count: 1, folder: "hakuba" },
+  { destination: "Nashville", count: 3, folder: "nashville" },
+  { destination: "Cancún", count: 1, folder: "cancun" },
+  { destination: "Barcelona", count: 4, folder: "barcelona" },
+  { destination: "Paris", count: 7, folder: "paris" },
+  { destination: "Rome", count: 5, folder: "rome" },
+  { destination: "Vatican", count: 6, folder: "vatican" },
   { destination: "Kyoto", count: 7, folder: "kyoto" },
   { destination: "Chiang Mai", count: 15, folder: "chiang-mai" },
 ]) {

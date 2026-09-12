@@ -767,6 +767,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Tuna nigiri on a stone plate in Tokyo.",
       "caption": "Tuna nigiri on a stone plate in Tokyo.",
       "captureDate": "2026-03-11"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/tokyo/nissan-race-car.webp",
+      "width": 1013,
+      "height": 1800,
+      "alt": "A Nissan race car on display in Tokyo.",
+      "caption": "A Nissan race car on display in Tokyo.",
+      "captureDate": "2026-03-10"
     }
   ],
   "IT::rome": [
@@ -805,6 +814,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "The Pantheon’s coffered dome and oculus in Rome.",
       "caption": "The Pantheon’s coffered dome and oculus in Rome.",
       "captureDate": "2025-05-24"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/rome/trevi-fountain-night.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "The illuminated Trevi Fountain in Rome.",
+      "caption": "The illuminated Trevi Fountain in Rome.",
+      "captureDate": "2025-05-23"
     }
   ],
   "VA::vatican": [
@@ -851,6 +869,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "height": 1800,
       "alt": "Gilded ceiling panels in the Vatican Museums.",
       "caption": "Gilded ceiling panels in the Vatican Museums.",
+      "captureDate": "2025-05-23"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/vatican/gallery-of-maps-vault.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "An ornate painted vault in the Vatican Museums.",
+      "caption": "An ornate painted vault in the Vatican Museums.",
       "captureDate": "2025-05-23"
     }
   ],
@@ -1212,6 +1239,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "A gilded, painted ceiling in the Louvre.",
       "caption": "A gilded, painted ceiling in the Louvre.",
       "captureDate": "2025-05-16"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/paris/colorful-checkerboard.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "A colorful checkerboard displayed in Paris.",
+      "caption": "A colorful checkerboard displayed in Paris.",
+      "captureDate": "2025-05-16"
     }
   ],
   "CH:BE:wengen": [
@@ -1339,6 +1375,15 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Branching columns and the ceiling of the Sagrada Família in Barcelona.",
       "caption": "Branching columns and the ceiling of the Sagrada Família in Barcelona.",
       "captureDate": "2025-05-14"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/barcelona/warm-stained-glass.webp",
+      "width": 1350,
+      "height": 1800,
+      "alt": "Warm light through stained glass inside the Sagrada Família in Barcelona.",
+      "caption": "Warm light through stained glass inside the Sagrada Família in Barcelona.",
+      "captureDate": "2025-05-14"
     }
   ],
   "US:CO:rocky mountain national park": [
@@ -1373,6 +1418,24 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
     }
   ],
   "US:TN:nashville": [
+    {
+      "type": "image",
+      "src": "/travel/media/nashville/stone-clock-tower.webp",
+      "width": 1349,
+      "height": 1800,
+      "alt": "A stone facade and clock tower in Nashville.",
+      "caption": "A stone facade and clock tower in Nashville.",
+      "captureDate": "2023-03-25"
+    },
+    {
+      "type": "image",
+      "src": "/travel/media/nashville/stained-glass-vault.webp",
+      "width": 1349,
+      "height": 1800,
+      "alt": "A stained-glass vault and chandelier in Nashville.",
+      "caption": "A stained-glass vault and chandelier in Nashville.",
+      "captureDate": "2023-03-25"
+    },
     {
       "type": "image",
       "src": "/travel/media/nashville/plated-chaat.webp",
@@ -1723,6 +1786,28 @@ export const PLACE_MEDIA: Readonly<Record<string, TravelMedia[]>> = {
       "alt": "Fried chicken, fries, macaroni and a biscuit in Dallas.",
       "caption": "Fried chicken, fries, macaroni and a biscuit in Dallas.",
       "captureDate": "2025-11-24"
+    }
+  ],
+  "MX::cancún": [
+    {
+      "type": "image",
+      "src": "/travel/media/cancun/caribbean-waves.webp",
+      "width": 1349,
+      "height": 1800,
+      "alt": "Waves rolling onto the beach in Cancún.",
+      "caption": "Waves rolling onto the beach in Cancún.",
+      "captureDate": "2022-05-25"
+    }
+  ],
+  "JP::hakuba": [
+    {
+      "type": "image",
+      "src": "/travel/media/hakuba/snowy-mountain-ridges.webp",
+      "width": 1013,
+      "height": 1800,
+      "alt": "Snow-covered mountain ridges beneath low clouds in Hakuba.",
+      "caption": "Snow-covered mountain ridges beneath low clouds in Hakuba.",
+      "captureDate": "2026-03-15"
     }
   ]
 };
